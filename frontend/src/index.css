@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────── */
+@theme {
+  --color-orange-primary: #E8734A;
+  --color-orange-light:   #F0956B;
+  --color-orange-pale:    #FFF0EA;
+  --color-text-dark:      #1A1A1A;
+  --color-text-mid:       #6B6B6B;
+  --color-bg:             #FAFAFA;
+
+  /* Float bob */
+  --animate-float: float 4s ease-in-out infinite;
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  /* Pulse sparkle */
+  --animate-pulse-slow: pulseSlow 3s ease-in-out infinite;
+  @keyframes pulseSlow {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+    50%       { transform: scale(1.15) rotate(20deg); opacity: 0.6; }
+  }
+
+  /* Scroll reveal: fade up */
+  --animate-reveal-up: revealUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(48px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scroll reveal: fade in */
+  --animate-reveal-fade: revealFade 0.8s ease-out forwards;
+  @keyframes revealFade {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Scroll reveal: slide from left */
+  --animate-reveal-left: revealLeft 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  @keyframes revealLeft {
+    from { opacity: 0; transform: translateX(-60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Scroll reveal: slide from right */
+  --animate-reveal-right: revealRight 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  @keyframes revealRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Shimmer for CTA button */
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Spin slow */
+  --animate-spin-slow: spinSlow 10s linear infinite;
+  @keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #FAFAFA;
+  color: #1A1A1A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ─── Custom Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #F5F5F5; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#E8734A,#F0956B); border-radius: 4px; }
+
+/* ─── Glassmorphism Utility ─────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-dark {
+  background: rgba(26, 26, 26, 0.65);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-orange {
+  background: rgba(232, 115, 74, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 115, 74, 0.25);
+}
+
+/* ─── Scroll Animation States ────────────────────────────────────── */
+/* Elements start invisible; JS adds .animated to trigger the animation */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(48px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-up.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-left.animated {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-right.animated {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-fade {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.reveal-fade.animated {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delay helpers */
+.delay-100 { transition-delay: 0.1s !important; }
+.delay-200 { transition-delay: 0.2s !important; }
+.delay-300 { transition-delay: 0.3s !important; }
+.delay-400 { transition-delay: 0.4s !important; }
+.delay-500 { transition-delay: 0.5s !important; }
+.delay-600 { transition-delay: 0.6s !important; }
+
+/* ─── Sparkle icon ───────────────────────────────────────────────── */
+.sparkle {
+  display: inline-block;
+  animation: pulseSlow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ─── Float card ─────────────────────────────────────────────────── */
+.float-card {
+  animation: float 4s ease-in-out infinite;
+}
+.float-card-delayed {
+  animation: float 4s ease-in-out 1.8s infinite;
+}
+
+/* ─── Card hover lift ────────────────────────────────────────────── */
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s ease;
+  cursor: pointer;
+}
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 28px 56px rgba(232, 115, 74, 0.18);
+}
+
+/* ─── Carousel scrollbar hidden ──────────────────────────────────── */
+.carousel-track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+
+/* ─── CTA Shimmer button ─────────────────────────────────────────── */
+.btn-shimmer {
+  background: linear-gradient(
+    105deg,
+    #E8734A 0%,
+    #F0956B 40%,
+    #fff6 50%,
+    #F0956B 60%,
+    #E8734A 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 2.8s linear infinite;
+}
+
+/* ─── Dotted path SVG overlay ────────────────────────────────────── */
+.dotted-path {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ─── Section wrapper spacing ────────────────────────────────────── */
+.section-pad {
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
+@media (max-width: 768px) {
+  .section-pad {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+}
+
+/* ─── Gradient text ──────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #E8734A 0%, #F0956B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
