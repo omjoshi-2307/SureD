@@ -8,7 +8,11 @@ const NAV_LINKS = [
   { label: 'Contact',      href: '#contact'       },
 ];
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onSignIn?: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [scrolled,  setScrolled]  = useState(false);
 
@@ -107,38 +111,72 @@ const Navbar: React.FC = () => {
           ))}
         </ul>
 
-        {/* CTA */}
-        <a
-          href="#pricing"
-          className="hidden md:inline-flex btn-shimmer"
-          style={{
-            alignItems:     'center',
-            justifyContent: 'center',
-            color:          '#fff',
-            fontFamily:     "'Poppins', sans-serif",
-            fontWeight:     700,
-            fontSize:       '0.875rem',
-            letterSpacing:  '0.3px',
-            padding:        '12px 28px',
-            borderRadius:   50,
-            textDecoration: 'none',
-            boxShadow:      '0 4px 20px rgba(232,115,74,0.4)',
-            transition:     'transform 0.25s, box-shadow 0.25s',
-            whiteSpace:     'nowrap',
-          }}
-          onMouseEnter={e => {
-            const el = e.currentTarget as HTMLAnchorElement;
-            el.style.transform  = 'translateY(-2px) scale(1.02)';
-            el.style.boxShadow  = '0 10px 30px rgba(232,115,74,0.5)';
-          }}
-          onMouseLeave={e => {
-            const el = e.currentTarget as HTMLAnchorElement;
-            el.style.transform  = 'none';
-            el.style.boxShadow  = '0 4px 20px rgba(232,115,74,0.4)';
-          }}
-        >
-          Get Protected
-        </a>
+        {/* Desktop CTA group */}
+        <div className="hidden md:flex" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Sign In */}
+          <button
+            onClick={onSignIn}
+            style={{
+              fontFamily:     "'Poppins', sans-serif",
+              fontWeight:     600,
+              fontSize:       '0.875rem',
+              color:          '#3A3A3A',
+              background:     'none',
+              border:         '1.5px solid #EAEAEA',
+              borderRadius:   50,
+              padding:        '10px 22px',
+              cursor:         'pointer',
+              transition:     'all 0.25s ease',
+              whiteSpace:     'nowrap',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = '#E8734A';
+              e.currentTarget.style.color       = '#E8734A';
+              e.currentTarget.style.boxShadow   = '0 4px 12px rgba(232,115,74,0.12)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = '#EAEAEA';
+              e.currentTarget.style.color       = '#3A3A3A';
+              e.currentTarget.style.boxShadow   = 'none';
+            }}
+          >
+            Sign In
+          </button>
+
+          {/* Get Protected */}
+          <a
+            href="#pricing"
+            className="btn-shimmer"
+            style={{
+              display:        'inline-flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              color:          '#fff',
+              fontFamily:     "'Poppins', sans-serif",
+              fontWeight:     700,
+              fontSize:       '0.875rem',
+              letterSpacing:  '0.3px',
+              padding:        '12px 28px',
+              borderRadius:   50,
+              textDecoration: 'none',
+              boxShadow:      '0 4px 20px rgba(232,115,74,0.4)',
+              transition:     'transform 0.25s, box-shadow 0.25s',
+              whiteSpace:     'nowrap',
+            }}
+            onMouseEnter={e => {
+              const el = e.currentTarget as HTMLAnchorElement;
+              el.style.transform = 'translateY(-2px) scale(1.02)';
+              el.style.boxShadow = '0 10px 30px rgba(232,115,74,0.5)';
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget as HTMLAnchorElement;
+              el.style.transform = 'none';
+              el.style.boxShadow = '0 4px 20px rgba(232,115,74,0.4)';
+            }}
+          >
+            Get Protected
+          </a>
+        </div>
 
         {/* Hamburger */}
         <button
@@ -206,7 +244,30 @@ const Navbar: React.FC = () => {
                 </a>
               </li>
             ))}
-            <li style={{ paddingTop: 8 }}>
+            {/* Mobile: Sign In */}
+            <li style={{ paddingTop: 4 }}>
+              <button
+                onClick={() => { setMenuOpen(false); onSignIn?.(); }}
+                style={{
+                  display:        'block',
+                  width:          '100%',
+                  textAlign:      'center',
+                  color:          '#1A1A1A',
+                  fontFamily:     "'Poppins', sans-serif",
+                  fontWeight:     600,
+                  fontSize:       '0.95rem',
+                  padding:        '13px',
+                  borderRadius:   50,
+                  border:         '1.5px solid #EAEAEA',
+                  background:     '#FFFFFF',
+                  cursor:         'pointer',
+                  marginBottom:   6,
+                }}
+              >
+                Sign In
+              </button>
+            </li>
+            <li style={{ paddingTop: 4 }}>
               <a
                 href="#pricing"
                 onClick={() => setMenuOpen(false)}
