@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sparkle from './Sparkle';
+import { registerUser } from "../../services/authService";
 
 interface RegisterProps {
   onBack: () => void;
@@ -18,6 +19,39 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  /* ── Real registration handler ── */
+  const handleRegister = async () => {
+    setError('');
+    if (!firstName.trim()) { setError('Please enter your first name.'); return; }
+    if (!lastName.trim()) { setError('Please enter your last name.'); return; }
+    if (!email.trim()) { setError('Please enter your email address.'); return; }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (password !== confirm) { setError('Passwords do not match.'); return; }
+    if (!agreed) { setError('Please agree to the Terms of Service and Privacy Policy.'); return; }
+
+    setLoading(true);
+    try {
+      await registerUser({
+        name: `${firstName.trim()} ${lastName.trim()}`,
+        email: email.trim(),
+        password,
+        role,
+      });
+      // On success: switch to the Login screen
+      onSignIn();
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Registration failed. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* ── Password strength ── */
   const strength = (() => {
@@ -506,11 +540,29 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
           </a>
         </label>
 
+        {/* ── Inline Error Message ── */}
+        {error && (
+          <div style={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            background: 'rgba(232,84,84,0.08)',
+            border: '1px solid rgba(232,84,84,0.22)',
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.8rem',
+            color: '#C0392B',
+            fontWeight: 500,
+            lineHeight: 1.5,
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* ── Primary Register Button ── */}
         <button
           type="button"
           className="btn-shimmer"
-          onClick={() => onRegister?.(role)}
+          onClick={handleRegister}
+          disabled={loading}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 10, width: '100%',
@@ -518,24 +570,29 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.4px',
             padding: '15px', borderRadius: 50, border: 'none',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.75 : 1,
             boxShadow: '0 8px 28px rgba(232,115,74,0.4)',
             transition: 'transform 0.25s, box-shadow 0.25s',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)';
+            if (!loading) {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)';
+            }
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'none';
             e.currentTarget.style.boxShadow = '0 8px 28px rgba(232,115,74,0.4)';
           }}
         >
-          CREATE MY ACCOUNT
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          {loading ? 'CREATING ACCOUNT…' : 'CREATE MY ACCOUNT'}
+          {!loading && (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )}
         </button>
 
         {/* ── Divider ── */}

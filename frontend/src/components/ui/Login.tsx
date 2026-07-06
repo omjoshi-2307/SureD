@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../services/authService';
 import Sparkle from './Sparkle';
 
 interface LoginProps {
@@ -9,11 +11,43 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
+  const navigate = useNavigate();
   const [role, setRole] = useState<'student' | 'landlord'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    setError('');
+    if (!email.trim()) { setError('Please enter your email address.'); return; }
+    if (!password) { setError('Please enter your password.'); return; }
+
+    setLoading(true);
+    try {
+      const response = await loginUser({ email: email.trim(), password });
+      const userRole: string = response?.user?.role ?? '';
+      if (userRole === 'student') {
+        navigate('/student/dashboard');
+      } else if (userRole === 'landlord') {
+        navigate('/landlord/dashboard');
+      } else if (userRole === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        setError('Unknown role. Please contact support.');
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Login failed. Please check your credentials.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const upfrontSaved = Math.round(((1500 * 12) / 52) * 4);
 
@@ -399,11 +433,29 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
           </a>
         </div>
 
+        {/* ── Inline Error Message ── */}
+        {error && (
+          <div style={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            background: 'rgba(232,84,84,0.08)',
+            border: '1px solid rgba(232,84,84,0.22)',
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: '0.8rem',
+            color: '#C0392B',
+            fontWeight: 500,
+            lineHeight: 1.5,
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* ── Primary Login Button ── */}
         <button
           type="button"
           className="btn-shimmer"
-          onClick={() => onLogin?.(role)}
+          onClick={handleLogin}
+          disabled={loading}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             gap: 10, width: '100%',
@@ -411,24 +463,29 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 700, fontSize: '0.9rem', letterSpacing: '0.4px',
             padding: '15px', borderRadius: 50, border: 'none',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.75 : 1,
             boxShadow: '0 8px 28px rgba(232,115,74,0.4)',
             transition: 'transform 0.25s, box-shadow 0.25s',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)';
+            if (!loading) {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)';
+            }
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'none';
             e.currentTarget.style.boxShadow = '0 8px 28px rgba(232,115,74,0.4)';
           }}
         >
-          SIGN IN
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          {loading ? 'SIGNING IN…' : 'SIGN IN'}
+          {!loading && (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )}
         </button>
 
         {/* ── Divider ── */}
