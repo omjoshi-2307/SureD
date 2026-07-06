@@ -32,6 +32,13 @@ pub fn deposit(
     escrow::deposit(&env, caller)
 }
 
+pub fn confirm(
+    env: Env,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+    escrow::confirm(&env, caller)
+}
+
     pub fn initialize(
     env: Env,
     student: Address,

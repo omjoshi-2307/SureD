@@ -81,3 +81,51 @@ pub fn deposit(
 
     Ok(escrow)
 }
+
+pub fn confirm(
+    env: &Env,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+
+    let mut escrow = crate::storage::get_escrow(env)
+        .ok_or(ContractError::EscrowNotFound)?;
+
+    if escrow.status != EscrowStatus::Funded {
+        return Err(ContractError::InvalidState);
+    }
+
+    caller.require_auth();
+
+    if caller == escrow.student {
+
+        if escrow.student_confirmed {
+            return Err(ContractError::AlreadyConfirmed);
+        }
+
+        escrow.student_confirmed = true;
+
+    } else if caller == escrow.landlord {
+
+        if escrow.landlord_confirmed {
+            return Err(ContractError::AlreadyConfirmed);
+        }
+
+        escrow.landlord_confirmed = true;
+
+    } else {
+
+        return Err(ContractError::Unauthorized);
+
+    }
+
+    // If both parties have confirmed, update the status
+    if escrow.student_confirmed && escrow.landlord_confirmed {
+        escrow.status = EscrowStatus::PendingConfirmation;
+    }
+
+    // Save the updated escrow
+    crate::storage::save_escrow(env, &escrow);
+
+    // Return the updated escrow
+    Ok(escrow)
+}
