@@ -20,9 +20,23 @@ pub struct SureDepositContract;
 
 #[contractimpl]
 impl SureDepositContract {
-    
+
 pub fn get_escrow(env: Env) -> Option<Escrow> {
     storage::get_escrow(&env)
+}
+
+pub fn deposit(
+    env: Env,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+    escrow::deposit(&env, caller)
+}
+
+pub fn confirm(
+    env: Env,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+    escrow::confirm(&env, caller)
 }
 
     pub fn initialize(

@@ -4,8 +4,16 @@ use soroban_sdk::{contracttype, Address};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EscrowStatus {
     Created,
+
     Funded,
+
+    PendingConfirmation,
+
     Released,
+
+    Disputed,
+
+    Cancelled,
 }
 
 #[contracttype]

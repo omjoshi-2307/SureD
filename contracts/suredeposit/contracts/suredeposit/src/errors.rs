@@ -7,8 +7,11 @@ pub enum ContractError {
     AlreadyInitialized = 1,
     InvalidAmount = 2,
     SameAddress = 3,
+
     EscrowNotFound = 4,
-    AlreadyConfirmed = 5,
-    AlreadyReleased = 6,
-    Unauthorized = 7,
+    InvalidState = 5,
+
+    AlreadyConfirmed = 6,
+    AlreadyReleased = 7,
+    Unauthorized = 8,
 }
