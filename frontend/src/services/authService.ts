@@ -28,6 +28,15 @@ export const loginUser = async (data: LoginData) => {
   return response.data;
 };
 
+// Update Wallet Address
+export const updateWallet = async (walletAddress: string) => {
+  const response = await API.put("/user/wallet", {
+    walletAddress,
+  });
+
+  return response.data;
+};
+
 // Logout
 export const logoutUser = () => {
   localStorage.removeItem("token");

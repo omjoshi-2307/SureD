@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
+const { updateWallet } = require("../controllers/userController");
 
 // Accessible by any logged-in user
 router.get("/profile", authMiddleware, (req, res) => {
@@ -50,5 +51,8 @@ router.get(
     });
   }
 );
+
+// Update Wallet Address
+router.put("/wallet", authMiddleware, updateWallet);
 
 module.exports = router;

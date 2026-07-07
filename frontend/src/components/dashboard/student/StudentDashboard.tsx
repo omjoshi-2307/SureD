@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import { connectWallet } from "@/services/walletService";
+import { updateWallet } from "@/services/authService";
 
 /* ── Icons (inline SVG, no extra deps) ── */
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
@@ -110,6 +112,8 @@ const QuickBtn = ({ label, icon, primary, onClick }: { label: string; icon: stri
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState('dashboard');
+  const [walletAddress, setWalletAddress] = useState("");
+  const [connecting, setConnecting] = useState(false);
 
   const handleNavChange = (id: string) => {
     if (id === 'escrow') {
@@ -122,6 +126,29 @@ const StudentDashboard: React.FC = () => {
       setActiveId(id);
     }
   };
+
+  const handleConnectWallet = async () => {
+  try {
+    setConnecting(true);
+
+    const address = await connectWallet();
+
+// Save wallet to backend
+await updateWallet(address);
+
+// Update UI
+setWalletAddress(address);
+
+console.log("Connected Wallet:", address);
+
+alert("Wallet Connected and Saved Successfully!");
+  } catch (error: any) {
+    console.error(error);
+    alert(error.message || "Failed to connect wallet.");
+  } finally {
+    setConnecting(false);
+  }
+};
 
   return (
     <DashboardLayout
@@ -166,8 +193,37 @@ const StudentDashboard: React.FC = () => {
             You have 2 pending deposits and 3 active escrows to manage.
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <QuickBtn label="Create Escrow" icon="+" primary onClick={() => navigate('/student/create-escrow')} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <QuickBtn label="Create Escrow" icon="+" primary onClick={() => navigate('/student/create-escrow')} />
+            <QuickBtn
+              label={connecting ? 'Connecting…' : walletAddress ? 'Wallet Connected' : 'Connect Wallet'}
+              icon={walletAddress ? '✅' : '🔗'}
+              onClick={walletAddress ? undefined : handleConnectWallet}
+            />
+          </div>
+          {walletAddress && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              borderRadius: 50,
+              padding: '5px 14px',
+            }}>
+              <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.75)', fontFamily: "'Poppins', sans-serif" }}>
+                Stellar:
+              </span>
+              <span style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                color: '#fff',
+                letterSpacing: '0.3px',
+              }}>
+                {walletAddress.slice(0, 6)}…{walletAddress.slice(-6)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
