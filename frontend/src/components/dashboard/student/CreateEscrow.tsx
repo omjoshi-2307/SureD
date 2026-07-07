@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import { createEscrow } from '@/services/sorobanService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -39,15 +40,16 @@ const NAV_ITEMS: NavItem[] = [
 /* ─── Mock property data ─────────────────────────────────────────── */
 interface Property {
   id: number; name: string; address: string; city: string;
-  rent: number; deposit: number; landlord: string; rating: number;
+  rent: number; deposit: number; landlord: string; landlordAddress: string; rating: number;
   available: string; type: string; lease: string; emoji: string; rooms: number;
 }
+const LANDLORD_ADDRESS = 'GBZ6RDOP4M4WRCUUDEOUR6W53OK3C3SPD66R3YBR4INIYOR6H6HT2QLK';
 const PROPERTIES: Property[] = [
-  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', emoji: '🏢', rooms: 2 },
-  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', emoji: '🏙️', rooms: 3 },
-  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', emoji: '🏠', rooms: 1 },
-  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  emoji: '🏗️', rooms: 2 },
-  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', emoji: '🎓', rooms: 1 },
+  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', landlordAddress: LANDLORD_ADDRESS, rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', emoji: '🏢', rooms: 2 },
+  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   landlordAddress: LANDLORD_ADDRESS, rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', emoji: '🏙️', rooms: 3 },
+  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     landlordAddress: LANDLORD_ADDRESS, rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', emoji: '🏠', rooms: 1 },
+  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    landlordAddress: LANDLORD_ADDRESS, rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  emoji: '🏗️', rooms: 2 },
+  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  landlordAddress: LANDLORD_ADDRESS, rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', emoji: '🎓', rooms: 1 },
 ];
 
 const PLATFORM_FEE = 25;
@@ -113,10 +115,12 @@ const Skeleton = ({ w = '100%', h = 16, br = 8 }: { w?: string | number; h?: num
 );
 
 /* ─── Toast notification ──────────────────────────────────────────── */
-const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
+const Toast = ({ visible, message, isError }: { visible: boolean; message: string; isError?: boolean }) => (
   <div style={{
     position: 'fixed', bottom: 28, right: 28, zIndex: 9999,
-    background: 'linear-gradient(135deg, #1A2E1A, #2E4E2E)',
+    background: isError
+      ? 'linear-gradient(135deg, #2E1A1A, #4E2E2E)'
+      : 'linear-gradient(135deg, #1A2E1A, #2E4E2E)',
     color: '#fff', borderRadius: 14, padding: '14px 22px',
     font, fontWeight: 600, fontSize: '0.88rem',
     boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
@@ -125,8 +129,10 @@ const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
     transform: visible ? 'translateY(0)' : 'translateY(20px)',
     transition: 'opacity 0.4s, transform 0.4s',
     pointerEvents: 'none',
+    maxWidth: 420,
   }}>
-    <span style={{ fontSize: '1.1rem' }}>✅</span> {message}
+    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{isError ? '❌' : '✅'}</span>
+    <span style={{ wordBreak: 'break-word' }}>{message}</span>
   </div>
 );
 
@@ -148,6 +154,9 @@ const CreateEscrow: React.FC = () => {
   const [purpose,        setPurpose]       = useState('security');
   const [agreed,         setAgreed]        = useState(false);
   const [toast,          setToast]         = useState(false);
+  const [toastMsg,       setToastMsg]      = useState('');
+  const [toastError,     setToastError]    = useState(false);
+  const [submitting,     setSubmitting]    = useState(false);
   const [mounted,        setMounted]       = useState(false);
 
   const ddRef = useRef<HTMLDivElement>(null);
@@ -180,10 +189,38 @@ const CreateEscrow: React.FC = () => {
   const total      = deposit + PLATFORM_FEE + NETWORK_FEE;
   const canSubmit  = agreed && selectedProp && deposit > 0 && startDate && endDate;
 
-  const handleCreate = () => {
-    if (!canSubmit) return;
+  const showToast = (message: string, isError = false) => {
+    setToastMsg(message);
+    setToastError(isError);
     setToast(true);
-    setTimeout(() => { setToast(false); navigate('/student/escrow/ESC-001'); }, 2000);
+    setTimeout(() => setToast(false), isError ? 4000 : 2000);
+  };
+
+  const handleCreate = async () => {
+    if (!canSubmit || submitting) return;
+    setSubmitting(true);
+    try {
+      const result = await createEscrow({
+        landlordAddress: selectedProp!.landlordAddress,
+        amountXlm: deposit,
+      });
+      showToast(`Escrow created! Tx: ${result.txHash.slice(0, 8)}…`);
+      setTimeout(() => navigate('/student/escrow/ESC-001'), 2000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      // User rejected the wallet signature
+      if (
+        msg.toLowerCase().includes('user declined') ||
+        msg.toLowerCase().includes('rejected') ||
+        msg.toLowerCase().includes('cancel')
+      ) {
+        showToast('Transaction cancelled — wallet signature rejected.', true);
+      } else {
+        showToast(msg, true);
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* ── card fade-in animation ── */
@@ -198,6 +235,10 @@ const CreateEscrow: React.FC = () => {
     @keyframes shimmerSkeleton {
       0%   { background-position: -200% 0; }
       100% { background-position:  200% 0; }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
     }
   `;
 
@@ -214,7 +255,7 @@ const CreateEscrow: React.FC = () => {
       }}
     >
       <style>{skeletonStyle}</style>
-      <Toast visible={toast} message="Escrow created successfully (Demo Mode)" />
+      <Toast visible={toast} message={toastMsg} isError={toastError} />
 
       {/* ── Breadcrumb ── */}
       <div style={{ ...fadeIn(0), display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
@@ -584,25 +625,38 @@ const CreateEscrow: React.FC = () => {
             {/* Create Escrow */}
             <button
               onClick={handleCreate}
-              disabled={!canSubmit}
-              className={canSubmit ? 'btn-shimmer' : ''}
+              disabled={!canSubmit || submitting}
+              className={canSubmit && !submitting ? 'btn-shimmer' : ''}
               style={{
                 font, fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px',
                 color: '#fff', border: 'none', borderRadius: 50, padding: '13px 32px',
-                cursor: canSubmit ? 'pointer' : 'not-allowed',
-                opacity: canSubmit ? 1 : 0.45,
-                background: canSubmit ? undefined : '#CCCCCC',
-                boxShadow: canSubmit ? '0 8px 28px rgba(232,115,74,0.4)' : 'none',
+                cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
+                opacity: canSubmit && !submitting ? 1 : 0.45,
+                background: canSubmit && !submitting ? undefined : '#CCCCCC',
+                boxShadow: canSubmit && !submitting ? '0 8px 28px rgba(232,115,74,0.4)' : 'none',
                 transition: 'opacity 0.3s, transform 0.25s, box-shadow 0.25s',
                 display: 'flex', alignItems: 'center', gap: 8,
               }}
-              onMouseEnter={e => { if (canSubmit) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = canSubmit ? '0 8px 28px rgba(232,115,74,0.4)' : 'none'; }}
+              onMouseEnter={e => { if (canSubmit && !submitting) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = canSubmit && !submitting ? '0 8px 28px rgba(232,115,74,0.4)' : 'none'; }}
             >
-              🔐 Create Escrow
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              {submitting ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    style={{ animation: 'spin 1s linear infinite' }}>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                  Waiting for Wallet…
+                </>
+              ) : (
+                <>
+                  🔐 Create Escrow
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
