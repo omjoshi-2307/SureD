@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
 import { connectWallet } from "@/services/walletService";
 import { updateWallet } from "@/services/authService";
+import { getEscrowsByStudentDb } from "@/services/escrowService";
 
 /* ── Icons (inline SVG, no extra deps) ── */
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
@@ -50,26 +51,16 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-/* ── Mock data ── */
-const STATS = [
-  { label: 'Active Escrows', value: '3', sub: '+1 this month', icon: '🔐', color: '#E8734A' },
-  { label: 'Completed Deposits', value: '7', sub: 'All released', icon: '✅', color: '#4ACF7A' },
-  { label: 'Pending Deposits', value: '2', sub: 'Awaiting confirmation', icon: '⏳', color: '#F0A34A' },
-  { label: 'Total Deposit Value', value: '£8,400', sub: 'Across all properties', icon: '💷', color: '#4ACFE8' },
-];
 
-const RECENT_ESCROWS = [
-  { id: 'ESC-001', property: '14 Brunswick St, Leeds', landlord: 'James Carter', amount: '£1,500', status: 'Active', date: '01 Jul 2026' },
-  { id: 'ESC-002', property: '8 Canal Rd, Manchester', landlord: 'Sarah Miles', amount: '£1,200', status: 'Active', date: '18 Jun 2026' },
-  { id: 'ESC-003', property: '21 Park Ave, Sheffield', landlord: 'Tom Walsh', amount: '£950', status: 'Pending', date: '10 Jun 2026' },
-  { id: 'ESC-004', property: '5 Queens Rd, Birmingham', landlord: 'Lisa Park', amount: '£1,100', status: 'Completed', date: '02 May 2026' },
-  { id: 'ESC-005', property: '33 Elm Cl, Nottingham', landlord: 'Brian Stone', amount: '£800', status: 'Completed', date: '14 Mar 2026' },
-];
+
 
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  Active:    { background: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  Pending:   { background: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  Completed: { background: 'rgba(74,207,232,0.12)', color: '#0E87A0', border: '1px solid rgba(74,207,232,0.3)' },
+  CREATED:              { background: 'rgba(74,144,226,0.12)', color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
+  FUNDED:               { background: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
+  PENDING_CONFIRMATION: { background: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
+  RELEASED:             { background: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
+  DISPUTED:             { background: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
+  CANCELLED:            { background: 'rgba(107,114,128,0.12)', color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
 };
 
 const C = { orange: '#E8734A', orangeLight: '#F0956B', border: '#EEEEEE', textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA' };
@@ -108,12 +99,57 @@ const QuickBtn = ({ label, icon, primary, onClick }: { label: string; icon: stri
   </button>
 );
 
+/* ── Skeleton loading row ── */
+const SkeletonRow = () => (
+  <tr style={{ borderTop: `1px solid ${C.border}`, animation: 'pulse 1.5s infinite ease-in-out' }}>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 60, background: '#F0F0F0', borderRadius: 4 }} /></td>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 180, background: '#F0F0F0', borderRadius: 4 }} /></td>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 100, background: '#F0F0F0', borderRadius: 4 }} /></td>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 80, background: '#F0F0F0', borderRadius: 4 }} /></td>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 22, width: 70, background: '#F0F0F0', borderRadius: 50 }} /></td>
+    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 80, background: '#F0F0F0', borderRadius: 4 }} /></td>
+  </tr>
+);
+
 /* ═════════════════════════════════════════════════════════════ */
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState('dashboard');
   const [walletAddress, setWalletAddress] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [escrows, setEscrows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDashboardData = async (wallet: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getEscrowsByStudentDb(wallet);
+      const sorted = (data.escrows || []).sort(
+        (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setEscrows(sorted);
+    } catch (err: any) {
+      console.error("Failed to fetch dashboard data:", err);
+      setError(err?.response?.data?.message || err.message || "Failed to load escrows.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      if (parsed.walletAddress) {
+        setWalletAddress(parsed.walletAddress);
+        loadDashboardData(parsed.walletAddress);
+        return;
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const handleNavChange = (id: string) => {
     if (id === 'escrow') {
@@ -128,27 +164,40 @@ const StudentDashboard: React.FC = () => {
   };
 
   const handleConnectWallet = async () => {
-  try {
-    setConnecting(true);
+    try {
+      setConnecting(true);
+      const address = await connectWallet();
 
-    const address = await connectWallet();
+      // Save wallet to backend
+      await updateWallet(address);
 
-// Save wallet to backend
-await updateWallet(address);
+      // Update UI
+      setWalletAddress(address);
 
-// Update UI
-setWalletAddress(address);
+      // Fetch escrows
+      await loadDashboardData(address);
 
-console.log("Connected Wallet:", address);
+      alert("Wallet Connected and Saved Successfully!");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || "Failed to connect wallet.");
+    } finally {
+      setConnecting(false);
+    }
+  };
 
-alert("Wallet Connected and Saved Successfully!");
-  } catch (error: any) {
-    console.error(error);
-    alert(error.message || "Failed to connect wallet.");
-  } finally {
-    setConnecting(false);
-  }
-};
+  // Dynamic stats calculation
+  const activeEscrowsCount = escrows.filter(e => ["CREATED", "FUNDED", "PENDING_CONFIRMATION", "DISPUTED"].includes(e.status)).length;
+  const completedDepositsCount = escrows.filter(e => e.status === "RELEASED").length;
+  const pendingDepositsCount = escrows.filter(e => ["CREATED", "PENDING_CONFIRMATION"].includes(e.status)).length;
+  const totalDepositValue = escrows.reduce((sum, e) => sum + (e.depositAmount || 0), 0);
+
+  const dynamicStats = [
+    { label: 'Active Escrows', value: String(activeEscrowsCount), sub: 'Currently locked or created', icon: '🔐', color: '#E8734A' },
+    { label: 'Completed Deposits', value: String(completedDepositsCount), sub: 'Released to landlord', icon: '✅', color: '#4ACF7A' },
+    { label: 'Pending Deposits', value: String(pendingDepositsCount), sub: 'Awaiting action', icon: '⏳', color: '#F0A34A' },
+    { label: 'Total Deposit Value', value: `${totalDepositValue} XLM`, sub: 'Across all properties', icon: '💷', color: '#4ACFE8' },
+  ];
 
   return (
     <DashboardLayout
@@ -158,6 +207,14 @@ alert("Wallet Connected and Saved Successfully!");
       activeId={activeId}
       onNavChange={handleNavChange}
     >
+      <style>{`
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
+        }
+      `}</style>
+
       {/* ── Welcome Banner ── */}
       <div style={{
         background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
@@ -190,7 +247,7 @@ alert("Wallet Connected and Saved Successfully!");
             fontFamily: "'Poppins', sans-serif", fontWeight: 400,
             fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)',
           }}>
-            You have 2 pending deposits and 3 active escrows to manage.
+            {loading ? "Loading escrows..." : `You have ${pendingDepositsCount} pending deposits and ${activeEscrowsCount} active escrows to manage.`}
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
@@ -233,7 +290,7 @@ alert("Wallet Connected and Saved Successfully!");
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: 16, marginBottom: 28,
       }}>
-        {STATS.map(stat => (
+        {dynamicStats.map(stat => (
           <div key={stat.label} style={{
             background: '#FFFFFF', borderRadius: 16, padding: '20px 22px',
             border: `1px solid ${C.border}`,
@@ -291,7 +348,7 @@ alert("Wallet Connected and Saved Successfully!");
         }}>Quick Actions</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <QuickBtn label="Create New Escrow" icon="🔐" primary onClick={() => navigate('/student/create-escrow')} />
-          <QuickBtn label="View All Deposits" icon="📋" />
+          <QuickBtn label="View All Deposits" icon="📋" onClick={() => navigate('/student/my-deposits')} />
           <QuickBtn label="Download Statement" icon="📥" />
           <QuickBtn label="Contact Support" icon="💬" />
         </div>
@@ -313,7 +370,7 @@ alert("Wallet Connected and Saved Successfully!");
             fontFamily: "'Poppins', sans-serif", fontWeight: 700,
             fontSize: '0.95rem', color: C.textDark,
           }}>Recent Escrow Activity</h3>
-          <button style={{
+          <button onClick={() => navigate('/student/my-deposits')} style={{
             fontFamily: "'Poppins', sans-serif", fontWeight: 600,
             fontSize: '0.78rem', color: C.orange, background: 'none',
             border: 'none', cursor: 'pointer',
@@ -336,56 +393,95 @@ alert("Wallet Connected and Saved Successfully!");
               </tr>
             </thead>
             <tbody>
-              {RECENT_ESCROWS.map((row, i) => (
-                <tr key={row.id}
-                  onClick={() => navigate(`/student/escrow/${row.id}`)}
-                  style={{
-                    borderTop: `1px solid ${C.border}`,
-                    background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
-                    transition: 'background 0.15s',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.04)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC')}
-                >
-                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      fontFamily: "'Poppins', sans-serif", fontWeight: 700,
-                      fontSize: '0.8rem', color: C.orange,
-                    }}>{row.id}</span>
-                  </td>
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{
-                      fontFamily: "'Poppins', sans-serif", fontWeight: 500,
-                      fontSize: '0.83rem', color: C.textDark,
-                    }}>{row.property}</span>
-                  </td>
-                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      fontFamily: "'Poppins', sans-serif", fontSize: '0.83rem', color: C.textMid,
-                    }}>{row.landlord}</span>
-                  </td>
-                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      fontFamily: "'Poppins', sans-serif", fontWeight: 700,
-                      fontSize: '0.83rem', color: C.textDark,
-                    }}>{row.amount}</span>
-                  </td>
-                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      ...STATUS_STYLE[row.status],
-                      fontFamily: "'Poppins', sans-serif", fontWeight: 600,
-                      fontSize: '0.72rem', borderRadius: 50, padding: '4px 10px',
-                      display: 'inline-block',
-                    }}>{row.status}</span>
-                  </td>
-                  <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                    <span style={{
-                      fontFamily: "'Poppins', sans-serif", fontSize: '0.8rem', color: C.textLight,
-                    }}>{row.date}</span>
+              {loading ? (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              ) : error ? (
+                <tr style={{ borderTop: `1px solid ${C.border}` }}>
+                  <td colSpan={6} style={{ padding: '24px 20px', textAlign: 'center', color: '#ea4335', fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>
+                    ⚠️ {error}
                   </td>
                 </tr>
-              ))}
+              ) : escrows.length === 0 ? (
+                <tr style={{ borderTop: `1px solid ${C.border}` }}>
+                  <td colSpan={6} style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>📭</div>
+                    <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: '1rem', color: C.textDark }}>No escrows found.</div>
+                    <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '0.8rem', color: C.textMid, marginTop: 4, marginBottom: 14 }}>
+                      Create your first rental escrow to securely protect your deposit on the Stellar blockchain.
+                    </p>
+                    <button
+                      onClick={() => navigate('/student/create-escrow')}
+                      style={{
+                        fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: '0.8rem', color: '#fff',
+                        background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
+                        border: 'none', borderRadius: 50, padding: '8px 20px', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(232,115,74,0.25)',
+                      }}
+                    >
+                      Create First Escrow
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                escrows.slice(0, 5).map((row, i) => {
+                  const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
+                  const formattedDate = new Date(row.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+                  return (
+                    <tr key={row._id}
+                      onClick={() => navigate(`/student/escrow/${targetId}`)}
+                      style={{
+                        borderTop: `1px solid ${C.border}`,
+                        background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
+                        transition: 'background 0.15s',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.04)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC')}
+                    >
+                      <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+                          fontSize: '0.8rem', color: C.orange,
+                        }}>{row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3, '0')}` : 'Pending'}</span>
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span style={{
+                          fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+                          fontSize: '0.83rem', color: C.textDark,
+                        }}>{row.propertyName}</span>
+                      </td>
+                      <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          fontFamily: "'Poppins', sans-serif", fontSize: '0.83rem', color: C.textMid,
+                        }}>{row.landlordWallet.slice(0, 6)}…{row.landlordWallet.slice(-6)}</span>
+                      </td>
+                      <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+                          fontSize: '0.83rem', color: C.textDark,
+                        }}>{row.depositAmount} {row.currency}</span>
+                      </td>
+                      <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          ...STATUS_STYLE[row.status],
+                          fontFamily: "'Poppins', sans-serif", fontWeight: 600,
+                          fontSize: '0.72rem', borderRadius: 50, padding: '4px 10px',
+                          display: 'inline-block',
+                        }}>{row.status}</span>
+                      </td>
+                      <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          fontFamily: "'Poppins', sans-serif", fontSize: '0.8rem', color: C.textLight,
+                        }}>{formattedDate}</span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

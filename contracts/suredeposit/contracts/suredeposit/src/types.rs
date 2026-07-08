@@ -19,6 +19,7 @@ pub enum EscrowStatus {
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Escrow {
+    pub escrow_id: u64,
     pub student: Address,
     pub landlord: Address,
     pub amount: i128,

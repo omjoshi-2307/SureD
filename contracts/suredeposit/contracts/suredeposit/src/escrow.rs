@@ -22,13 +22,14 @@ pub fn initialize(
         return Err(ContractError::SameAddress);
     }
 
-    if crate::storage::get_escrow(_env).is_some() {
-    return Err(ContractError::AlreadyInitialized);
-}
     // Authentication
     student.require_auth();
 
+    // Increment next escrow ID and use the current one
+    let escrow_id = crate::storage::increment_next_escrow_id(_env);
+
     let escrow = Escrow {
+        escrow_id,
         student,
         landlord,
         amount,
@@ -37,25 +38,26 @@ pub fn initialize(
         landlord_confirmed: false,
     };
 
-crate::storage::save_escrow(_env, &escrow);
+    crate::storage::save_escrow(_env, escrow_id, &escrow);
 
     crate::events::escrow_created(
-    _env,
-    &escrow.student,
-    &escrow.landlord,
-    escrow.amount,
-);
+        _env,
+        escrow_id,
+        &escrow.student,
+        &escrow.landlord,
+        escrow.amount,
+    );
 
-
-Ok(escrow)
+    Ok(escrow)
 }
 
 pub fn deposit(
     env: &Env,
+    escrow_id: u64,
     caller: Address,
 ) -> Result<Escrow, ContractError> {
 
-    let mut escrow = crate::storage::get_escrow(env)
+    let mut escrow = crate::storage::get_escrow(env, escrow_id)
         .ok_or(ContractError::EscrowNotFound)?;
 
     // Only the student can deposit
@@ -72,10 +74,11 @@ pub fn deposit(
 
     escrow.status = EscrowStatus::Funded;
 
-    crate::storage::save_escrow(env, &escrow);
+    crate::storage::save_escrow(env, escrow_id, &escrow);
 
     crate::events::escrow_funded(
         env,
+        escrow_id,
         &escrow.student,
     );
 
@@ -84,10 +87,11 @@ pub fn deposit(
 
 pub fn confirm(
     env: &Env,
+    escrow_id: u64,
     caller: Address,
 ) -> Result<Escrow, ContractError> {
 
-    let mut escrow = crate::storage::get_escrow(env)
+    let mut escrow = crate::storage::get_escrow(env, escrow_id)
         .ok_or(ContractError::EscrowNotFound)?;
 
     if escrow.status != EscrowStatus::Funded {
@@ -124,7 +128,7 @@ pub fn confirm(
     }
 
     // Save the updated escrow
-    crate::storage::save_escrow(env, &escrow);
+    crate::storage::save_escrow(env, escrow_id, &escrow);
 
     // Return the updated escrow
     Ok(escrow)

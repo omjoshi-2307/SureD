@@ -32,6 +32,8 @@ import {
   BASE_FEE,
   nativeToScVal,
   Address,
+  xdr,
+  scValToNative,
 } from "@stellar/stellar-sdk";
 import { signTransaction, getAddress } from "@stellar/freighter-api";
 
@@ -57,6 +59,12 @@ export interface CreateEscrowParams {
 export interface CreateEscrowResult {
   /** The submitted transaction hash */
   txHash: string;
+  /** Generated escrow ID from the contract result */
+  escrowId?: number;
+  /** Student address used */
+  studentWallet: string;
+  /** Contract ID deployed */
+  contractId: string;
 }
 
 /* ── Helper: XLM → stroops (i128 ScVal) ─────────────────────────── */
@@ -186,5 +194,42 @@ export async function createEscrow(
   }
 
   // status === SUCCESS
-  return { txHash };
+  let escrowId: number | undefined;
+  if (pollResult.resultMetaXdr) {
+    try {
+      const meta = xdr.TransactionMeta.fromXDR(pollResult.resultMetaXdr, "base64");
+      let sorobanMeta;
+      if (meta.switch().value === 3) {
+        sorobanMeta = meta.v3().sorobanMeta();
+      } else if (meta.switch().value === 4) {
+        sorobanMeta = meta.v4().sorobanMeta();
+      } else {
+        sorobanMeta = (meta as any).v3?.().sorobanMeta() || (meta as any).v4?.().sorobanMeta();
+      }
+
+      if (sorobanMeta) {
+        const retVal = sorobanMeta.returnValue();
+        const nativeVal = scValToNative(retVal);
+        console.log("Parsed native return value from contract:", nativeVal);
+        if (nativeVal) {
+          if (nativeVal instanceof Map) {
+            const idVal = nativeVal.get("escrow_id") ?? nativeVal.get("escrowId");
+            if (idVal !== undefined) escrowId = Number(idVal);
+          } else if (typeof nativeVal === "object") {
+            const idVal = (nativeVal as any).escrow_id ?? (nativeVal as any).escrowId;
+            if (idVal !== undefined) escrowId = Number(idVal);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to parse escrowId from transaction metadata:", err);
+    }
+  }
+
+  return {
+    txHash,
+    escrowId,
+    studentWallet: studentPublicKey,
+    contractId: CONTRACT_ID,
+  };
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
 import { createEscrow } from '@/services/sorobanService';
+import { createEscrowDb } from '@/services/escrowService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -200,12 +201,41 @@ const CreateEscrow: React.FC = () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
+      // 1. Blockchain execution
       const result = await createEscrow({
         landlordAddress: selectedProp!.landlordAddress,
         amountXlm: deposit,
       });
-      showToast(`Escrow created! Tx: ${result.txHash.slice(0, 8)}…`);
-      setTimeout(() => navigate('/student/escrow/ESC-001'), 2000);
+
+      // 2. Database persistence
+      try {
+        await createEscrowDb({
+          escrowId: result.escrowId,
+          transactionHash: result.txHash,
+          studentWallet: result.studentWallet,
+          landlordWallet: selectedProp!.landlordAddress,
+          propertyName: selectedProp!.name,
+          propertyAddress: `${selectedProp!.address}, ${selectedProp!.city}`,
+          depositAmount: deposit,
+          currency: "XLM",
+          rentalStartDate: startDate,
+          rentalEndDate: endDate,
+          purpose: purpose,
+          contractId: result.contractId,
+          blockchainNetwork: "Testnet",
+        });
+
+        // 3. Both succeeded
+        showToast("Escrow Created Successfully!");
+        const targetId = result.escrowId !== undefined ? String(result.escrowId) : "ESC-001";
+        setTimeout(() => navigate(`/student/escrow/${targetId}`), 2000);
+
+      } catch (dbErr) {
+        console.error("Database save failed:", dbErr);
+        // Blockchain succeeded, backend failed -> warning toast
+        showToast("Escrow created on-chain but failed to save in the application database.", true);
+      }
+
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred.';
       // User rejected the wallet signature

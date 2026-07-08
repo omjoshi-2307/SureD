@@ -22,8 +22,11 @@ export const registerUser = async (data: RegisterData) => {
 export const loginUser = async (data: LoginData) => {
   const response = await API.post("/auth/login", data);
 
-  // Save JWT token
+  // Save JWT token and user details
   localStorage.setItem("token", response.data.token);
+  if (response.data.user) {
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+  }
 
   return response.data;
 };
@@ -34,12 +37,18 @@ export const updateWallet = async (walletAddress: string) => {
     walletAddress,
   });
 
+  // Update user in localStorage
+  if (response.data.user) {
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+  }
+
   return response.data;
 };
 
 // Logout
 export const logoutUser = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("user");
 };
 
 // Check Login

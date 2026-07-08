@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import { getEscrowsByStudentDb } from '@/services/escrowService';
 
 const C = {
   orange: '#E8734A', orangeLight: '#F0956B',
@@ -34,25 +35,18 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-interface EscrowItem {
-  id: string;
-  property: string;
-  landlord: string;
-  amount: number;
+interface DbEscrow {
+  _id: string;
+  escrowId?: number;
+  propertyName: string;
+  propertyAddress?: string;
+  landlordWallet: string;
+  depositAmount: number;
   currency: string;
-  start: string;
-  end: string;
-  created: string;
-  status: 'Locked' | 'Released' | 'Pending Move-in' | 'Disputed';
-  emoji: string;
+  createdAt: string;
+  status: 'CREATED' | 'FUNDED' | 'PENDING_CONFIRMATION' | 'RELEASED' | 'DISPUTED' | 'CANCELLED';
+  transactionHash?: string;
 }
-
-const MOCK_DEPOSITS: EscrowItem[] = [
-  { id: 'ESC-001', property: 'Green Residency Apartments', landlord: 'Sarah Williams', amount: 500, currency: 'XLM', start: '01 Aug 2026', end: '31 Jul 2027', created: '05 Jul 2026', status: 'Locked', emoji: '🏢' },
-  { id: 'ESC-002', property: 'Campus View Residence', landlord: 'Michael Brown', amount: 750, currency: 'XLM', start: '01 Sep 2026', end: '31 Aug 2027', created: '18 Jun 2026', status: 'Released', emoji: '🎓' },
-  { id: 'ESC-003', property: 'Skyline Student Housing', landlord: 'Emma Wilson', amount: 450, currency: 'XLM', start: '01 Jan 2027', end: '31 Dec 2027', created: '22 May 2026', status: 'Pending Move-in', emoji: '🏙️' },
-  { id: 'ESC-004', property: 'Urban Nest Apartments', landlord: 'David Smith', amount: 650, currency: 'XLM', start: '01 Oct 2026', end: '30 Sep 2027', created: '12 Apr 2026', status: 'Disputed', emoji: '🏗️' },
-];
 
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
   <div style={{
@@ -65,10 +59,12 @@ const Card = ({ children, style }: { children: React.ReactNode; style?: React.CS
 );
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  'Locked':          { bg: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  'Released':        { bg: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  'Pending Move-in': { bg: 'rgba(74,144,226,0.12)', color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
-  'Disputed':        { bg: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
+  'CREATED':              { bg: 'rgba(74,144,226,0.12)', color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
+  'FUNDED':               { bg: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
+  'PENDING_CONFIRMATION': { bg: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
+  'RELEASED':             { bg: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
+  'DISPUTED':             { bg: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
+  'CANCELLED':            { bg: 'rgba(107,114,128,0.12)', color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
 };
 
 const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
@@ -89,11 +85,39 @@ const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
 );
 
 /* ══════════════════════════════════════════════════════════════════ */
+/* ── Skeleton rows for loading state ── */
+const SkeletonTableRow = () => (
+  <tr style={{ borderTop: `1px solid ${C.border}`, animation: 'depositPulse 1.5s infinite ease-in-out' }}>
+    {[60, 160, 120, 80, 110, 90, 70, 80].map((w, i) => (
+      <td key={i} style={{ padding: '14px 20px' }}>
+        <div style={{ height: 15, width: w, background: '#F0F0F0', borderRadius: 4 }} />
+      </td>
+    ))}
+  </tr>
+);
+
+const SkeletonCard = () => (
+  <div style={{
+    background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 12,
+    padding: 16, animation: 'depositPulse 1.5s infinite ease-in-out',
+  }}>
+    <div style={{ height: 14, width: 80, background: '#F0F0F0', borderRadius: 4, marginBottom: 12 }} />
+    <div style={{ height: 16, width: 200, background: '#F0F0F0', borderRadius: 4, marginBottom: 8 }} />
+    <div style={{ height: 14, width: 140, background: '#F0F0F0', borderRadius: 4 }} />
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════════ */
 const MyDeposits: React.FC = () => {
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
+
+  /* Live data state */
+  const [escrows, setEscrows] = useState<DbEscrow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   /* Toolbar State */
   const [search, setSearch] = useState('');
@@ -102,6 +126,28 @@ const MyDeposits: React.FC = () => {
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 60);
+
+    // Load live escrows from DB
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      if (parsed.walletAddress) {
+        getEscrowsByStudentDb(parsed.walletAddress)
+          .then((data: any) => {
+            const sorted = (data.escrows || []).sort(
+              (a: DbEscrow, b: DbEscrow) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+            setEscrows(sorted);
+          })
+          .catch((err: any) => {
+            setError(err?.response?.data?.message || err.message || 'Failed to load deposits.');
+          })
+          .finally(() => setLoading(false));
+        return;
+      }
+    }
+    setLoading(false);
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -119,32 +165,25 @@ const MyDeposits: React.FC = () => {
     triggerToast('Receipt download will be available after blockchain integration.');
   };
 
-  /* Filter & Sort Logic */
-  const filteredDeposits = MOCK_DEPOSITS.filter(item => {
+  /* Filter & Sort Logic (operates on live DB escrows) */
+  const filteredDeposits = escrows.filter(item => {
+    const escrowLabel = item.escrowId !== undefined
+      ? `ESC-${String(item.escrowId).padStart(3, '0')}`
+      : item._id;
     const matchesSearch =
-      item.id.toLowerCase().includes(search.toLowerCase()) ||
-      item.property.toLowerCase().includes(search.toLowerCase()) ||
-      item.landlord.toLowerCase().includes(search.toLowerCase());
+      escrowLabel.toLowerCase().includes(search.toLowerCase()) ||
+      item.propertyName.toLowerCase().includes(search.toLowerCase()) ||
+      item.landlordWallet.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = statusFilter === 'All' || item.status === statusFilter;
     return matchesSearch && matchesFilter;
   });
 
   const sortedDeposits = [...filteredDeposits].sort((a, b) => {
-    if (sortBy === 'Newest First') {
-      return new Date(b.created).getTime() - new Date(a.created).getTime();
-    }
-    if (sortBy === 'Oldest First') {
-      return new Date(a.created).getTime() - new Date(b.created).getTime();
-    }
-    if (sortBy === 'Highest Deposit') {
-      return b.amount - a.amount;
-    }
-    if (sortBy === 'Lowest Deposit') {
-      return a.amount - b.amount;
-    }
-    if (sortBy === 'Property Name') {
-      return a.property.localeCompare(b.property);
-    }
+    if (sortBy === 'Newest First')   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    if (sortBy === 'Oldest First')   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (sortBy === 'Highest Deposit') return b.depositAmount - a.depositAmount;
+    if (sortBy === 'Lowest Deposit')  return a.depositAmount - b.depositAmount;
+    if (sortBy === 'Property Name')   return a.propertyName.localeCompare(b.propertyName);
     return 0;
   });
 
@@ -160,19 +199,28 @@ const MyDeposits: React.FC = () => {
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
-  /* Aggregate stats */
-  const totalCount = MOCK_DEPOSITS.length;
-  const lockedCount = MOCK_DEPOSITS.filter(d => d.status === 'Locked').length;
-  const releasedCount = MOCK_DEPOSITS.filter(d => d.status === 'Released').length;
-  const disputedCount = MOCK_DEPOSITS.filter(d => d.status === 'Disputed').length;
+  /* Aggregate stats (computed from live data) */
+  const totalCount  = escrows.length;
+  const lockedCount = escrows.filter(d => d.status === 'CREATED' || d.status === 'FUNDED').length;
+  const releasedCount  = escrows.filter(d => d.status === 'RELEASED').length;
+  const disputedCount  = escrows.filter(d => d.status === 'DISPUTED').length;
+  const pendingCount   = escrows.filter(d => d.status === 'PENDING_CONFIRMATION').length;
 
-  const totalFunds = MOCK_DEPOSITS.reduce((sum, d) => sum + d.amount, 0);
-  const lockedFunds = MOCK_DEPOSITS.filter(d => d.status === 'Locked' || d.status === 'Pending Move-in').reduce((sum, d) => sum + d.amount, 0);
-  const releasedFunds = MOCK_DEPOSITS.filter(d => d.status === 'Released').reduce((sum, d) => sum + d.amount, 0);
-  const avgDeposit = totalCount > 0 ? Math.round(totalFunds / totalCount) : 0;
-  const maxDeposit = MOCK_DEPOSITS.length > 0 ? Math.max(...MOCK_DEPOSITS.map(d => d.amount)) : 0;
+  const totalFunds   = escrows.reduce((sum, d) => sum + d.depositAmount, 0);
+  const lockedFunds  = escrows.filter(d => ['CREATED','FUNDED','PENDING_CONFIRMATION'].includes(d.status)).reduce((sum, d) => sum + d.depositAmount, 0);
+  const releasedFunds = escrows.filter(d => d.status === 'RELEASED').reduce((sum, d) => sum + d.depositAmount, 0);
+  const avgDeposit   = totalCount > 0 ? Math.round(totalFunds / totalCount) : 0;
+  const maxDeposit   = totalCount > 0 ? Math.max(...escrows.map(d => d.depositAmount)) : 0;
 
   return (
+    <>
+    <style>{`
+      @keyframes depositPulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+      }
+    `}</style>
     <DashboardLayout
       role="student"
       userName="Alex Johnson"
@@ -207,13 +255,13 @@ const MyDeposits: React.FC = () => {
           </p>
         </div>
 
-        {/* Small stats array on the right */}
+        {/* Live stats pills */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[
-            { label: 'Total Deposits', value: totalCount, color: C.textMid },
-            { label: 'Locked Deposits', value: lockedCount, color: C.orange },
-            { label: 'Released Deposits', value: releasedCount, color: '#4ACF7A' },
-            { label: 'Disputed Deposits', value: disputedCount, color: '#ea4335' },
+            { label: 'Total Deposits',    value: loading ? '…' : totalCount,    color: C.textMid },
+            { label: 'Active Deposits',   value: loading ? '…' : lockedCount,   color: C.orange },
+            { label: 'Released',          value: loading ? '…' : releasedCount, color: '#4ACF7A' },
+            { label: 'Disputed',          value: loading ? '…' : disputedCount, color: '#ea4335' },
           ].map(s => (
             <div key={s.label} style={{
               background: C.white, border: `1px solid ${C.border}`, borderRadius: 12,
@@ -271,10 +319,12 @@ const MyDeposits: React.FC = () => {
                     }}
                   >
                     <option value="All">All Statuses</option>
-                    <option value="Locked">Locked</option>
-                    <option value="Released">Released</option>
-                    <option value="Pending Move-in">Pending Move-in</option>
-                    <option value="Disputed">Disputed</option>
+                    <option value="CREATED">Created</option>
+                    <option value="FUNDED">Funded</option>
+                    <option value="PENDING_CONFIRMATION">Pending Confirmation</option>
+                    <option value="RELEASED">Released</option>
+                    <option value="DISPUTED">Disputed</option>
+                    <option value="CANCELLED">Cancelled</option>
                   </select>
 
                   {/* Sort Dropdown */}
@@ -339,11 +389,24 @@ const MyDeposits: React.FC = () => {
               
               {/* Desktop Table View */}
               <div className="hidden md:block" style={{ overflowX: 'auto' }}>
-                {sortedDeposits.length > 0 ? (
+                {loading ? (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: '#FAFAFA' }}>
-                        {['Escrow ID', 'Property', 'Landlord', 'Deposit Amount', 'Rental Period', 'Created Date', 'Current Status', 'Action'].map(h => (
+                        {['Escrow ID', 'Property', 'Landlord', 'Amount', 'Address', 'Created Date', 'Status', 'Action'].map(h => (
+                          <th key={h} style={{ font, fontWeight: 700, fontSize: '0.72rem', color: C.textLight, textAlign: 'left', padding: '12px 20px', letterSpacing: '0.4px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody><SkeletonTableRow /><SkeletonTableRow /><SkeletonTableRow /></tbody>
+                  </table>
+                ) : error ? (
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#ea4335', font, fontWeight: 600 }}>⚠️ {error}</div>
+                ) : sortedDeposits.length > 0 ? (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#FAFAFA' }}>
+                        {['Escrow ID', 'Property', 'Landlord', 'Amount', 'Address', 'Created Date', 'Status', 'Action'].map(h => (
                           <th key={h} style={{
                             font, fontWeight: 700, fontSize: '0.72rem', color: C.textLight, textAlign: 'left',
                             padding: '12px 20px', letterSpacing: '0.4px', whiteSpace: 'nowrap', textTransform: 'uppercase',
@@ -352,65 +415,71 @@ const MyDeposits: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedDeposits.map((row, i) => (
-                        <tr
-                          key={row.id}
-                          onClick={() => navigate(`/student/escrow/${row.id}`)}
-                          style={{
-                            borderTop: `1px solid ${C.border}`,
-                            background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
-                            transition: 'background 0.15s', cursor: 'pointer',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,115,74,0.04)'}
-                          onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC'}
-                        >
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{ font, fontWeight: 700, fontSize: '0.8rem', color: C.orange }}>{row.id}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontSize: '1.25rem' }}>{row.emoji}</span>
-                              <span style={{ font, fontWeight: 600, fontSize: '0.82rem', color: C.textDark }}>{row.property}</span>
-                            </div>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{ font, fontSize: '0.82rem', color: C.textMid }}>{row.landlord}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{ font, fontWeight: 700, fontSize: '0.82rem', color: C.textDark }}>{row.amount} {row.currency}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{ font, fontSize: '0.78rem', color: C.textMid }}>{row.start} - {row.end}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{ font, fontSize: '0.78rem', color: C.textLight }}>{row.created}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <span style={{
-                              ...STATUS_STYLE[row.status],
-                              font, fontWeight: 700, fontSize: '0.7rem', borderRadius: 50, padding: '4px 10px',
-                              display: 'inline-block',
-                            }}>{row.status}</span>
-                          </td>
-                          <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); navigate(`/student/escrow/${row.id}`); }}
-                                style={{ font, fontWeight: 700, fontSize: '0.75rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                              >
-                                View Details
-                              </button>
-                              <span style={{ color: C.textLight }}>|</span>
-                              <button
-                                onClick={handleDownloadReceipt}
-                                style={{ font, fontWeight: 500, fontSize: '0.75rem', color: C.textLight, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                              >
-                                Receipt
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {sortedDeposits.map((row, i) => {
+                        const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
+                        const escrowLabel = row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3,'0')}` : 'Pending';
+                        const formattedDate = new Date(row.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+                        const ss = STATUS_STYLE[row.status] || STATUS_STYLE['CREATED'];
+                        return (
+                          <tr
+                            key={row._id}
+                            onClick={() => navigate(`/student/escrow/${targetId}`)}
+                            style={{
+                              borderTop: `1px solid ${C.border}`,
+                              background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
+                              transition: 'background 0.15s', cursor: 'pointer',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,115,74,0.04)'}
+                            onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC'}
+                          >
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <span style={{ font, fontWeight: 700, fontSize: '0.8rem', color: C.orange }}>{escrowLabel}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span style={{ fontSize: '1.25rem' }}>🏠</span>
+                                <span style={{ font, fontWeight: 600, fontSize: '0.82rem', color: C.textDark }}>{row.propertyName}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <span style={{ font, fontSize: '0.82rem', color: C.textMid }}>{row.landlordWallet.slice(0,6)}…{row.landlordWallet.slice(-4)}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <span style={{ font, fontWeight: 700, fontSize: '0.82rem', color: C.textDark }}>{row.depositAmount} {row.currency}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px', maxWidth: 180 }}>
+                              <span style={{ font, fontSize: '0.78rem', color: C.textMid, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{row.propertyAddress || '—'}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <span style={{ font, fontSize: '0.78rem', color: C.textLight }}>{formattedDate}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <span style={{
+                                background: ss.bg, color: ss.color, border: ss.border,
+                                font, fontWeight: 700, fontSize: '0.7rem', borderRadius: 50, padding: '4px 10px',
+                                display: 'inline-block',
+                              }}>{row.status}</span>
+                            </td>
+                            <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); navigate(`/student/escrow/${targetId}`); }}
+                                  style={{ font, fontWeight: 700, fontSize: '0.75rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                                >
+                                  View Details
+                                </button>
+                                <span style={{ color: C.textLight }}>|</span>
+                                <button
+                                  onClick={handleDownloadReceipt}
+                                  style={{ font, fontWeight: 500, fontSize: '0.75rem', color: C.textLight, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                                >
+                                  Receipt
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 ) : (
@@ -420,68 +489,72 @@ const MyDeposits: React.FC = () => {
 
               {/* Mobile Card-Based View */}
               <div className="md:hidden" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {sortedDeposits.length > 0 ? (
-                  sortedDeposits.map(row => (
-                    <div
-                      key={row.id}
-                      onClick={() => navigate(`/student/escrow/${row.id}`)}
-                      style={{
-                        background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 12,
-                        padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
-                        cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ font, fontWeight: 800, fontSize: '0.82rem', color: C.orange }}>{row.id}</span>
-                        <span style={{
-                          ...STATUS_STYLE[row.status],
-                          font, fontWeight: 700, fontSize: '0.68rem', borderRadius: 50, padding: '3px 8px',
-                        }}>{row.status}</span>
-                      </div>
+                {loading ? (
+                  [1,2,3].map(k => <SkeletonCard key={k} />)
+                ) : sortedDeposits.length > 0 ? (
+                  sortedDeposits.map(row => {
+                    const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
+                    const escrowLabel = row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3,'0')}` : 'Pending';
+                    const ss = STATUS_STYLE[row.status] || STATUS_STYLE['CREATED'];
+                    return (
+                      <div
+                        key={row._id}
+                        onClick={() => navigate(`/student/escrow/${targetId}`)}
+                        style={{
+                          background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 12,
+                          padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
+                          cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ font, fontWeight: 800, fontSize: '0.82rem', color: C.orange }}>{escrowLabel}</span>
+                          <span style={{ background: ss.bg, color: ss.color, border: ss.border, font, fontWeight: 700, fontSize: '0.68rem', borderRadius: 50, padding: '3px 8px' }}>{row.status}</span>
+                        </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: '1.4rem' }}>{row.emoji}</span>
-                        <div>
-                          <div style={{ font, fontWeight: 700, fontSize: '0.85rem', color: C.textDark }}>{row.property}</div>
-                          <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>Landlord: {row.landlord}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: '1.4rem' }}>🏠</span>
+                          <div>
+                            <div style={{ font, fontWeight: 700, fontSize: '0.85rem', color: C.textDark }}>{row.propertyName}</div>
+                            <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>Landlord: {row.landlordWallet.slice(0,6)}…{row.landlordWallet.slice(-4)}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ font, fontSize: '0.68rem', color: C.textLight }}>Deposit</div>
+                            <div style={{ font, fontWeight: 800, fontSize: '0.88rem', color: C.textDark }}>{row.depositAmount} {row.currency}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ font, fontSize: '0.68rem', color: C.textLight }}>Created</div>
+                            <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>{new Date(row.createdAt).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/student/escrow/${targetId}`); }}
+                            style={{
+                              flex: 1, font, fontWeight: 700, fontSize: '0.75rem', color: C.white,
+                              background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none',
+                              borderRadius: 50, padding: '8px 0', cursor: 'pointer',
+                            }}
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={handleDownloadReceipt}
+                            style={{
+                              flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid,
+                              background: C.white, border: `1.5px solid ${C.border}`,
+                              borderRadius: 50, padding: '8px 0', cursor: 'pointer',
+                            }}
+                          >
+                            Receipt
+                          </button>
                         </div>
                       </div>
-
-                      <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ font, fontSize: '0.68rem', color: C.textLight }}>Locked Deposit</div>
-                          <div style={{ font, fontWeight: 800, fontSize: '0.88rem', color: C.textDark }}>{row.amount} {row.currency}</div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ font, fontSize: '0.68rem', color: C.textLight }}>Lease Term</div>
-                          <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>{row.start} - {row.end}</div>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/student/escrow/${row.id}`); }}
-                          style={{
-                            flex: 1, font, fontWeight: 700, fontSize: '0.75rem', color: C.white,
-                            background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none',
-                            borderRadius: 50, padding: '8px 0', cursor: 'pointer',
-                          }}
-                        >
-                          View Details
-                        </button>
-                        <button
-                          onClick={handleDownloadReceipt}
-                          style={{
-                            flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid,
-                            background: C.white, border: `1.5px solid ${C.border}`,
-                            borderRadius: 50, padding: '8px 0', cursor: 'pointer',
-                          }}
-                        >
-                          Receipt
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <EmptyState navigate={navigate} />
                 )}
@@ -498,11 +571,11 @@ const MyDeposits: React.FC = () => {
             gap: 16,
           }}>
             {[
-              { label: 'Total Escrows', value: `${totalCount} Created`, icon: '📋', color: '#E8734A' },
-              { label: 'Locked Funds', value: `${lockedFunds} XLM`, icon: '🔒', color: '#F0956B' },
-              { label: 'Released Funds', value: `${releasedFunds} XLM`, icon: '🔓', color: '#4ACF7A' },
-              { label: 'Average Deposit', value: `${avgDeposit} XLM`, icon: '📊', color: '#4ACFE8' },
-              { label: 'Largest Deposit', value: `${maxDeposit} XLM`, icon: '🏆', color: '#F0A34A' },
+              { label: 'Total Escrows', value: loading ? '…' : `${totalCount}`, icon: '📋', color: '#E8734A' },
+              { label: 'Locked/Funded', value: loading ? '…' : `${lockedFunds} XLM`, icon: '🔒', color: '#F0956B' },
+              { label: 'Released Funds', value: loading ? '…' : `${releasedFunds} XLM`, icon: '🔓', color: '#4ACF7A' },
+              { label: 'Average Deposit', value: loading ? '…' : `${avgDeposit} XLM`, icon: '📊', color: '#4ACFE8' },
+              { label: 'Largest Deposit', value: loading ? '…' : `${maxDeposit} XLM`, icon: '🏆', color: '#F0A34A' },
             ].map(item => (
               <div key={item.label} style={{
                 background: C.white, border: `1px solid ${C.border}`, borderRadius: 16,
@@ -552,9 +625,9 @@ const MyDeposits: React.FC = () => {
               {/* Legend */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
                 {[
-                  { label: 'Locked', color: C.orange, value: lockedCount },
+                  { label: 'Active', color: C.orange, value: lockedCount },
                   { label: 'Released', color: '#4ACF7A', value: releasedCount },
-                  { label: 'Pending', color: '#4A90E2', value: MOCK_DEPOSITS.filter(d => d.status === 'Pending Move-in').length },
+                  { label: 'Pending', color: '#4A90E2', value: pendingCount },
                   { label: 'Disputed', color: '#ea4335', value: disputedCount },
                 ].map(leg => (
                   <div key={leg.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -612,6 +685,7 @@ const MyDeposits: React.FC = () => {
         </div>
       </div>
     </DashboardLayout>
+    </>  
   );
 };
 
