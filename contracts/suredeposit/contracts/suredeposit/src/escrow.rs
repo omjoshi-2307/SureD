@@ -133,3 +133,36 @@ pub fn confirm(
     // Return the updated escrow
     Ok(escrow)
 }
+
+pub fn release(
+    env: &Env,
+    escrow_id: u64,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+
+    let mut escrow = crate::storage::get_escrow(env, escrow_id)
+        .ok_or(ContractError::EscrowNotFound)?;
+
+    caller.require_auth();
+
+    if escrow.status == EscrowStatus::Released {
+        return Err(ContractError::AlreadyReleased);
+    }
+
+    if escrow.status != EscrowStatus::PendingConfirmation {
+        return Err(ContractError::InvalidState);
+    }
+
+    escrow.status = EscrowStatus::Released;
+
+    crate::storage::save_escrow(env, escrow_id, &escrow);
+
+crate::events::escrow_released(
+    env,
+    escrow_id,
+    &escrow.landlord,
+    escrow.amount,
+);
+
+Ok(escrow)
+}

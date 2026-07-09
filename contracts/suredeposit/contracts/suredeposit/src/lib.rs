@@ -49,4 +49,13 @@ impl SureDepositContract {
     ) -> Result<Escrow, ContractError> {
         escrow::initialize(&env, student, landlord, amount)
     }
+
+    pub fn release(
+    env: Env,
+    escrow_id: u64,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+    escrow::release(&env, escrow_id, caller)
+}
+
 }
