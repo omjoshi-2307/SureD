@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
-import { getEscrowDb } from '@/services/escrowService';
+import {
+  getEscrowDb,
+  releaseEscrowDb,
+} from "@/services/escrowService";
+
+import { releaseEscrow } from "@/services/sorobanService";
 
 /* ─── Design tokens ─────────────────────────────────────────────── */
 const C = {
@@ -171,18 +176,68 @@ const LandlordEscrowDetails: React.FC = () => {
     d ? new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
   /* Action dispatcher (demo mode, no blockchain calls) */
-  const handleAction = (action: string) => {
-    setConfirmAction(null);
-    const msgs: Record<string, [string, typeof toastType]> = {
-      depositReceived: ['Deposit marked as received (Demo Mode)', 'success'],
-      confirmMoveIn:   ['Move-in confirmed (Demo Mode)', 'success'],
-      releaseDeposit:  ['Deposit release initiated (Demo Mode)', 'success'],
-      refundDeposit:   ['Refund initiated (Demo Mode)', 'warning'],
-    };
-    const [msg, type] = msgs[action] || ['Action recorded (Demo Mode)', 'info'];
-    showToast(msg, type);
-  };
+ const handleAction = async (action: string) => {
+  setConfirmAction(null);
 
+  try {
+    if (action === "releaseDeposit") {
+      if (!escrow?.escrowId) {
+        throw new Error("Escrow ID not found.");
+      }
+
+      // 1. Execute blockchain transaction
+      const result = await releaseEscrow(escrow.escrowId);
+
+      // 2. Update MongoDB
+      await releaseEscrowDb(escrow.escrowId, {
+        txHash: result.txHash,
+      });
+
+      // 3. Refresh escrow details
+      const refreshed = await getEscrowDb(escrow.escrowId);
+
+      setEscrow(refreshed.escrow || refreshed);
+
+      showToast(
+        "Deposit released successfully!",
+        "success"
+      );
+
+      return;
+    }
+
+    const msgs: Record<
+      string,
+      [string, typeof toastType]
+    > = {
+      depositReceived: [
+        "Deposit marked as received (Demo Mode)",
+        "success",
+      ],
+      confirmMoveIn: [
+        "Move-in confirmed (Demo Mode)",
+        "success",
+      ],
+      refundDeposit: [
+        "Refund initiated (Demo Mode)",
+        "warning",
+      ],
+    };
+
+    const [msg, type] =
+      msgs[action] || [
+        "Action recorded (Demo Mode)",
+        "info",
+      ];
+
+    showToast(msg, type);
+  } catch (err: any) {
+    showToast(
+      err?.message || "Failed to release deposit.",
+      "error"
+    );
+  }
+};
   const ActionButton = ({
     label, color, icon, actionKey, enabled,
   }: { label: string; color: string; icon: string; actionKey: string; enabled: boolean }) => (
@@ -230,11 +285,13 @@ const LandlordEscrowDetails: React.FC = () => {
               {{ depositReceived: 'Mark Deposit as Received', confirmMoveIn: 'Confirm Move-In', releaseDeposit: 'Release Deposit', refundDeposit: 'Refund Deposit' }[confirmAction] || 'Confirm Action'}
             </h2>
             <p style={{ font, fontSize: '0.83rem', color: C.textMid, textAlign: 'center', marginBottom: 20, lineHeight: 1.6 }}>
-              This action will be recorded in <strong>Demo Mode</strong> and will not trigger any blockchain transaction.
+              {confirmAction === "releaseDeposit"
+  ? "This will trigger a blockchain transaction using your Freighter wallet. After the transaction succeeds, the escrow status will be updated."
+  : "This action is currently running in Demo Mode."}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmAction(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => handleAction(confirmAction)} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}>Confirm (Demo)</button>
+              <button onClick={() => handleAction(confirmAction)} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}>Confirm</button>
             </div>
           </div>
         </div>

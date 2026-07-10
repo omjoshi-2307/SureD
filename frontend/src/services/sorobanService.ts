@@ -32,7 +32,6 @@ import {
   BASE_FEE,
   nativeToScVal,
   Address,
-  xdr,
   scValToNative,
 } from "@stellar/stellar-sdk";
 import { signTransaction, getAddress } from "@stellar/freighter-api";
@@ -65,6 +64,10 @@ export interface CreateEscrowResult {
   studentWallet: string;
   /** Contract ID deployed */
   contractId: string;
+}
+
+export interface ReleaseEscrowResult {
+  txHash: string;
 }
 
 /* ── Helper: XLM → stroops (i128 ScVal) ─────────────────────────── */
@@ -194,42 +197,246 @@ export async function createEscrow(
   }
 
   // status === SUCCESS
-  let escrowId: number | undefined;
-  if (pollResult.resultMetaXdr) {
-    try {
-      const meta = xdr.TransactionMeta.fromXDR(pollResult.resultMetaXdr, "base64");
-      let sorobanMeta;
-      if (meta.switch().value === 3) {
-        sorobanMeta = meta.v3().sorobanMeta();
-      } else if (meta.switch().value === 4) {
-        sorobanMeta = meta.v4().sorobanMeta();
-      } else {
-        sorobanMeta = (meta as any).v3?.().sorobanMeta() || (meta as any).v4?.().sorobanMeta();
-      }
+// status === SUCCESS
+let escrowId: number | undefined;
 
-      if (sorobanMeta) {
-        const retVal = sorobanMeta.returnValue();
-        const nativeVal = scValToNative(retVal);
-        console.log("Parsed native return value from contract:", nativeVal);
-        if (nativeVal) {
-          if (nativeVal instanceof Map) {
-            const idVal = nativeVal.get("escrow_id") ?? nativeVal.get("escrowId");
-            if (idVal !== undefined) escrowId = Number(idVal);
-          } else if (typeof nativeVal === "object") {
-            const idVal = (nativeVal as any).escrow_id ?? (nativeVal as any).escrowId;
-            if (idVal !== undefined) escrowId = Number(idVal);
-          }
-        }
+try {
+  if (pollResult.returnValue) {
+    const nativeVal = scValToNative(pollResult.returnValue);
+
+    console.log("Native Return:", nativeVal);
+
+    if (nativeVal instanceof Map) {
+      const idVal =
+        nativeVal.get("escrow_id") ??
+        nativeVal.get("escrowId");
+
+      if (idVal !== undefined) {
+        escrowId = Number(idVal);
       }
-    } catch (err) {
-      console.error("Failed to parse escrowId from transaction metadata:", err);
+    } else if (nativeVal && typeof nativeVal === "object") {
+      const idVal =
+        (nativeVal as any).escrow_id ??
+        (nativeVal as any).escrowId;
+
+      if (idVal !== undefined) {
+        escrowId = Number(idVal);
+      }
     }
+  }
+} catch (err) {
+  console.error("Failed to decode contract return value:", err);
+}
+
+console.log("Native Return:", pollResult.returnValue);
+console.log("Escrow ID returned:", escrowId);
+console.log("Poll Result:", pollResult);
+
+return {
+  txHash,
+  escrowId,
+  studentWallet: studentPublicKey,
+  contractId: CONTRACT_ID,
+};
+}
+
+export async function releaseEscrow(
+  escrowId: number
+): Promise<ReleaseEscrowResult> {
+  const addressResult = await getAddress();
+
+if (!addressResult.address) {
+  throw new Error(
+    "Freighter wallet is not connected. Please connect your wallet first."
+  );
+}
+
+const callerAddress = addressResult.address;
+
+const server = new rpc.Server(RPC_URL, { allowHttp: false });
+
+const contract = new Contract(CONTRACT_ID);
+
+const account = await server.getAccount(callerAddress);
+const callerScVal = Address.fromString(callerAddress).toScVal();
+
+const escrowIdScVal = nativeToScVal(
+  BigInt(escrowId),
+  { type: "u64" }
+);
+
+const rawTx = new TransactionBuilder(account, {
+  fee: BASE_FEE,
+  networkPassphrase: NETWORK_PASSPHRASE,
+})
+  .addOperation(
+    contract.call(
+      "release",
+      escrowIdScVal,
+      callerScVal
+    )
+  )
+  .setTimeout(180)
+  .build();
+
+  let preparedTx: Parameters<typeof server.sendTransaction>[0];
+
+try {
+  preparedTx = await server.prepareTransaction(rawTx);
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  throw new Error(`Transaction simulation failed: ${msg}`);
+}
+const signResult = await signTransaction(preparedTx.toXDR(), {
+  networkPassphrase: NETWORK_PASSPHRASE,
+});
+
+if ("error" in signResult && signResult.error) {
+  throw new Error(signResult.error as string);
+}
+
+const signedXdr =
+  "signedTxXdr" in signResult
+    ? (signResult as { signedTxXdr: string }).signedTxXdr
+    : (signResult as unknown as string);
+
+const signedTx = TransactionBuilder.fromXDR(
+  signedXdr,
+  NETWORK_PASSPHRASE
+);
+const sendResponse = await server.sendTransaction(signedTx);
+
+if (sendResponse.status === "ERROR") {
+  const detail =
+    sendResponse.errorResult
+      ? JSON.stringify(sendResponse.errorResult)
+      : "unknown error";
+
+  throw new Error(`Transaction submission failed: ${detail}`);
+}
+
+const txHash = sendResponse.hash;
+const pollResult = await server.pollTransaction(txHash, {
+  attempts: 20,
+  sleepStrategy: rpc.LinearSleepStrategy,
+});
+
+if (pollResult.status === rpc.Api.GetTransactionStatus.FAILED) {
+  throw new Error("Transaction was submitted but failed on-chain.");
+}
+if (pollResult.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
+  throw new Error("Transaction timed out waiting for confirmation.");
+}
+if (pollResult.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
+  throw new Error("Unexpected transaction status.");
+}
+return {
+  txHash,
+};
+}
+
+export interface DepositEscrowResult {
+  txHash: string;
+}
+
+export async function depositEscrow(
+  escrowId: number
+): Promise<DepositEscrowResult> {
+  const addressResult = await getAddress();
+
+  if (!addressResult.address) {
+    throw new Error(
+      "Freighter wallet is not connected. Please connect your wallet first."
+    );
+  }
+
+  const callerAddress = addressResult.address;
+
+  const server = new rpc.Server(RPC_URL, { allowHttp: false });
+
+  const contract = new Contract(CONTRACT_ID);
+
+  const account = await server.getAccount(callerAddress);
+
+  const callerScVal = Address.fromString(callerAddress).toScVal();
+
+  const escrowIdScVal = nativeToScVal(
+    BigInt(escrowId),
+    { type: "u64" }
+  );
+
+  const rawTx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call(
+        "deposit",
+        escrowIdScVal,
+        callerScVal
+      )
+    )
+    .setTimeout(180)
+    .build();
+
+  let preparedTx: Parameters<typeof server.sendTransaction>[0];
+
+  try {
+    preparedTx = await server.prepareTransaction(rawTx);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Transaction simulation failed: ${msg}`);
+  }
+
+  const signResult = await signTransaction(preparedTx.toXDR(), {
+    networkPassphrase: NETWORK_PASSPHRASE,
+  });
+
+  if ("error" in signResult && signResult.error) {
+    throw new Error(signResult.error as string);
+  }
+
+  const signedXdr =
+    "signedTxXdr" in signResult
+      ? (signResult as { signedTxXdr: string }).signedTxXdr
+      : (signResult as unknown as string);
+
+  const signedTx = TransactionBuilder.fromXDR(
+    signedXdr,
+    NETWORK_PASSPHRASE
+  );
+
+  const sendResponse = await server.sendTransaction(signedTx);
+
+  if (sendResponse.status === "ERROR") {
+    const detail =
+      sendResponse.errorResult
+        ? JSON.stringify(sendResponse.errorResult)
+        : "unknown error";
+
+    throw new Error(`Transaction submission failed: ${detail}`);
+  }
+
+  const txHash = sendResponse.hash;
+
+  const pollResult = await server.pollTransaction(txHash, {
+    attempts: 20,
+    sleepStrategy: rpc.LinearSleepStrategy,
+  });
+
+  if (pollResult.status === rpc.Api.GetTransactionStatus.FAILED) {
+    throw new Error("Transaction was submitted but failed on-chain.");
+  }
+
+  if (pollResult.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
+    throw new Error("Transaction timed out waiting for confirmation.");
+  }
+
+  if (pollResult.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
+    throw new Error("Unexpected transaction status.");
   }
 
   return {
     txHash,
-    escrowId,
-    studentWallet: studentPublicKey,
-    contractId: CONTRACT_ID,
   };
 }

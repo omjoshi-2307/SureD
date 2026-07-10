@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
-import { getEscrowDb } from '@/services/escrowService';
+import {
+  getEscrowDb,
+  fundEscrowDb,
+} from '@/services/escrowService';
+
+import { depositEscrow } from '@/services/sorobanService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -19,12 +24,12 @@ const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
   </svg>
 );
 const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',   label: 'Dashboard',           icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'deposits',    label: 'My Deposits',          icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'escrow',      label: 'Create Escrow',        icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-  { id: 'history',     label: 'Transaction History',  icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',              icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',             icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
+  { id: 'deposits', label: 'My Deposits', icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
+  { id: 'escrow', label: 'Create Escrow', icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
+  { id: 'history', label: 'Transaction History', icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
+  { id: 'profile', label: 'Profile', icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
+  { id: 'settings', label: 'Settings', icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
   {
     id: 'logout', label: 'Logout', isLogout: true,
     icon: (
@@ -39,12 +44,12 @@ const NAV_ITEMS: NavItem[] = [
 
 /* ─── Status config ─────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  CREATED:              { label: 'Created',              color: '#2B6CB0', bg: 'rgba(74,144,226,0.1)',  border: 'rgba(74,144,226,0.3)' },
-  FUNDED:               { label: 'Funded',               color: '#C07A12', bg: 'rgba(240,163,74,0.1)',  border: 'rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#8E44AD', bg: 'rgba(155,89,182,0.1)',  border: 'rgba(155,89,182,0.3)' },
-  RELEASED:             { label: 'Released',             color: '#2AAF5C', bg: 'rgba(74,207,122,0.1)',  border: 'rgba(74,207,122,0.3)' },
-  DISPUTED:             { label: 'Disputed',             color: '#C53030', bg: 'rgba(234,67,53,0.1)',   border: 'rgba(234,67,53,0.3)' },
-  CANCELLED:            { label: 'Cancelled',            color: '#4B5563', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
+  CREATED: { label: 'Created', color: '#2B6CB0', bg: 'rgba(74,144,226,0.1)', border: 'rgba(74,144,226,0.3)' },
+  FUNDED: { label: 'Funded', color: '#C07A12', bg: 'rgba(240,163,74,0.1)', border: 'rgba(240,163,74,0.3)' },
+  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#8E44AD', bg: 'rgba(155,89,182,0.1)', border: 'rgba(155,89,182,0.3)' },
+  RELEASED: { label: 'Released', color: '#2AAF5C', bg: 'rgba(74,207,122,0.1)', border: 'rgba(74,207,122,0.3)' },
+  DISPUTED: { label: 'Disputed', color: '#C53030', bg: 'rgba(234,67,53,0.1)', border: 'rgba(234,67,53,0.3)' },
+  CANCELLED: { label: 'Cancelled', color: '#4B5563', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
 };
 
 /* ─── Helper components ─────────────────────────── */
@@ -87,7 +92,7 @@ const MonoBlock = ({ value }: { value: string }) => (
 const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message: string; type?: 'info' | 'warning' | 'error' }) => {
   const bg = type === 'error' ? 'linear-gradient(135deg,#2E1A1A,#4E2E2E)'
     : type === 'warning' ? 'linear-gradient(135deg,#2E2210,#4E3A10)'
-    : 'linear-gradient(135deg,#1A1A2E,#2E2E4E)';
+      : 'linear-gradient(135deg,#1A1A2E,#2E2E4E)';
   const icon = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
   return (
     <div style={{
@@ -124,6 +129,7 @@ const EscrowDetailsPage: React.FC = () => {
   const [escrow, setEscrow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [depositing, setDepositing] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 60);
@@ -149,6 +155,17 @@ const EscrowDetailsPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const loadEscrow = async () => {
+    if (!id) return;
+
+    try {
+      const data = await getEscrowDb(id);
+      setEscrow(data.escrow || data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const showToast = (msg: string, type: 'info' | 'warning' | 'error' = 'info') => {
     setToastMsg(msg);
     setToastType(type);
@@ -157,6 +174,47 @@ const EscrowDetailsPage: React.FC = () => {
   };
 
   const handleRaiseDispute = () => showToast('Dispute request submitted (Demo Mode)', 'warning');
+
+  const handleDeposit = async () => {
+    console.log("Escrow object:", escrow);
+    if (!escrow?.escrowId) {
+      showToast("Escrow ID not found", "error");
+      return;
+    }
+
+    try {
+      setDepositing(true);
+
+      const result = await depositEscrow(
+        escrow.escrowId
+      );
+
+      await fundEscrowDb(
+        escrow.escrowId,
+        {
+          txHash: result.txHash,
+        }
+      );
+
+      await loadEscrow();
+
+      showToast(
+        "Deposit funded successfully!",
+        "info"
+      );
+
+    } catch (err: any) {
+      console.error(err);
+
+      showToast(
+        err?.message || "Deposit failed",
+        "error"
+      );
+
+    } finally {
+      setDepositing(false);
+    }
+  };
 
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
@@ -181,10 +239,10 @@ const EscrowDetailsPage: React.FC = () => {
 
   // Timeline steps
   const TIMELINE = [
-    { key: 'CREATED',              label: 'Escrow Created',        icon: '🚀' },
-    { key: 'FUNDED',               label: 'Deposit Funded',        icon: '💰' },
-    { key: 'PENDING_CONFIRMATION', label: 'Awaiting Confirmation',  icon: '⏳' },
-    { key: 'RELEASED',             label: 'Deposit Released',       icon: '🔓' },
+    { key: 'CREATED', label: 'Escrow Created', icon: '🚀' },
+    { key: 'FUNDED', label: 'Deposit Funded', icon: '💰' },
+    { key: 'PENDING_CONFIRMATION', label: 'Awaiting Confirmation', icon: '⏳' },
+    { key: 'RELEASED', label: 'Deposit Released', icon: '🔓' },
   ];
   const STATUS_ORDER = ['CREATED', 'FUNDED', 'PENDING_CONFIRMATION', 'RELEASED'];
   const currentIdx = escrow ? STATUS_ORDER.indexOf(escrow.status) : -1;
@@ -234,18 +292,18 @@ const EscrowDetailsPage: React.FC = () => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {[1,2,3].map(k => (
+              {[1, 2, 3].map(k => (
                 <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="50%" mb={16} />
-                  {[1,2,3,4].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
+                  {[1, 2, 3, 4].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {[1,2].map(k => (
+              {[1, 2].map(k => (
                 <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="60%" mb={16} />
-                  {[1,2,3].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
+                  {[1, 2, 3].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
               ))}
             </div>
@@ -388,13 +446,13 @@ const EscrowDetailsPage: React.FC = () => {
                 <Card>
                   <SectionTitle label="📝 Escrow Summary" />
                   <InfoRow label="Escrow ID" value={escrowLabel} bold accent />
-                  <InfoRow label="MongoDB ID" value={`${escrow._id?.slice(0,8)}…`} />
+                  <InfoRow label="MongoDB ID" value={`${escrow._id?.slice(0, 8)}…`} />
                   <InfoRow label="Deposit Amount" value={`${escrow.depositAmount} ${escrow.currency}`} />
                   <div style={{ height: 1, background: C.border, margin: '10px 0' }} />
                   <InfoRow label="Created" value={formattedCreated} />
                   <InfoRow label="Current Status" value={statusCfg?.label || escrow.status} bold />
                   <InfoRow label="Network" value={escrow.network || 'Stellar Testnet'} />
-                  {escrow.contractId && <InfoRow label="Contract ID" value={`${escrow.contractId.slice(0,10)}…`} />}
+                  {escrow.contractId && <InfoRow label="Contract ID" value={`${escrow.contractId.slice(0, 10)}…`} />}
                 </Card>
 
                 {/* Blockchain Info Card */}
@@ -409,7 +467,7 @@ const EscrowDetailsPage: React.FC = () => {
                       <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Transaction Hash</div>
                       {escrow.transactionHash ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <MonoBlock value={`${escrow.transactionHash.slice(0,16)}…${escrow.transactionHash.slice(-8)}`} />
+                          <MonoBlock value={`${escrow.transactionHash.slice(0, 16)}…${escrow.transactionHash.slice(-8)}`} />
                           {stellarExpertUrl && (
                             <a
                               href={stellarExpertUrl}
@@ -456,6 +514,29 @@ const EscrowDetailsPage: React.FC = () => {
                 {/* Action Buttons */}
                 <Card style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SectionTitle label="⚡ Actions" />
+                  {escrow.status === "CREATED" && (
+                    <button
+                      onClick={handleDeposit}
+                      disabled={depositing}
+                      style={{
+                        width: "100%",
+                        font,
+                        fontWeight: 700,
+                        fontSize: "0.88rem",
+                        color: "#fff",
+                        background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
+                        border: "none",
+                        borderRadius: 50,
+                        padding: "13px",
+                        cursor: depositing ? "not-allowed" : "pointer",
+                        opacity: depositing ? 0.7 : 1,
+                        boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      {depositing ? "Processing..." : "💰 Deposit Funds"}
+                    </button>
+                  )}
                   <button
                     onClick={handleRaiseDispute}
                     style={{
@@ -583,8 +664,8 @@ const EscrowDetailsPage: React.FC = () => {
                             {isCompleted && step.key === 'CREATED'
                               ? formattedCreated
                               : isCompleted ? 'Completed'
-                              : isCurrent ? 'In Progress'
-                              : 'Future Step'}
+                                : isCurrent ? 'In Progress'
+                                  : 'Future Step'}
                           </div>
                         </div>
                       </div>

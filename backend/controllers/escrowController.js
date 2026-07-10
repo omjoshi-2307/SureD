@@ -173,3 +173,137 @@ exports.getEscrowsByLandlord = async (req, res) => {
     });
   }
 };
+// Release Escrow
+exports.releaseEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { txHash } = req.body;
+
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Release transaction hash is required",
+      });
+    }
+
+    let escrow;
+
+    // Try MongoDB ObjectId first
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    // Otherwise treat it as contract escrowId
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({
+        escrowId: Number(id),
+      });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    // Prevent releasing twice
+    if (escrow.status === "RELEASED") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is already released",
+      });
+    }
+
+    // Optional safety check
+    if (escrow.status !== "PENDING_CONFIRMATION") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is not ready for release",
+      });
+    }
+
+    escrow.status = "RELEASED";
+    escrow.releasedTxHash = txHash;
+    escrow.releasedAt = new Date();
+
+    await escrow.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Escrow released successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Release Escrow Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// Fund Escrow
+exports.fundEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { txHash } = req.body;
+
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Funding transaction hash is required",
+      });
+    }
+
+    let escrow;
+
+    // Try MongoDB ObjectId first
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    // Otherwise treat it as contract escrowId
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({
+        escrowId: Number(id),
+      });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    if (escrow.status !== "CREATED") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is already funded or cannot be funded",
+      });
+    }
+
+    escrow.status = "FUNDED";
+    escrow.fundedTxHash = txHash;
+    escrow.fundedAt = new Date();
+
+    await escrow.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Escrow funded successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Fund Escrow Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};

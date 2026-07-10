@@ -16,6 +16,14 @@ export interface CreateEscrowDbParams {
   blockchainNetwork: string;
 }
 
+export interface FundEscrowDbParams {
+  txHash: string;
+}
+
+export interface ReleaseEscrowDbParams {
+  txHash: string;
+}
+
 export const createEscrowDb = async (data: CreateEscrowDbParams) => {
   const response = await API.post("/escrows", data);
   return response.data;
@@ -33,5 +41,29 @@ export const getEscrowsByStudentDb = async (wallet: string) => {
 
 export const getEscrowsByLandlordDb = async (wallet: string) => {
   const response = await API.get(`/escrows/landlord/${wallet}`);
+  return response.data;
+};
+
+export const fundEscrowDb = async (
+  id: string | number,
+  data: FundEscrowDbParams
+) => {
+  const response = await API.patch(
+    `/escrows/${id}/fund`,
+    data
+  );
+
+  return response.data;
+};
+
+export const releaseEscrowDb = async (
+  id: string | number,
+  data: ReleaseEscrowDbParams
+) => {
+  const response = await API.patch(
+    `/escrows/${id}/release`,
+    data
+  );
+
   return response.data;
 };
