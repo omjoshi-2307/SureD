@@ -145,6 +145,10 @@ pub fn release(
 
     caller.require_auth();
 
+    if caller != escrow.landlord {
+    return Err(ContractError::Unauthorized);
+}
+
     if escrow.status == EscrowStatus::Released {
         return Err(ContractError::AlreadyReleased);
     }
