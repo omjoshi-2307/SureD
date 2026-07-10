@@ -19,6 +19,9 @@ export interface CreateEscrowDbParams {
 export interface FundEscrowDbParams {
   txHash: string;
 }
+export interface ConfirmEscrowDbParams {
+  txHash: string;
+}
 
 export interface ReleaseEscrowDbParams {
   txHash: string;
@@ -50,6 +53,18 @@ export const fundEscrowDb = async (
 ) => {
   const response = await API.patch(
     `/escrows/${id}/fund`,
+    data
+  );
+
+  return response.data;
+};
+
+export const confirmEscrowDb = async (
+  id: string | number,
+  data: ConfirmEscrowDbParams
+) => {
+  const response = await API.patch(
+    `/escrows/${id}/confirm`,
     data
   );
 

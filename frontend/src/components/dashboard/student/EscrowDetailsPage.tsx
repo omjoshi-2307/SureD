@@ -5,7 +5,8 @@ import {
   getEscrowDb,
   fundEscrowDb,
 } from '@/services/escrowService';
-
+import { confirmEscrow } from "../../../services/sorobanService";
+import { confirmEscrowDb } from "../../../services/escrowService";
 import { depositEscrow } from '@/services/sorobanService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
@@ -174,6 +175,26 @@ const EscrowDetailsPage: React.FC = () => {
   };
 
   const handleRaiseDispute = () => showToast('Dispute request submitted (Demo Mode)', 'warning');
+
+  const handleConfirmMoveIn = async () => {
+    if (!escrow?.escrowId) {
+      showToast('Escrow ID not found', 'error');
+      return;
+    }
+
+    try {
+      const result = await confirmEscrow(escrow.escrowId);
+
+      await confirmEscrowDb(escrow.escrowId, {
+        txHash: result.txHash,
+      });
+
+      await loadEscrow();
+      showToast('Move-in confirmed successfully', 'info');
+    } catch (err: any) {
+      showToast(err?.message || 'Confirmation failed', 'error');
+    }
+  };
 
   const handleDeposit = async () => {
     console.log("Escrow object:", escrow);
@@ -535,6 +556,27 @@ const EscrowDetailsPage: React.FC = () => {
                       }}
                     >
                       {depositing ? "Processing..." : "💰 Deposit Funds"}
+                    </button>
+                  )}
+                  {escrow.status === "FUNDED" && (
+                    <button
+                      onClick={handleConfirmMoveIn}
+                      style={{
+                        width: "100%",
+                        font,
+                        fontWeight: 700,
+                        fontSize: "0.88rem",
+                        color: "#fff",
+                        background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
+                        border: "none",
+                        borderRadius: 50,
+                        padding: "13px",
+                        cursor: "pointer",
+                        boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      ✅ Confirm Move In
                     </button>
                   )}
                   <button

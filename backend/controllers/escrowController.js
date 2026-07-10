@@ -307,3 +307,73 @@ exports.fundEscrow = async (req, res) => {
     });
   }
 };
+
+// Confirm Escrow
+exports.confirmEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { txHash } = req.body;
+
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Confirmation transaction hash is required",
+      });
+    }
+
+    let escrow;
+
+    // Try MongoDB ObjectId
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    // Otherwise use contract escrowId
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({
+        escrowId: Number(id),
+      });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    if (escrow.status === "PENDING_CONFIRMATION") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow already confirmed",
+      });
+    }
+
+    if (escrow.status !== "FUNDED") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is not funded",
+      });
+    }
+
+    escrow.status = "PENDING_CONFIRMATION";
+    escrow.confirmTxHash = txHash;
+    escrow.confirmedAt = new Date();
+
+    await escrow.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Escrow confirmed successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Confirm Escrow Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};

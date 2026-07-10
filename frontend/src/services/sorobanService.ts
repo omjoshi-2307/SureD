@@ -339,6 +339,10 @@ export interface DepositEscrowResult {
   txHash: string;
 }
 
+export interface ConfirmEscrowResult {
+  txHash: string;
+}
+
 export async function depositEscrow(
   escrowId: number
 ): Promise<DepositEscrowResult> {
@@ -372,6 +376,108 @@ export async function depositEscrow(
     .addOperation(
       contract.call(
         "deposit",
+        escrowIdScVal,
+        callerScVal
+      )
+    )
+    .setTimeout(180)
+    .build();
+
+  let preparedTx: Parameters<typeof server.sendTransaction>[0];
+
+  try {
+    preparedTx = await server.prepareTransaction(rawTx);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Transaction simulation failed: ${msg}`);
+  }
+
+  const signResult = await signTransaction(preparedTx.toXDR(), {
+    networkPassphrase: NETWORK_PASSPHRASE,
+  });
+
+  if ("error" in signResult && signResult.error) {
+    throw new Error(signResult.error as string);
+  }
+
+  const signedXdr =
+    "signedTxXdr" in signResult
+      ? (signResult as { signedTxXdr: string }).signedTxXdr
+      : (signResult as unknown as string);
+
+  const signedTx = TransactionBuilder.fromXDR(
+    signedXdr,
+    NETWORK_PASSPHRASE
+  );
+
+  const sendResponse = await server.sendTransaction(signedTx);
+
+  if (sendResponse.status === "ERROR") {
+    const detail =
+      sendResponse.errorResult
+        ? JSON.stringify(sendResponse.errorResult)
+        : "unknown error";
+
+    throw new Error(`Transaction submission failed: ${detail}`);
+  }
+
+  const txHash = sendResponse.hash;
+
+  const pollResult = await server.pollTransaction(txHash, {
+    attempts: 20,
+    sleepStrategy: rpc.LinearSleepStrategy,
+  });
+
+  if (pollResult.status === rpc.Api.GetTransactionStatus.FAILED) {
+    throw new Error("Transaction was submitted but failed on-chain.");
+  }
+
+  if (pollResult.status === rpc.Api.GetTransactionStatus.NOT_FOUND) {
+    throw new Error("Transaction timed out waiting for confirmation.");
+  }
+
+  if (pollResult.status !== rpc.Api.GetTransactionStatus.SUCCESS) {
+    throw new Error("Unexpected transaction status.");
+  }
+
+  return {
+    txHash,
+  };
+}
+
+export async function confirmEscrow(
+  escrowId: number
+): Promise<ConfirmEscrowResult> {
+  const addressResult = await getAddress();
+
+  if (!addressResult.address) {
+    throw new Error(
+      "Freighter wallet is not connected. Please connect your wallet first."
+    );
+  }
+
+  const callerAddress = addressResult.address;
+
+  const server = new rpc.Server(RPC_URL, { allowHttp: false });
+
+  const contract = new Contract(CONTRACT_ID);
+
+  const account = await server.getAccount(callerAddress);
+
+  const callerScVal = Address.fromString(callerAddress).toScVal();
+
+  const escrowIdScVal = nativeToScVal(
+    BigInt(escrowId),
+    { type: "u64" }
+  );
+
+  const rawTx = new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(
+      contract.call(
+        "confirm",
         escrowIdScVal,
         callerScVal
       )
