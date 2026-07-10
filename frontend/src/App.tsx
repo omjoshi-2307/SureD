@@ -17,6 +17,7 @@ import EscrowDetailsPage from '@/components/dashboard/student/EscrowDetailsPage'
 import MyDeposits from '@/components/dashboard/student/MyDeposits';
 import IncomingEscrows from '@/components/dashboard/landlord/IncomingEscrows';
 import LandlordEscrowDetails from '@/components/dashboard/landlord/LandlordEscrowDetails';
+import { TransactionHistoryPage, ProfilePage, SettingsPage } from '@/components/dashboard/shared/AccountPages';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -88,8 +89,14 @@ function App() {
       <Route path="/student/escrow-details" element={<EscrowDetails />} />
       <Route path="/student/escrow/:id" element={<EscrowDetailsPage />} />
       <Route path="/student/my-deposits" element={<MyDeposits />} />
+      <Route path="/student/transactions" element={<TransactionHistoryPage role="student" />} />
+      <Route path="/student/profile" element={<ProfilePage role="student" />} />
+      <Route path="/student/settings" element={<SettingsPage role="student" />} />
       <Route path="/landlord/dashboard" element={<LandlordDashboard />} />
       <Route path="/landlord/incoming-escrows" element={<IncomingEscrows />} />
+      <Route path="/landlord/transactions" element={<TransactionHistoryPage role="landlord" />} />
+      <Route path="/landlord/profile" element={<ProfilePage role="landlord" />} />
+      <Route path="/landlord/settings" element={<SettingsPage role="landlord" />} />
       <Route path="/landlord/escrow/:id" element={<LandlordEscrowDetails />} />
       {/* Catch-all — redirect unknown paths to root */}
       <Route path="*" element={<LandingFlow />} />

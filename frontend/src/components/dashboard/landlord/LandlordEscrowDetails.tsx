@@ -269,6 +269,8 @@ const LandlordEscrowDetails: React.FC = () => {
       onNavChange={navId => {
         if (navId === 'dashboard') navigate('/landlord/dashboard');
         if (navId === 'incoming') navigate('/landlord/incoming-escrows');
+        if (navId === 'profile') navigate('/landlord/profile');
+        if (navId === 'settings') navigate('/landlord/settings');
       }}
     >
       <style>{`@keyframes ledPulse{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}`}</style>

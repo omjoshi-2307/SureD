@@ -282,6 +282,9 @@ const EscrowDetailsPage: React.FC = () => {
         if (navId === 'dashboard') navigate('/student/dashboard');
         if (navId === 'escrow') navigate('/student/create-escrow');
         if (navId === 'deposits') navigate('/student/my-deposits');
+        if (navId === 'history') navigate('/student/transactions');
+        if (navId === 'profile') navigate('/student/profile');
+        if (navId === 'settings') navigate('/student/settings');
       }}
     >
       <style>{`

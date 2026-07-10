@@ -131,6 +131,8 @@ const LandlordDashboard: React.FC = () => {
 
   const handleNavChange = (id: string) => {
     if (id === 'incoming') navigate('/landlord/incoming-escrows');
+    else if (id === 'profile') navigate('/landlord/profile');
+    else if (id === 'settings') navigate('/landlord/settings');
     else if (id === 'dashboard') navigate('/landlord/dashboard');
     else setActiveId(id);
   };

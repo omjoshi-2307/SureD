@@ -226,6 +226,9 @@ const IncomingEscrows: React.FC = () => {
       activeId="incoming"
       onNavChange={(id) => {
         if (id === 'dashboard') navigate('/landlord/dashboard');
+        if (id === 'incoming') navigate('/landlord/incoming-escrows');
+        if (id === 'profile') navigate('/landlord/profile');
+        if (id === 'settings') navigate('/landlord/settings');
       }}
     >
       <style>{`@keyframes iePulse{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}`}</style>
