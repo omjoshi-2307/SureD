@@ -141,6 +141,8 @@ const Toast = ({ visible, message, isError }: { visible: boolean; message: strin
 /*  CREATE ESCROW PAGE                                               */
 /* ══════════════════════════════════════════════════════════════════ */
 const CreateEscrow: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Student") : "Student";
   const navigate = useNavigate();
 
   /* ── form state ── */
@@ -275,7 +277,7 @@ const CreateEscrow: React.FC = () => {
   return (
     <DashboardLayout
       role="student"
-      userName="Alex Johnson"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId="escrow"
       onNavChange={(id) => {

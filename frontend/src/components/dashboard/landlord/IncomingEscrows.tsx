@@ -107,8 +107,9 @@ const SkeletonCard = () => (
   </div>
 );
 
-/* ════════════════════════════════════════════════════════════════ */
 const IncomingEscrows: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Landlord") : "Landlord";
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState(false);
@@ -221,7 +222,7 @@ const IncomingEscrows: React.FC = () => {
   return (
     <DashboardLayout
       role="landlord"
-      userName="Landlord"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId="incoming"
       onNavChange={(id) => {

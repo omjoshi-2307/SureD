@@ -89,8 +89,9 @@ const SkeletonRow = () => (
   </tr>
 );
 
-/* ═════════════════════════════════════════════════════════════ */
 const LandlordDashboard: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Landlord") : "Landlord";
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState('dashboard');
   const [walletAddress, setWalletAddress] = useState('');
@@ -166,7 +167,7 @@ const LandlordDashboard: React.FC = () => {
   return (
     <DashboardLayout
       role="landlord"
-      userName="Landlord"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId={activeId}
       onNavChange={handleNavChange}

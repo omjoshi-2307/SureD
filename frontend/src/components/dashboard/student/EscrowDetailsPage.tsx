@@ -118,8 +118,9 @@ const SkeletonBlock = ({ w = '100%', h = 14, mb = 10 }: { w?: string | number; h
   <div style={{ height: h, width: w, background: '#F0F0F0', borderRadius: 6, marginBottom: mb, animation: 'skPulse 1.4s infinite ease-in-out' }} />
 );
 
-/* ══════════════════════════════════════════════════════════════════ */
 const EscrowDetailsPage: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Student") : "Student";
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [mounted, setMounted] = useState(false);
@@ -275,7 +276,7 @@ const EscrowDetailsPage: React.FC = () => {
   return (
     <DashboardLayout
       role="student"
-      userName="Alex Johnson"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId="deposits"
       onNavChange={(navId) => {

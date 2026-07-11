@@ -17,6 +17,7 @@ import EscrowDetailsPage from '@/components/dashboard/student/EscrowDetailsPage'
 import MyDeposits from '@/components/dashboard/student/MyDeposits';
 import IncomingEscrows from '@/components/dashboard/landlord/IncomingEscrows';
 import LandlordEscrowDetails from '@/components/dashboard/landlord/LandlordEscrowDetails';
+import GoogleRoleSelect from '@/components/ui/GoogleRoleSelect';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -31,9 +32,15 @@ function LandingFlow() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Demo login — no auth, navigate by role immediately
+  // Route to appropriate dashboard based on authenticated role
   const handleLogin = (role: 'student' | 'landlord') => {
-    navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      navigate(user.role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
+    } else {
+      navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
+    }
   };
 
   if (view === 'welcome') {
@@ -83,6 +90,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingFlow />} />
+      <Route path="/auth/google-role-select" element={<GoogleRoleSelect />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
       <Route path="/student/create-escrow" element={<CreateEscrow />} />
       <Route path="/student/escrow-details" element={<EscrowDetails />} />

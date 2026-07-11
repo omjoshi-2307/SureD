@@ -117,8 +117,9 @@ const PROGRESS_BY_STATUS: Record<string, number> = {
   CREATED: 20, FUNDED: 45, PENDING_CONFIRMATION: 65, RELEASED: 100, DISPUTED: 30, CANCELLED: 0,
 };
 
-/* ════════════════════════════════════════════════════════════════ */
 const LandlordEscrowDetails: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Landlord") : "Landlord";
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [mounted, setMounted] = useState(false);
@@ -263,7 +264,7 @@ const LandlordEscrowDetails: React.FC = () => {
   return (
     <DashboardLayout
       role="landlord"
-      userName="Landlord"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId="incoming"
       onNavChange={navId => {

@@ -111,8 +111,9 @@ const SkeletonRow = () => (
   </tr>
 );
 
-/* ═════════════════════════════════════════════════════════════ */
 const StudentDashboard: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Student") : "Student";
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState('dashboard');
   const [walletAddress, setWalletAddress] = useState("");
@@ -202,7 +203,7 @@ const StudentDashboard: React.FC = () => {
   return (
     <DashboardLayout
       role="student"
-      userName="Alex Johnson"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId={activeId}
       onNavChange={handleNavChange}
@@ -241,7 +242,7 @@ const StudentDashboard: React.FC = () => {
             fontSize: 'clamp(1.25rem, 3vw, 1.7rem)', color: '#fff',
             marginBottom: 6, letterSpacing: '-0.5px',
           }}>
-            Welcome back, Alex 👋
+            Welcome back, {displayName} 👋
           </h1>
           <p style={{
             fontFamily: "'Poppins', sans-serif", fontWeight: 400,

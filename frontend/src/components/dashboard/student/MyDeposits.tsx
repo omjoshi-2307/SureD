@@ -107,8 +107,9 @@ const SkeletonCard = () => (
   </div>
 );
 
-/* ══════════════════════════════════════════════════════════════════ */
 const MyDeposits: React.FC = () => {
+  const storedUser = localStorage.getItem("user");
+  const displayName = storedUser ? (JSON.parse(storedUser).name || "Student") : "Student";
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState(false);
@@ -223,7 +224,7 @@ const MyDeposits: React.FC = () => {
     `}</style>
     <DashboardLayout
       role="student"
-      userName="Alex Johnson"
+      userName={displayName}
       navItems={NAV_ITEMS}
       activeId="deposits"
       onNavChange={(id) => {
@@ -657,28 +658,58 @@ const MyDeposits: React.FC = () => {
               <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 18 }}>
                 🕒 Activity Timeline
               </div>
-              {[
-                { title: 'Waiting for Move-in', desc: 'ESC-003 status changed', time: '10:16 AM', date: '01 Jul 2026', icon: '⏳', color: '#4A90E2' },
-                { title: 'Deposit Locked', desc: 'ESC-001 funds received', time: '09:44 AM', date: '01 Jul 2026', icon: '🔒', color: C.orange },
-                { title: 'Escrow Created', desc: 'New deposit contract for ESC-001', time: '09:40 AM', date: '01 Jul 2026', icon: '🚀', color: C.orange },
-                { title: 'Deposit Released', desc: 'ESC-002 unlocked by move-in', time: '04:12 PM', date: '18 Jun 2026', icon: '🔓', color: '#4ACF7A' },
-              ].map((act, i, arr) => (
-                <div key={act.title} style={{ display: 'flex', gap: 10 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', width: 24, height: 24, borderRadius: '50%', background: `${act.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {act.icon}
-                    </span>
-                    {i < arr.length - 1 && (
-                      <div style={{ width: 2, flex: 1, minHeight: 18, background: '#EEEEEE', margin: '4px 0' }} />
-                    )}
-                  </div>
-                  <div style={{ paddingBottom: i < arr.length - 1 ? 14 : 0 }}>
-                    <div style={{ font, fontWeight: 700, fontSize: '0.78rem', color: C.textDark }}>{act.title}</div>
-                    <div style={{ font, fontSize: '0.7rem', color: C.textLight, marginTop: 2 }}>{act.desc}</div>
-                    <div style={{ font, fontSize: '0.66rem', color: C.textLight, marginTop: 2 }}>{act.date} at {act.time}</div>
-                  </div>
+              {escrows.length === 0 ? (
+                <div style={{ font, fontSize: '0.78rem', color: C.textLight, textAlign: 'center', padding: '20px 0' }}>
+                  No activity yet.
                 </div>
-              ))}
+              ) : (
+                escrows.slice(0, 5).map((esc, i, arr) => {
+                  const activityIcon = {
+                    CREATED: '🚀',
+                    FUNDED: '💰',
+                    PENDING_CONFIRMATION: '⏳',
+                    RELEASED: '🔓',
+                    DISPUTED: '⚠️',
+                    CANCELLED: '🚫',
+                  }[esc.status] || '📋';
+                  const activityColor = {
+                    CREATED: C.orange,
+                    FUNDED: '#F0A34A',
+                    PENDING_CONFIRMATION: '#4A90E2',
+                    RELEASED: '#4ACF7A',
+                    DISPUTED: '#ea4335',
+                    CANCELLED: '#6B7280',
+                  }[esc.status] || C.textLight;
+                  const statusLabel = {
+                    CREATED: 'Created',
+                    FUNDED: 'Locked',
+                    PENDING_CONFIRMATION: 'Awaiting Confirmation',
+                    RELEASED: 'Released',
+                    DISPUTED: 'Disputed',
+                    CANCELLED: 'Cancelled',
+                  }[esc.status] || esc.status;
+                  const escLabel = esc.escrowId !== undefined ? `ESC-${String(esc.escrowId).padStart(3,'0')}` : 'Escrow';
+                  const actDate = new Date(esc.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+                  const actTime = new Date(esc.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <div key={esc._id} style={{ display: 'flex', gap: 10 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontSize: '1rem', width: 24, height: 24, borderRadius: '50%', background: `${activityColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {activityIcon}
+                        </span>
+                        {i < arr.length - 1 && (
+                          <div style={{ width: 2, flex: 1, minHeight: 18, background: '#EEEEEE', margin: '4px 0' }} />
+                        )}
+                      </div>
+                      <div style={{ paddingBottom: i < arr.length - 1 ? 14 : 0 }}>
+                        <div style={{ font, fontWeight: 700, fontSize: '0.78rem', color: C.textDark }}>{statusLabel}</div>
+                        <div style={{ font, fontSize: '0.7rem', color: C.textLight, marginTop: 2 }}>{esc.propertyName} — {escLabel}</div>
+                        <div style={{ font, fontSize: '0.66rem', color: C.textLight, marginTop: 2 }}>{actDate} at {actTime}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </Card>
           </div>
 

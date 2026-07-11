@@ -15,13 +15,20 @@ const UserSchema = new mongoose.Schema(
 
     password:{
         type:String,
-        required:true
+        required:false,
+        default:""
     },
 
     role:{
         type:String,
         enum:["student","landlord","admin"],
         required:true
+    },
+
+    provider:{
+        type:String,
+        enum:["email","google"],
+        default:"email"
     },
 
     walletAddress:{

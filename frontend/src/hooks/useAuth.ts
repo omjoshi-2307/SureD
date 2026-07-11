@@ -1,20 +1,28 @@
-/**
- * useAuth — Demo stub hook.
- *
- * Currently returns a hard-coded null user so the app works without any
- * backend. Replace the internals here when adding real JWT / Stellar auth.
- *
- * Expected future shape:
- *   { user: { id, email, role }, token, login(), logout() }
- */
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
   role: 'student' | 'landlord';
+  walletAddress?: string;
+  provider?: string;
 }
 
 export function useAuth(): { user: AuthUser | null } {
-  // TODO: read from localStorage / JWT / context when auth is added
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        user: {
+          id: parsed.id || "",
+          email: parsed.email || "",
+          name: parsed.name || "",
+          role: parsed.role || "student",
+          walletAddress: parsed.walletAddress || "",
+          provider: parsed.provider || "email",
+        },
+      };
+    }
+  } catch {}
   return { user: null };
 }

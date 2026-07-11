@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sparkle from './Sparkle';
-import { registerUser } from "../../services/authService";
+import { registerUser, googleLogin } from "../../services/authService";
+import { initGoogleSignIn, setGoogleCallback, renderHiddenGoogleButton, clickGoogleSignIn, destroyHiddenGoogleButton } from '../../services/googleSignInService';
 
 interface RegisterProps {
   onBack: () => void;
@@ -10,6 +12,7 @@ interface RegisterProps {
 }
 
 const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => {
+  const navigate = useNavigate();
   const [role, setRole] = useState<'student' | 'landlord'>('student');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -21,6 +24,91 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  /* ── Google Sign-In ── */
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const googleTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    initGoogleSignIn(GOOGLE_CLIENT_ID);
+    renderHiddenGoogleButton();
+    setGoogleCallback(handleGoogleResponse);
+    return () => {
+      setGoogleCallback(null);
+      destroyHiddenGoogleButton();
+      if (googleTimeoutRef.current !== null) {
+        window.clearTimeout(googleTimeoutRef.current);
+        googleTimeoutRef.current = null;
+      }
+    };
+  }, [GOOGLE_CLIENT_ID]);
+
+  const handleGoogleResponse = async (response: any) => {
+    if (googleTimeoutRef.current !== null) {
+      window.clearTimeout(googleTimeoutRef.current);
+      googleTimeoutRef.current = null;
+    }
+    if (!response?.credential) {
+      setError('Google authentication failed. No credential received.');
+      setGoogleLoading(false);
+      return;
+    }
+    try {
+      setGoogleLoading(true);
+      setError('');
+      const result = await googleLogin({ credential: response.credential });
+      if (result.needsRole) {
+        navigate('/auth/google-role-select', {
+          state: {
+            credential: response.credential,
+            email: result.email,
+            name: result.name,
+            picture: result.picture,
+          },
+        });
+        return;
+      }
+      if (result.token && result.user) {
+        const userRole = result.user.role;
+        if (userRole === 'student') navigate('/student/dashboard');
+        else if (userRole === 'landlord') navigate('/landlord/dashboard');
+        else setError('Unexpected user role returned.');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err.message || 'Google login failed.';
+      setError(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleClick = () => {
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Google Sign-In is not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env file.');
+      return;
+    }
+    if (!window.google?.accounts?.id) {
+      setError('Google Sign-In is loading. Please try again in a moment.');
+      return;
+    }
+    setGoogleLoading(true);
+    setError('');
+
+    if (!clickGoogleSignIn()) {
+      setError('Google Sign-In is not available. Please try again.');
+      setGoogleLoading(false);
+      return;
+    }
+
+    if (googleTimeoutRef.current !== null) {
+      window.clearTimeout(googleTimeoutRef.current);
+    }
+    googleTimeoutRef.current = window.setTimeout(() => {
+      setGoogleLoading(false);
+      setError('Google Sign-In did not complete. Please try again.');
+    }, 30000);
+  };
 
   /* ── Real registration handler ── */
   const handleRegister = async () => {
@@ -608,33 +696,43 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
         {/* ── Google SSO ── */}
         <button
           type="button"
+          onClick={handleGoogleClick}
+          disabled={googleLoading}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             width: '100%', padding: '13px',
             border: '1.5px solid #EAEAEA', borderRadius: 50,
-            background: '#FFFFFF', cursor: 'pointer',
+            background: googleLoading ? '#F5F5F5' : '#FFFFFF',
+            cursor: googleLoading ? 'not-allowed' : 'pointer',
             fontFamily: "'Poppins', sans-serif", fontWeight: 600,
-            fontSize: '0.85rem', color: '#333',
+            fontSize: '0.85rem', color: googleLoading ? '#999' : '#333',
             transition: 'all 0.25s ease',
+            opacity: googleLoading ? 0.7 : 1,
           }}
           onMouseEnter={e => {
+            if (googleLoading) return;
             e.currentTarget.style.borderColor = '#E8734A';
             e.currentTarget.style.color = '#E8734A';
             e.currentTarget.style.boxShadow = '0 4px 16px rgba(232,115,74,0.12)';
           }}
           onMouseLeave={e => {
+            if (googleLoading) return;
             e.currentTarget.style.borderColor = '#EAEAEA';
             e.currentTarget.style.color = '#333';
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          <svg width="17" height="17" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
-            <path d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z" fill="#4285f4"/>
-            <path d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9 26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9 243.2 149.9z" fill="#34a853"/>
-            <path d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6 167.5 0 244.4l90.4-70.1z" fill="#fbbc04"/>
-            <path d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z" fill="#ea4335"/>
-          </svg>
-          Continue with Google
+          {googleLoading ? (
+            <span style={{ display: 'inline-block', width: 17, height: 17 }}>⏳</span>
+          ) : (
+            <svg width="17" height="17" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
+              <path d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z" fill="#4285f4"/>
+              <path d="M272.1 544.3c73.4 0 135.3-24.1 180.4-65.7l-87.7-68c-24.4 16.6-55.9 26-92.6 26-71 0-131.2-47.9-152.8-112.3H28.9v70.1c46.2 91.9 140.3 149.9 243.2 149.9z" fill="#34a853"/>
+              <path d="M119.3 324.3c-11.4-33.8-11.4-70.4 0-104.2V150H28.9c-38.6 76.9-38.6 167.5 0 244.4l90.4-70.1z" fill="#fbbc04"/>
+              <path d="M272.1 107.7c38.8-.6 76.3 14 104.4 40.8l77.7-77.7C405 24.6 339.7-.8 272.1 0 169.2 0 75.1 58 28.9 150l90.4 70.1c21.5-64.5 81.8-112.4 152.8-112.4z" fill="#ea4335"/>
+            </svg>
+          )}
+          {googleLoading ? 'Signing in…' : 'Continue with Google'}
         </button>
 
         {/* ── Sign In Link ── */}
