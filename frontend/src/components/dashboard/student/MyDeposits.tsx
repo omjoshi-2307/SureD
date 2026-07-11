@@ -231,6 +231,9 @@ const MyDeposits: React.FC = () => {
         if (id === 'dashboard') navigate('/student/dashboard');
         if (id === 'escrow') navigate('/student/create-escrow');
         if (id === 'deposits') navigate('/student/my-deposits');
+        if (id === 'history') navigate('/student/transactions');
+        if (id === 'profile') navigate('/student/profile');
+        if (id === 'settings') navigate('/student/settings');
       }}
     >
       <Toast visible={toast} message={toastMsg} />

@@ -157,6 +157,12 @@ const StudentDashboard: React.FC = () => {
       navigate('/student/create-escrow');
     } else if (id === 'deposits') {
       navigate('/student/my-deposits');
+    } else if (id === 'history') {
+      navigate('/student/transactions');
+    } else if (id === 'profile') {
+      navigate('/student/profile');
+    } else if (id === 'settings') {
+      navigate('/student/settings');
     } else if (id === 'dashboard') {
       navigate('/student/dashboard');
     } else {

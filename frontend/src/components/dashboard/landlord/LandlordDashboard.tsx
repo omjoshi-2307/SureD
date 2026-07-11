@@ -132,6 +132,8 @@ const LandlordDashboard: React.FC = () => {
 
   const handleNavChange = (id: string) => {
     if (id === 'incoming') navigate('/landlord/incoming-escrows');
+    else if (id === 'profile') navigate('/landlord/profile');
+    else if (id === 'settings') navigate('/landlord/settings');
     else if (id === 'dashboard') navigate('/landlord/dashboard');
     else setActiveId(id);
   };
@@ -327,7 +329,7 @@ const LandlordDashboard: React.FC = () => {
                           <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: font, fontWeight: 700, fontSize: '0.7rem', color: '#fff' }}>
                             S
                           </div>
-                          <span style={{ fontFamily: font, fontSize: '0.8rem', color: C.textMid, fontFamily: 'monospace' }}>
+                          <span style={{ fontFamily: `${font}, monospace`, fontSize: '0.8rem', color: C.textMid }}>
                             {row.studentWallet.slice(0, 6)}…{row.studentWallet.slice(-4)}
                           </span>
                         </div>

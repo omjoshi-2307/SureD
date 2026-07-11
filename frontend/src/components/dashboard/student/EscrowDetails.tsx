@@ -76,7 +76,14 @@ const EscrowDetails: React.FC = () => {
       userName={displayName}
       navItems={NAV_ITEMS}
       activeId="deposits"
-      onNavChange={(id) => { if (id === 'dashboard') navigate('/student/dashboard'); if (id === 'escrow') navigate('/student/create-escrow'); }}
+      onNavChange={(id) => {
+        if (id === 'dashboard') navigate('/student/dashboard');
+        if (id === 'escrow') navigate('/student/create-escrow');
+        if (id === 'deposits') navigate('/student/my-deposits');
+        if (id === 'history') navigate('/student/transactions');
+        if (id === 'profile') navigate('/student/profile');
+        if (id === 'settings') navigate('/student/settings');
+      }}
     >
       <style>{`@keyframes edPulse{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}`}</style>
 
