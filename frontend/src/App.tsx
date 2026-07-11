@@ -18,6 +18,7 @@ import MyDeposits from '@/components/dashboard/student/MyDeposits';
 import IncomingEscrows from '@/components/dashboard/landlord/IncomingEscrows';
 import LandlordEscrowDetails from '@/components/dashboard/landlord/LandlordEscrowDetails';
 import GoogleRoleSelect from '@/components/ui/GoogleRoleSelect';
+import { TransactionHistoryPage, ProfilePage, SettingsPage } from '@/components/dashboard/shared/AccountPages';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
