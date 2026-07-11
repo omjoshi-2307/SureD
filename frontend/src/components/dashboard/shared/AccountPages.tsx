@@ -1,6 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { connectWallet } from '@/services/walletService';
+import { fetchUserProfile, syncWallet, updateUserProfile, type ActivityItem, type ProfileStats, type ProfileUpdatePayload, type UserProfile, type WalletUpdatePayload } from '@/services/authService';
 
 type PageRole = 'student' | 'landlord';
 
@@ -243,11 +246,49 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
   );
 };
 
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  return 'Something went wrong';
+};
+
+const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+
+const formatDate = (value?: string) => {
+  if (!value) return 'Not available';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not available';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatDateTime = (value?: string) => {
+  if (!value) return 'Not available';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not available';
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+
 export const ProfilePage: React.FC<Props> = ({ role }) => {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formState, setFormState] = useState({
+    fullName: '',
+    username: '',
+    bio: '',
+    phone: '',
+    location: '',
+    profilePicture: '',
+  });
 
   const showToast = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setToastMsg(msg);
@@ -256,8 +297,177 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
     window.setTimeout(() => setToastVisible(false), 2200);
   };
 
+  const loadProfile = async () => {
+    setError('');
+    try {
+      const data = await fetchUserProfile();
+      setProfile(data.user);
+      setStats(data.stats);
+      setActivity(data.activity);
+      setFormState({
+        fullName: data.user.name || '',
+        username: data.user.username || '',
+        bio: data.user.bio || '',
+        phone: data.user.phone || '',
+        location: data.user.location || '',
+        profilePicture: data.user.profilePicture || '',
+      });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchUserProfile();
+        if (!mounted) return;
+        setProfile(data.user);
+        setStats(data.stats);
+        setActivity(data.activity);
+        setFormState({
+          fullName: data.user.name || '',
+          username: data.user.username || '',
+          bio: data.user.bio || '',
+          phone: data.user.phone || '',
+          location: data.user.location || '',
+          profilePicture: data.user.profilePicture || '',
+        });
+      } catch (err) {
+        if (!mounted) return;
+        setError(getErrorMessage(err));
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void run();
+    const interval = window.setInterval(() => {
+      void run();
+    }, 15000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, [authUser?.id]);
+
+  const handleChange = (field: keyof typeof formState, value: string) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!formState.fullName.trim()) {
+      showToast('Full name is required', 'warning');
+      return;
+    }
+    if (formState.username.trim() && formState.username.trim().length < 3) {
+      showToast('Username must be at least 3 characters', 'warning');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    try {
+      const payload: ProfileUpdatePayload = {
+        name: formState.fullName.trim(),
+        username: formState.username.trim() || undefined,
+        bio: formState.bio.trim() || '',
+        phone: formState.phone.trim() || '',
+        location: formState.location.trim() || '',
+        profilePicture: formState.profilePicture.trim() || '',
+      };
+      const response = await updateUserProfile(payload);
+      if ('success' in response && response.success) {
+        setProfile(response.user as UserProfile);
+        showToast('Profile updated successfully', 'success');
+      } else {
+        showToast('Unable to save profile', 'error');
+      }
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConnectWallet = async () => {
+    setWalletLoading(true);
+    setError('');
+    try {
+      const address = await connectWallet();
+      const payload: WalletUpdatePayload = {
+        walletAddress: address,
+        isWalletConnected: true,
+        walletType: 'Freighter',
+        network: 'Testnet',
+        walletVerified: true,
+      };
+      const response = await syncWallet(payload);
+      setProfile(response.user as UserProfile);
+      showToast('Wallet connected successfully', 'success');
+      await loadProfile();
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const handleDisconnectWallet = async () => {
+    setWalletLoading(true);
+    setError('');
+    try {
+      const response = await syncWallet({ walletAddress: '', isWalletConnected: false, walletType: '', network: 'Testnet', walletVerified: false });
+      setProfile(response.user as UserProfile);
+      showToast('Wallet disconnected', 'success');
+      await loadProfile();
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const handleCopyAddress = async () => {
+    if (!profile?.walletAddress) return;
+    try {
+      await navigator.clipboard.writeText(profile.walletAddress);
+      showToast('Address copied', 'success');
+    } catch {
+      showToast('Unable to copy address', 'error');
+    }
+  };
+
+  const displayName = profile?.name || authUser?.name || 'User';
+  const initials = (displayName || 'U').split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
+  const profileCompletion = useMemo(() => {
+    const fields = [
+      Boolean(profile?.name),
+      Boolean(profile?.email),
+      Boolean(profile?.username),
+      Boolean(profile?.phone),
+      Boolean(profile?.location),
+      Boolean(profile?.bio),
+      Boolean(profile?.walletAddress),
+      Boolean(profile?.profilePicture),
+    ];
+    const completed = fields.filter(Boolean).length;
+    return Math.round((completed / fields.length) * 100);
+  }, [profile]);
+
+  const walletStatus = profile?.isWalletConnected ? 'Connected' : 'Not Connected';
+  const walletLabel = profile?.walletAddress ? `${profile.walletAddress.slice(0, 6)}...${profile.walletAddress.slice(-4)}` : 'Not connected';
+
   return (
-    <DashboardLayout role={role} userName={role === 'student' ? 'Alex Johnson' : 'Mina Park'} navItems={buildNavItems(role)} activeId="profile" onNavChange={(id) => {
+    <DashboardLayout role={role} userName={displayName} navItems={buildNavItems(role)} activeId="profile" onNavChange={(id) => {
       if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
       if (id === 'deposits') navigate('/student/my-deposits');
       if (id === 'escrow') navigate('/student/create-escrow');
@@ -273,81 +483,150 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
               <p style={{ fontFamily: font, fontSize: '0.92rem', color: C.textMid, margin: '6px 0 0' }}>Manage your personal information and wallet details.</p>
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 16px', background: '#fff', color: C.textDark, fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => showToast('Profile saved successfully', 'success')} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>Save Changes</button>
+              <button onClick={() => void loadProfile()} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 16px', background: '#fff', color: C.textDark, fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
+              <button onClick={handleSave} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.8 : 1, boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>{saving ? 'Saving…' : 'Save Changes'}</button>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, alignItems: 'start' }}>
-            <Card style={{ padding: 24 }}>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontWeight: 800, fontSize: '1.2rem' }}>AJ</div>
-                <div>
-                  <h2 style={{ fontFamily: font, fontWeight: 800, margin: 0, color: C.textDark }}>Alex Johnson</h2>
-                  <p style={{ margin: '4px 0 0', fontFamily: font, fontSize: '0.86rem', color: C.textMid }}>Student • Verified Wallet</p>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                {[
-                  ['Email', 'alex@depositsafe.com'],
-                  ['Phone', '+1 415 555 0148'],
-                  ['Country', 'United States'],
-                  ['Member Since', 'Jan 2025'],
-                ].map(([label, value]) => (
-                  <div key={label} style={{ padding: 12, borderRadius: 12, background: '#FAFAFA', border: `1px solid ${C.border}` }}>
-                    <div style={{ fontFamily: font, fontSize: '0.72rem', color: C.textLight }}>{label}</div>
-                    <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark, fontSize: '0.87rem', marginTop: 4 }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+          {error ? (
+            <div style={{ border: `1px solid rgba(234,67,53,0.2)`, borderRadius: 14, padding: '12px 14px', background: 'rgba(234,67,53,0.06)', color: '#C53030', fontFamily: font, fontWeight: 600 }}>{error}</div>
+          ) : null}
 
-            <Card style={{ padding: 24 }}>
-              <SectionTitle label="Profile Completion" />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                <div style={{ width: 84, height: 84, borderRadius: '50%', display: 'grid', placeItems: 'center', background: `conic-gradient(${C.orange} 0 85%, #F2F2F2 0)`, color: C.textDark, fontWeight: 800 }}>85%</div>
-                <div>
-                  <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>Excellent profile</div>
-                  <p style={{ fontFamily: font, fontSize: '0.84rem', color: C.textMid, margin: '6px 0 0' }}>You are ahead of the average completion rate for this plan.</p>
-                </div>
-              </div>
-            </Card>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, alignItems: 'start' }}>
+            {loading ? (
+              <>
+                <Card style={{ padding: 24 }}>
+                  <div style={{ height: 18, width: '40%', background: '#f3f4f6', borderRadius: 999, marginBottom: 16 }} />
+                  <div style={{ height: 64, width: 64, borderRadius: '50%', background: '#f3f4f6', marginBottom: 16 }} />
+                  <div style={{ height: 14, width: '70%', background: '#f3f4f6', borderRadius: 999, marginBottom: 10 }} />
+                  <div style={{ height: 14, width: '50%', background: '#f3f4f6', borderRadius: 999, marginBottom: 18 }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    {[1, 2, 3, 4].map((item) => <div key={item} style={{ height: 64, borderRadius: 12, background: '#f3f4f6' }} />)}
+                  </div>
+                </Card>
+                <Card style={{ padding: 24 }}>
+                  <div style={{ height: 18, width: '40%', background: '#f3f4f6', borderRadius: 999, marginBottom: 16 }} />
+                  <div style={{ height: 84, width: 84, borderRadius: '50%', background: '#f3f4f6', marginBottom: 12 }} />
+                  <div style={{ height: 14, width: '70%', background: '#f3f4f6', borderRadius: 999, marginBottom: 10 }} />
+                </Card>
+              </>
+            ) : (
+              <>
+                <Card style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+                    <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontWeight: 800, fontSize: '1.2rem' }}>{initials}</div>
+                    <div>
+                      <h2 style={{ fontFamily: font, fontWeight: 800, margin: 0, color: C.textDark }}>{displayName}</h2>
+                      <p style={{ margin: '4px 0 0', fontFamily: font, fontSize: '0.86rem', color: C.textMid }}>{profile?.role === 'student' ? 'Student' : 'Landlord'} • {walletStatus}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    {[{ label: 'Email', value: profile?.email || 'Not provided' }, { label: 'Username', value: profile?.username || 'Not set' }, { label: 'Phone', value: profile?.phone || 'Not set' }, { label: 'Member Since', value: formatDate(profile?.createdAt) }].map((item) => (
+                      <div key={item.label} style={{ padding: 12, borderRadius: 12, background: '#FAFAFA', border: `1px solid ${C.border}` }}>
+                        <div style={{ fontFamily: font, fontSize: '0.72rem', color: C.textLight }}>{item.label}</div>
+                        <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark, fontSize: '0.87rem', marginTop: 4 }}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card style={{ padding: 24 }}>
+                  <SectionTitle label="Profile Completion" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                    <div style={{ width: 84, height: 84, borderRadius: '50%', display: 'grid', placeItems: 'center', background: `conic-gradient(${C.orange} ${profileCompletion}%, #F2F2F2 0)`, color: C.textDark, fontWeight: 800 }}>{profileCompletion}%</div>
+                    <div>
+                      <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{profileCompletion >= 80 ? 'Excellent profile' : 'Complete more details'}</div>
+                      <p style={{ fontFamily: font, fontSize: '0.84rem', color: C.textMid, margin: '6px 0 0' }}>Your profile is synced from your authenticated account and updates automatically.</p>
+                    </div>
+                  </div>
+                </Card>
+              </>
+            )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20 }}>
             <Card style={{ padding: 24 }}>
               <SectionTitle label="Personal Information" />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                {[
-                  ['Full Name', 'Alex Johnson'],
-                  ['Email', 'alex@depositsafe.com'],
-                  ['Phone', '+1 415 555 0148'],
-                  ['Date of Birth', '15 Apr 1992'],
-                  ['Address', '178 Market St'],
-                  ['City', 'San Francisco'],
-                ].map(([label, value]) => (
-                  <label key={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>{label}</span>
-                    <input defaultValue={value as string} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
-                  </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Full Name</span>
+                  <input value={formState.fullName} onChange={(e) => handleChange('fullName', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Username</span>
+                  <input value={formState.username} onChange={(e) => handleChange('username', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Profile Picture URL</span>
+                  <input value={formState.profilePicture} onChange={(e) => handleChange('profilePicture', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Phone Number</span>
+                  <input value={formState.phone} onChange={(e) => handleChange('phone', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: '1 / -1' }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Bio</span>
+                  <textarea value={formState.bio} onChange={(e) => handleChange('bio', e.target.value)} rows={3} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, resize: 'vertical' }} />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: '1 / -1' }}>
+                  <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Location</span>
+                  <input value={formState.location} onChange={(e) => handleChange('location', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                </label>
+              </div>
+            </Card>
+
+            <Card style={{ padding: 24 }}>
+              <SectionTitle label="Wallet & Blockchain Overview" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[{ label: 'Wallet Address', value: walletLabel }, { label: 'Network', value: profile?.network || 'Testnet' }, { label: 'Wallet Status', value: walletStatus }, { label: 'Wallet Type', value: profile?.walletType || 'Freighter' }, { label: 'Escrows Created', value: stats?.escrowsCreated?.toString() || '0' }, { label: 'Escrows Completed', value: stats?.escrowsCompleted?.toString() || '0' }].map((item) => (
+                  <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, paddingBottom: 8 }}>
+                    <span style={{ fontFamily: font, fontSize: '0.78rem', color: C.textLight }}>{item.label}</span>
+                    <span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{item.value}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                  <button onClick={handleCopyAddress} disabled={!profile?.walletAddress} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: C.textDark, cursor: profile?.walletAddress ? 'pointer' : 'not-allowed', fontSize: '0.82rem' }}>Copy Address</button>
+                  <button onClick={handleConnectWallet} disabled={walletLoading} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: C.orange, cursor: walletLoading ? 'wait' : 'pointer', fontSize: '0.82rem' }}>{walletLoading ? 'Working…' : profile?.isWalletConnected ? 'Reconnect Wallet' : 'Connect Wallet'}</button>
+                  <button onClick={handleDisconnectWallet} disabled={walletLoading || !profile?.isWalletConnected} style={{ border: `1px solid rgba(234,67,53,0.2)`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: '#C53030', cursor: walletLoading || !profile?.isWalletConnected ? 'not-allowed' : 'pointer', fontSize: '0.82rem' }}>Disconnect</button>
+                </div>
+                {profile?.walletAddress ? (
+                  <a href={`https://stellar.expert/explorer/testnet/account/${profile.walletAddress}`} target="_blank" rel="noreferrer" style={{ fontFamily: font, fontSize: '0.82rem', color: C.orange, fontWeight: 700, textDecoration: 'none' }}>View on explorer</a>
+                ) : null}
+              </div>
+            </Card>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20 }}>
+            <Card style={{ padding: 24 }}>
+              <SectionTitle label="Recent Activity" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {activity.length === 0 ? (
+                  <div style={{ fontFamily: font, color: C.textMid }}>No recent activity yet.</div>
+                ) : activity.map((item) => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(232,115,74,0.12)', color: C.orange }}>{item.icon || '🔗'}</div>
+                      <div>
+                        <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{item.title}</div>
+                        <div style={{ fontFamily: font, fontSize: '0.78rem', color: C.textMid }}>{formatDateTime(item.timestamp)}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <StatusBadge label={item.status} tone={item.status === 'Released' || item.status === 'Completed' ? 'success' : item.status === 'Disputed' ? 'danger' : 'info'} />
+                      {item.transactionLink ? <div style={{ marginTop: 6 }}><a href={item.transactionLink} target="_blank" rel="noreferrer" style={{ fontFamily: font, fontSize: '0.76rem', color: C.orange, textDecoration: 'none' }}>View Tx</a></div> : null}
+                    </div>
+                  </div>
                 ))}
               </div>
             </Card>
 
             <Card style={{ padding: 24 }}>
-              <SectionTitle label="Blockchain Overview" />
+              <SectionTitle label="Security Overview" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  ['Wallet Address', 'G...4A1C'],
-                  ['Network', 'Testnet'],
-                  ['Freighter Status', 'Connected'],
-                  ['Total Escrows', '12'],
-                  ['Released Escrows', '7'],
-                  ['Last Transaction', '2h ago'],
-                ].map(([label, value]) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}`, paddingBottom: 8 }}>
-                    <span style={{ fontFamily: font, fontSize: '0.78rem', color: C.textLight }}>{label}</span>
-                    <span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{value}</span>
+                {[{ label: 'Email Verified', value: profile?.emailVerified ? 'Verified' : 'Pending', tone: profile?.emailVerified ? 'success' : 'warning' }, { label: 'Wallet Verified', value: profile?.walletVerified ? 'Verified' : 'Pending', tone: profile?.walletVerified ? 'success' : 'warning' }, { label: 'KYC Status', value: profile?.kycStatus || 'Pending', tone: profile?.kycStatus === 'Approved' ? 'success' : 'warning' }, { label: '2FA Status', value: profile?.twoFactorEnabled ? 'Enabled' : 'Disabled', tone: profile?.twoFactorEnabled ? 'success' : 'neutral' }, { label: 'Last Login', value: formatDateTime(profile?.lastLogin), tone: 'info' }].map((item) => (
+                  <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.border}`, paddingBottom: 8 }}>
+                    <span style={{ fontFamily: font, fontSize: '0.78rem', color: C.textLight }}>{item.label}</span>
+                    <StatusBadge label={item.value} tone={item.tone as 'info' | 'success' | 'warning' | 'danger' | 'neutral'} />
                   </div>
                 ))}
               </div>
@@ -362,11 +641,13 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
 
 export const SettingsPage: React.FC<Props> = ({ role }) => {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
   const [showConfirm, setShowConfirm] = useState(false);
-  const [settings, setSettings] = useState({ email: true, push: true, sms: false, escrow: true, updates: true, release: true, security: true, newsletter: false, animations: true, refresh: true, filters: false, compact: false });
+  const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState({ notifications: true, theme: 'system', language: 'English', privacyPreferences: 'Standard' });
 
   const showToast = (msg: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     setToastMsg(msg);
@@ -375,10 +656,47 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
     window.setTimeout(() => setToastVisible(false), 2200);
   };
 
-  const toggle = (key: keyof typeof settings) => setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  useEffect(() => {
+    const stored = localStorage.getItem('user');
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored) as UserProfile;
+      setSettings({
+        notifications: parsed.notifications ?? true,
+        theme: parsed.theme || 'system',
+        language: parsed.language || 'English',
+        privacyPreferences: parsed.privacyPreferences || 'Standard',
+      });
+    } catch {
+      // Ignore malformed local storage data.
+    }
+  }, []);
+
+  const toggle = (key: 'notifications') => setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const response = await updateUserProfile({
+        theme: settings.theme,
+        notifications: settings.notifications,
+        language: settings.language,
+        privacyPreferences: settings.privacyPreferences,
+      });
+      if ('success' in response && response.success) {
+        showToast('Settings saved successfully', 'success');
+      } else {
+        showToast('Unable to save settings', 'error');
+      }
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <DashboardLayout role={role} userName={role === 'student' ? 'Alex Johnson' : 'Mina Park'} navItems={buildNavItems(role)} activeId="settings" onNavChange={(id) => {
+    <DashboardLayout role={role} userName={authUser?.name || 'User'} navItems={buildNavItems(role)} activeId="settings" onNavChange={(id) => {
       if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
       if (id === 'deposits') navigate('/student/my-deposits');
       if (id === 'escrow') navigate('/student/create-escrow');
@@ -393,60 +711,56 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
               <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.45rem', color: C.textDark, margin: 0 }}>Settings</h1>
               <p style={{ fontFamily: font, fontSize: '0.92rem', color: C.textMid, margin: '6px 0 0' }}>Manage your account preferences and wallet connectivity.</p>
             </div>
-            <button onClick={() => { showToast('Settings saved', 'success'); }} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>Save Settings</button>
+            <button onClick={() => void handleSave()} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>{saving ? 'Saving…' : 'Save Settings'}</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <Card style={{ padding: 24 }}>
-              <SectionTitle label="Notifications" />
-              {[
-                ['Email Notifications', 'email'],
-                ['Push Notifications', 'push'],
-                ['SMS Notifications', 'sms'],
-                ['Escrow Updates', 'escrow'],
-                ['Transaction Updates', 'updates'],
-                ['Release Alerts', 'release'],
-                ['Security Alerts', 'security'],
-                ['Newsletter', 'newsletter'],
-              ].map(([label, key]) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
-                  <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>{label}</span>
-                  <button onClick={() => toggle(key as keyof typeof settings)} style={{ width: 44, height: 24, borderRadius: 999, border: 'none', background: settings[key as keyof typeof settings] ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#D9D9D9', cursor: 'pointer', position: 'relative' }}>
-                    <span style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', position: 'absolute', top: 3, left: settings[key as keyof typeof settings] ? 23 : 3, transition: 'left 0.2s' }} />
+              <SectionTitle label="Preferences" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Notifications</span>
+                  <button onClick={() => toggle('notifications')} style={{ width: 44, height: 24, borderRadius: 999, border: 'none', background: settings.notifications ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#D9D9D9', cursor: 'pointer', position: 'relative' }}>
+                    <span style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', position: 'absolute', top: 3, left: settings.notifications ? 23 : 3, transition: 'left 0.2s' }} />
                   </button>
                 </div>
-              ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Theme</span>
+                  <select value={settings.theme} onChange={(e) => setSettings((prev) => ({ ...prev, theme: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Language</span>
+                  <select value={settings.language} onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                    <option value="English">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="French">French</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
+                  <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Privacy</span>
+                  <select value={settings.privacyPreferences} onChange={(e) => setSettings((prev) => ({ ...prev, privacyPreferences: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                    <option value="Standard">Standard</option>
+                    <option value="Private">Private</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+              </div>
             </Card>
 
             <Card style={{ padding: 24 }}>
-              <SectionTitle label="Wallet & Security" />
+              <SectionTitle label="Account Security" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}><span style={{ fontFamily: font, color: C.textDark }}>Connected Wallet</span><span style={{ fontFamily: font, fontWeight: 700, color: C.orange }}>Freighter</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}><span style={{ fontFamily: font, color: C.textDark }}>Connected Wallet</span><span style={{ fontFamily: font, fontWeight: 700, color: C.orange }}>{authUser?.walletAddress ? 'Connected' : 'Not connected'}</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}><span style={{ fontFamily: font, color: C.textDark }}>Preferred Network</span><span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>Testnet</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}><span style={{ fontFamily: font, color: C.textDark }}>2FA Status</span><span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>Enabled</span></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}><span style={{ fontFamily: font, color: C.textDark }}>Active Sessions</span><span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>3</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}><span style={{ fontFamily: font, color: C.textDark }}>2FA Status</span><span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>Disabled</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}><span style={{ fontFamily: font, color: C.textDark }}>Active Sessions</span><span style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>1</span></div>
               </div>
             </Card>
           </div>
-
-          <Card style={{ padding: 24 }}>
-            <SectionTitle label="Application Preferences" />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              {[
-                ['Animations', 'animations'],
-                ['Auto Refresh', 'refresh'],
-                ['Remember Filters', 'filters'],
-                ['Compact Mode', 'compact'],
-              ].map(([label, key]) => (
-                <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
-                  <span style={{ fontFamily: font, color: C.textDark }}>{label}</span>
-                  <button onClick={() => toggle(key as keyof typeof settings)} style={{ width: 44, height: 24, borderRadius: 999, border: 'none', background: settings[key as keyof typeof settings] ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#D9D9D9', cursor: 'pointer', position: 'relative' }}>
-                    <span style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', position: 'absolute', top: 3, left: settings[key as keyof typeof settings] ? 23 : 3, transition: 'left 0.2s' }} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </Card>
 
           <Card style={{ padding: 24 }}>
             <SectionTitle label="Danger Zone" />
