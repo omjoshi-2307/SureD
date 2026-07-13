@@ -9,12 +9,8 @@ const { getLandlordWallet, updateWallet } = require("../controllers/userControll
 router.get("/landlord-wallet", authMiddleware, getLandlordWallet);
 
 // Accessible by any logged-in user
-router.get("/profile", authMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    user: req.user,
-  });
-});
+router.get("/profile", authMiddleware, getProfile);
+router.put("/profile", authMiddleware, updateProfile);
 
 // Student only
 router.get(
