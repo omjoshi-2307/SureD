@@ -4,9 +4,10 @@ import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout
 import {
   getEscrowDb,
   releaseEscrowDb,
+  confirmEscrowDb,
 } from "@/services/escrowService";
 
-import { releaseEscrow } from "@/services/sorobanService";
+import { releaseEscrow, confirmEscrow } from "@/services/sorobanService";
 
 /* ─── Design tokens ─────────────────────────────────────────────── */
 const C = {
@@ -177,68 +178,62 @@ const LandlordEscrowDetails: React.FC = () => {
     d ? new Date(d).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
   /* Action dispatcher (demo mode, no blockchain calls) */
- const handleAction = async (action: string) => {
-  setConfirmAction(null);
+  const handleAction = async (action: string) => {
+    setConfirmAction(null);
 
-  try {
-    if (action === "releaseDeposit") {
-      if (!escrow?.escrowId) {
+    try {
+      if (!escrow?.escrowId && !escrow?._id) {
         throw new Error("Escrow ID not found.");
       }
+      const targetId = escrow.escrowId !== undefined ? escrow.escrowId : escrow._id;
 
-      // 1. Execute blockchain transaction
-      const result = await releaseEscrow(escrow.escrowId);
+      if (action === "releaseDeposit") {
+        const result = await releaseEscrow(escrow.escrowId);
+        await releaseEscrowDb(escrow.escrowId, {
+          txHash: result.txHash,
+        });
+        const refreshed = await getEscrowDb(escrow.escrowId);
+        setEscrow(refreshed.escrow || refreshed);
+        showToast("Deposit released successfully!", "success");
+        return;
+      }
 
-      // 2. Update MongoDB
-      await releaseEscrowDb(escrow.escrowId, {
-        txHash: result.txHash,
-      });
+      if (action === "confirmMoveIn") {
+        if (!escrow?.escrowId) {
+          throw new Error("Blockchain Escrow ID not found.");
+        }
+        const result = await confirmEscrow(escrow.escrowId);
+        await confirmEscrowDb(targetId, { txHash: result.txHash });
+        const refreshed = await getEscrowDb(targetId);
+        setEscrow(refreshed.escrow || refreshed);
+        showToast("Move-in confirmed successfully!", "success");
+        return;
+      }
 
-      // 3. Refresh escrow details
-      const refreshed = await getEscrowDb(escrow.escrowId);
+      const msgs: Record<string, [string, typeof toastType]> = {
+        depositReceived: [
+          "Deposit marked as received",
+          "success",
+        ],
+        refundDeposit: [
+          "Refund initiated",
+          "warning",
+        ],
+      };
 
-      setEscrow(refreshed.escrow || refreshed);
-
-      showToast(
-        "Deposit released successfully!",
-        "success"
-      );
-
-      return;
-    }
-
-    const msgs: Record<
-      string,
-      [string, typeof toastType]
-    > = {
-      depositReceived: [
-        "Deposit marked as received (Demo Mode)",
-        "success",
-      ],
-      confirmMoveIn: [
-        "Move-in confirmed (Demo Mode)",
-        "success",
-      ],
-      refundDeposit: [
-        "Refund initiated (Demo Mode)",
-        "warning",
-      ],
-    };
-
-    const [msg, type] =
-      msgs[action] || [
-        "Action recorded (Demo Mode)",
+      const [msg, type] = msgs[action] || [
+        "Action recorded",
         "info",
       ];
 
-    showToast(msg, type);
-  } catch (err: any) {
-    showToast(
-      err?.message || "Failed to release deposit.",
-      "error"
-    );
-  }
-};
+      showToast(msg, type);
+    } catch (err: any) {
+      showToast(
+        err?.message || "Failed to perform action.",
+        "error"
+      );
+    }
+  };
   const ActionButton = ({
     label, color, icon, actionKey, enabled,
   }: { label: string; color: string; icon: string; actionKey: string; enabled: boolean }) => (
@@ -289,8 +284,10 @@ const LandlordEscrowDetails: React.FC = () => {
             </h2>
             <p style={{ font, fontSize: '0.83rem', color: C.textMid, textAlign: 'center', marginBottom: 20, lineHeight: 1.6 }}>
               {confirmAction === "releaseDeposit"
-  ? "This will trigger a blockchain transaction using your Freighter wallet. After the transaction succeeds, the escrow status will be updated."
-  : "This action is currently running in Demo Mode."}
+                ? "This will trigger a blockchain transaction using your Freighter wallet. After the transaction succeeds, the escrow status will be updated."
+                : confirmAction === "confirmMoveIn"
+                ? "This will confirm the move-in and update the escrow status to Pending Confirmation."
+                : "This action will update the escrow status."}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmAction(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
@@ -541,7 +538,7 @@ const LandlordEscrowDetails: React.FC = () => {
                 <Card>
                   <SectionTitle label="⚡ Landlord Actions" />
                   <p style={{ font, fontSize: '0.74rem', color: C.textLight, lineHeight: 1.55, marginBottom: 14 }}>
-                    Buttons are enabled based on the current escrow status. All actions run in Demo Mode.
+                    Buttons are enabled based on the current escrow status.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <ActionButton
@@ -551,19 +548,61 @@ const LandlordEscrowDetails: React.FC = () => {
                       actionKey="depositReceived"
                       enabled={rules.depositReceived}
                     />
-                    <ActionButton
-                      label="Confirm Move-In"
-                      icon="✅"
-                      color="linear-gradient(135deg, #4ACF7A, #2AAF5C)"
-                      actionKey="confirmMoveIn"
-                      enabled={rules.confirmMoveIn}
-                    />
+                      {escrow.status === "FUNDED" && (
+                        escrow.landlordConfirmed ? (
+                          <button disabled
+                            style={{
+                              width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
+                              color: C.textMid, background: '#F5F5F5',
+                              border: `1.5px solid ${C.border}`,
+                              borderRadius: 50, padding: '12px', cursor: 'not-allowed',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                            }}
+                          >
+                            <span>✅</span> Waiting for student confirmation
+                          </button>
+                        ) : (
+                          <ActionButton
+                            label="Confirm Move-In"
+                            icon="✅"
+                            color="linear-gradient(135deg, #4ACF7A, #2AAF5C)"
+                            actionKey="confirmMoveIn"
+                            enabled={rules.confirmMoveIn}
+                          />
+                        )
+                      )}
+                      {escrow.status === "PENDING_CONFIRMATION" && escrow.studentConfirmed && escrow.landlordConfirmed && (
+                        <button disabled
+                          style={{
+                            width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
+                            color: '#2AAF5C', background: 'rgba(74,207,122,0.1)',
+                            border: '1.5px solid rgba(74,207,122,0.4)',
+                            borderRadius: 50, padding: '12px', cursor: 'not-allowed',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          }}
+                        >
+                          <span>✅</span> Both parties confirmed
+                        </button>
+                      )}
+                      {escrow.status === "RELEASED" && (
+                        <button disabled
+                          style={{
+                            width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
+                            color: '#2AAF5C', background: 'rgba(74,207,122,0.1)',
+                            border: '1.5px solid rgba(74,207,122,0.4)',
+                            borderRadius: 50, padding: '12px', cursor: 'not-allowed',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          }}
+                        >
+                          <span>✅</span> Deposit Released
+                        </button>
+                      )}
                     <ActionButton
                       label="Release Deposit"
                       icon="🔓"
                       color={`linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`}
                       actionKey="releaseDeposit"
-                      enabled={rules.releaseDeposit}
+                      enabled={rules.releaseDeposit && !!escrow?.studentConfirmed && !!escrow?.landlordConfirmed}
                     />
                     <ActionButton
                       label="Refund Deposit"

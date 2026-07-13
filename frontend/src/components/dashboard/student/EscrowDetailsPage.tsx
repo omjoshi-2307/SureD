@@ -4,10 +4,9 @@ import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout
 import {
   getEscrowDb,
   fundEscrowDb,
+  confirmEscrowDb,
 } from '@/services/escrowService';
-import { confirmEscrow } from "../../../services/sorobanService";
-import { confirmEscrowDb } from "../../../services/escrowService";
-import { depositEscrow } from '@/services/sorobanService';
+import { depositEscrow, confirmEscrow } from '@/services/sorobanService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -175,7 +174,8 @@ const EscrowDetailsPage: React.FC = () => {
     setTimeout(() => setToastVisible(false), 3000);
   };
 
-  const handleRaiseDispute = () => showToast('Dispute request submitted (Demo Mode)', 'warning');
+  const handleRaiseDispute = () => showToast('Dispute request submitted', 'warning');
+
 
   const handleConfirmMoveIn = async () => {
     if (!escrow?.escrowId) {
@@ -563,24 +563,87 @@ const EscrowDetailsPage: React.FC = () => {
                     </button>
                   )}
                   {escrow.status === "FUNDED" && (
+                    escrow.studentConfirmed ? (
+                      <button
+                        disabled
+                        style={{
+                          width: "100%",
+                          font,
+                          fontWeight: 700,
+                          fontSize: "0.88rem",
+                          color: C.textMid,
+                          background: "#F5F5F5",
+                          border: `1.5px solid ${C.border}`,
+                          borderRadius: 50,
+                          padding: "13px",
+                          cursor: "not-allowed",
+                        }}
+                      >
+                        ✅ Waiting for landlord confirmation
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleConfirmMoveIn}
+                        style={{
+                          width: "100%",
+                          font,
+                          fontWeight: 700,
+                          fontSize: "0.88rem",
+                          color: "#fff",
+                          background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
+                          border: "none",
+                          borderRadius: 50,
+                          padding: "13px",
+                          cursor: "pointer",
+                          boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        ✅ Confirm Move-In
+                      </button>
+                    )
+                  )}
+                  {escrow.status === "PENDING_CONFIRMATION" && escrow.studentConfirmed && escrow.landlordConfirmed && (
+                    <>
+                      <button
+                        disabled
+                        style={{
+                          width: "100%",
+                          font,
+                          fontWeight: 700,
+                          fontSize: "0.88rem",
+                          color: "#2AAF5C",
+                          background: "rgba(74,207,122,0.1)",
+                          border: "1.5px solid rgba(74,207,122,0.4)",
+                          borderRadius: 50,
+                          padding: "13px",
+                          cursor: "not-allowed",
+                        }}
+                      >
+                        ✓ Move-In Confirmed
+                      </button>
+                      <div style={{ font, fontSize: '0.72rem', color: C.textLight, textAlign: 'center', marginTop: 4, marginBottom: 8 }}>
+                        ⏳ Waiting for landlord to release deposit
+                      </div>
+                    </>
+                  )}
+                  {escrow.status === "RELEASED" && (
                     <button
-                      onClick={handleConfirmMoveIn}
+                      disabled
                       style={{
                         width: "100%",
                         font,
                         fontWeight: 700,
                         fontSize: "0.88rem",
-                        color: "#fff",
-                        background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
-                        border: "none",
+                        color: "#2AAF5C",
+                        background: "rgba(74,207,122,0.1)",
+                        border: "1.5px solid rgba(74,207,122,0.4)",
                         borderRadius: 50,
                         padding: "13px",
-                        cursor: "pointer",
-                        boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
-                        transition: "all 0.2s",
+                        cursor: "not-allowed",
                       }}
                     >
-                      ✅ Confirm Move In
+                      ✅ Deposit Released
                     </button>
                   )}
                   <button

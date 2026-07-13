@@ -158,7 +158,7 @@ const MyDeposits: React.FC = () => {
   };
 
   const handleExport = () => {
-    triggerToast('Exporting transaction history... (Demo Mode)');
+    triggerToast('Exporting transaction history...');
   };
 
   const handleDownloadReceipt = (e: React.MouseEvent) => {

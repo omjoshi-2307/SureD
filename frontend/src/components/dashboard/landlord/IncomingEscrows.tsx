@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
-import { getEscrowsByLandlordDb } from '@/services/escrowService';
+import { getEscrowsByLandlordDb, confirmEscrowDb, cancelEscrowDb } from '@/services/escrowService';
+import { confirmEscrow } from '@/services/sorobanService';
 
 const C = {
   orange: '#E8734A', orangeLight: '#F0956B',
@@ -55,7 +56,8 @@ interface DbEscrow {
   rentalEndDate?: string;
   purpose?: string;
   contractId?: string;
-  network?: string;
+  studentConfirmed?: boolean;
+  landlordConfirmed?: boolean;
 }
 
 /* ── Status config — identical to student pages ── */
@@ -164,19 +166,62 @@ const IncomingEscrows: React.FC = () => {
     setTimeout(() => setToast(false), 2800);
   };
 
-  /* Demo-mode action handlers */
-  const handleConfirmMoveIn = () => {
-    if (!confirmMoveInItem) return;
-    triggerToast('Move-in confirmed (Demo Mode — no blockchain call made)');
-    setConfirmMoveInItem(null);
+  const refreshEscrows = (updatedId?: string) => {
+    const stored = localStorage.getItem('user');
+    if (!stored) return;
+    const parsed = JSON.parse(stored);
+    if (!parsed.walletAddress) return;
+    getEscrowsByLandlordDb(parsed.walletAddress)
+      .then((data: any) => {
+        const sorted = (data.escrows || []).sort(
+          (a: DbEscrow, b: DbEscrow) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setEscrows(sorted);
+        if (updatedId) {
+          const found = sorted.find((e: DbEscrow) => e._id === updatedId);
+          if (found) setSelectedEscrow(found);
+        }
+        return sorted;
+      })
+      .catch(() => {});
   };
 
-  const handleReject = () => {
+  const handleConfirmMoveIn = async () => {
+    if (!confirmMoveInItem) return;
+    try {
+      if (!confirmMoveInItem.escrowId) {
+        throw new Error("Blockchain Escrow ID not found.");
+      }
+      const id = confirmMoveInItem.escrowId;
+      const result = await confirmEscrow(id);
+      await confirmEscrowDb(id, { txHash: result.txHash });
+      triggerToast(`Move-in confirmed for ${confirmMoveInItem.propertyName}`);
+      setConfirmMoveInItem(null);
+      refreshEscrows(confirmMoveInItem._id);
+    } catch (err: any) {
+      triggerToast(err?.message || err?.response?.data?.message || 'Failed to confirm move-in');
+      setConfirmMoveInItem(null);
+    }
+  };
+
+  const handleReject = async () => {
     if (!rejectItem) return;
-    triggerToast('Escrow rejected (Demo Mode — no blockchain call made)');
-    setRejectItem(null);
-    setRejectReason('');
-    if (selectedEscrow?._id === rejectItem._id) setSelectedEscrow(null);
+    try {
+      const id = rejectItem.escrowId !== undefined
+        ? rejectItem.escrowId
+        : rejectItem._id;
+      await cancelEscrowDb(id, { reason: rejectReason || undefined });
+      triggerToast(`Escrow rejected for ${rejectItem.propertyName}`);
+      if (selectedEscrow?._id === rejectItem._id) setSelectedEscrow(null);
+      setRejectItem(null);
+      setRejectReason('');
+      refreshEscrows(rejectItem._id);
+    } catch (err: any) {
+      triggerToast(err?.response?.data?.message || 'Failed to reject escrow');
+      setRejectItem(null);
+      setRejectReason('');
+    }
   };
 
   /* Filter & sort */
@@ -242,7 +287,7 @@ const IncomingEscrows: React.FC = () => {
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>✅</div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Confirm Move-In</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 20 }}>
-              You are confirming move-in for <strong>{confirmMoveInItem.propertyName}</strong>. This action will be recorded in demo mode.
+              You are confirming move-in for <strong>{confirmMoveInItem.propertyName}</strong>. This will update the escrow status to Pending Confirmation.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmMoveInItem(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
@@ -466,12 +511,36 @@ const IncomingEscrows: React.FC = () => {
                           style={{ flex: 1, font, fontWeight: 700, fontSize: '0.75rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '8px 0', cursor: 'pointer' }}>
                           View Details
                         </button>
-                        <button onClick={e => { e.stopPropagation(); setConfirmMoveInItem(item); }}
-                          style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'pointer', transition: 'all 0.2s' }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = '#4ACF7A'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                          Confirm Move-In
-                        </button>
+                        {item.status === 'FUNDED' ? (
+                          item.landlordConfirmed ? (
+                            <button disabled
+                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                              ✅ Waiting for student
+                            </button>
+                          ) : (
+                            <button onClick={e => { e.stopPropagation(); setConfirmMoveInItem(item); }}
+                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'pointer', transition: 'all 0.2s' }}
+                              onMouseEnter={e => e.currentTarget.style.borderColor = '#4ACF7A'}
+                              onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                              Confirm Move-In
+                            </button>
+                          )
+                        ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
+                          <button disabled
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: '#2AAF5C', background: 'rgba(74,207,122,0.1)', border: '1.5px solid rgba(74,207,122,0.4)', borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            ✅ Both confirmed
+                          </button>
+                        ) : item.status === 'RELEASED' ? (
+                          <button disabled
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            Completed
+                          </button>
+                        ) : (
+                          <button disabled
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            Unavailable
+                          </button>
+                        )}
                         <button onClick={e => { e.stopPropagation(); setChatItem(item); }}
                           style={{ font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 14px', cursor: 'pointer' }}>
                           💬
@@ -551,16 +620,42 @@ const IncomingEscrows: React.FC = () => {
                       style={{ width: '100%', font, fontWeight: 700, fontSize: '0.85rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}>
                       View Full Details
                     </button>
-                    <button
-                      onClick={() => setConfirmMoveInItem(item)}
-                      style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(74,207,122,0.3)' }}>
-                      ✅ Confirm Move-In (Demo)
-                    </button>
-                    <button
-                      onClick={() => setRejectItem(item)}
-                      style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #ea4335, #f06b6b)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(234,67,53,0.3)' }}>
-                      ❌ Reject Escrow (Demo)
-                    </button>
+                    {item.status === 'FUNDED' ? (
+                      item.landlordConfirmed ? (
+                        <button disabled
+                          style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                          ✅ Waiting for student confirmation
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setConfirmMoveInItem(item)}
+                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(74,207,122,0.3)' }}>
+                            ✅ Confirm Move-In
+                          </button>
+                          <button
+                            onClick={() => setRejectItem(item)}
+                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #ea4335, #f06b6b)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(234,67,53,0.3)' }}>
+                            ❌ Reject Escrow
+                          </button>
+                        </>
+                      )
+                    ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
+                      <button disabled
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: '#2AAF5C', background: 'rgba(74,207,122,0.1)', border: '1.5px solid rgba(74,207,122,0.4)', borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        ✅ Both parties confirmed
+                      </button>
+                    ) : item.status === 'RELEASED' ? (
+                      <button disabled
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        Completed
+                      </button>
+                    ) : (
+                      <button disabled
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        {item.status === 'CANCELLED' ? 'Cancelled' : 'Unavailable'}
+                      </button>
+                    )}
                     <button
                       onClick={() => setChatItem(item)}
                       style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}

@@ -82,3 +82,19 @@ export const releaseEscrowDb = async (
 
   return response.data;
 };
+
+export interface CancelEscrowDbParams {
+  reason?: string;
+}
+
+export const cancelEscrowDb = async (
+  id: string | number,
+  data: CancelEscrowDbParams
+) => {
+  const response = await API.patch(
+    `/escrows/${id}/cancel`,
+    data
+  );
+
+  return response.data;
+};

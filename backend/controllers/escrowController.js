@@ -349,7 +349,7 @@ exports.confirmEscrow = async (req, res) => {
     if (escrow.status === "PENDING_CONFIRMATION") {
       return res.status(400).json({
         success: false,
-        message: "Escrow already confirmed",
+        message: "Escrow already confirmed by both parties",
       });
     }
 
@@ -360,20 +360,100 @@ exports.confirmEscrow = async (req, res) => {
       });
     }
 
-    escrow.status = "PENDING_CONFIRMATION";
-    escrow.confirmTxHash = txHash;
-    escrow.confirmedAt = new Date();
+    if (req.user.role === 'student' && escrow.studentConfirmed) {
+      return res.status(400).json({
+        success: false,
+        message: "Student has already confirmed",
+      });
+    }
+
+    if (req.user.role === 'landlord' && escrow.landlordConfirmed) {
+      return res.status(400).json({
+        success: false,
+        message: "Landlord has already confirmed",
+      });
+    }
+
+    if (req.user.role === 'student') {
+      escrow.studentConfirmed = true;
+    } else if (req.user.role === 'landlord') {
+      escrow.landlordConfirmed = true;
+    }
+
+    if (escrow.studentConfirmed && escrow.landlordConfirmed) {
+      escrow.status = "PENDING_CONFIRMATION";
+      escrow.confirmTxHash = txHash;
+      escrow.confirmedAt = new Date();
+    }
 
     await escrow.save();
 
     res.status(200).json({
       success: true,
-      message: "Escrow confirmed successfully",
+      message: "Escrow confirmation recorded successfully",
       escrow,
     });
   } catch (error) {
     console.error("Confirm Escrow Error:", error);
 
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// Cancel Escrow
+exports.cancelEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    let escrow;
+
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({ escrowId: Number(id) });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    if (escrow.status === "CANCELLED") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is already cancelled",
+      });
+    }
+
+    if (escrow.status === "RELEASED") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel a released escrow",
+      });
+    }
+
+    escrow.status = "CANCELLED";
+    if (reason) escrow.cancelReason = reason;
+    escrow.cancelledAt = new Date();
+
+    await escrow.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Escrow cancelled successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Cancel Escrow Error:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",

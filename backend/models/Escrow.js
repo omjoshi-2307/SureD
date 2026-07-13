@@ -93,6 +93,16 @@ const EscrowSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+
+    studentConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+
+    landlordConfirmed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -2,6 +2,21 @@ const User = require("../models/User");
 const Escrow = require("../models/Escrow");
 const TransactionHistory = require("../models/TransactionHistory");
 
+const buildActivity = (history) => {
+  if (!history || history.length === 0) {
+    return [];
+  }
+
+  return history.slice(0, 8).map((entry) => ({
+    id: entry._id.toString(),
+    title: entry.action || "Account Activity",
+    timestamp: entry.createdAt,
+    status: entry.statusAfter || "Completed",
+    transactionLink: entry.txHash ? `https://stellar.expert/explorer/testnet/tx/${entry.txHash}` : undefined,
+    icon: entry.action === "CREATED" ? "🛡️" : entry.action === "FUNDED" ? "💰" : entry.action === "RELEASED" ? "✅" : entry.action === "DISPUTED" ? "⚠️" : "🔗",
+  }));
+};
+
 // Get landlord wallet address (accessible by any authenticated user)
 exports.getLandlordWallet = async (req, res) => {
   try {
@@ -26,8 +41,7 @@ exports.getLandlordWallet = async (req, res) => {
   }
 };
 
-// Update Wallet Address
-exports.updateWallet = async (req, res) => {
+exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
 

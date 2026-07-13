@@ -9,7 +9,8 @@ const {
   getEscrowsByLandlord,
   releaseEscrow,
   fundEscrow,
-  confirmEscrow
+  confirmEscrow,
+  cancelEscrow
 } = require("../controllers/escrowController");
 
 // All escrow routes are protected by authMiddleware
@@ -20,10 +21,6 @@ router.get("/:id", authMiddleware, getEscrowById);
 router.patch("/:id/fund", authMiddleware, fundEscrow);
 router.patch("/:id/release", authMiddleware, releaseEscrow);
 router.patch("/:id/confirm", authMiddleware, confirmEscrow);
+router.patch("/:id/cancel", authMiddleware, cancelEscrow);
 
-module.exports = router;
-
-router.patch("/:id/confirm", authMiddleware, (req, res, next) => {
-  console.log("CONFIRM ROUTE HIT", req.params.id);
-  next();
-}, confirmEscrow);
+module.exports = router;
