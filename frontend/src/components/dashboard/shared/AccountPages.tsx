@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { getTransactionsByWallet, type TxRecord, ACTION_LABELS, ACTION_TONE } from '@/services/historyService';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
@@ -109,136 +110,452 @@ const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message:
   );
 };
 
-const sampleTransactions = [
-  { id: 'TX-1024', escrowId: 'ESC-014', property: 'Harbor Avenue', type: 'Escrow Created', status: 'Created', amount: '$1,200', wallet: 'G...4A1C', date: '2026-07-03', network: 'Testnet', hash: '0x7c98...f4a1' },
-  { id: 'TX-1023', escrowId: 'ESC-013', property: 'Cedar Point', type: 'Deposit', status: 'Funded', amount: '$950', wallet: 'G...2D9E', date: '2026-07-01', network: 'Testnet', hash: '0x9b15...a881' },
-  { id: 'TX-1022', escrowId: 'ESC-012', property: 'Maple House', type: 'Release', status: 'Released', amount: '$1,780', wallet: 'G...8F3B', date: '2026-06-28', network: 'Testnet', hash: '0x3e10...c1d2' },
-  { id: 'TX-1021', escrowId: 'ESC-011', property: 'River View', type: 'Dispute', status: 'Disputed', amount: '$600', wallet: 'G...6B11', date: '2026-06-24', network: 'Testnet', hash: '0x4a7d...8f47' },
+// ─── Transaction History Page ─────────────────────────────────────────────────
+
+/** Abbreviated wallet address for display */
+const shortWallet = (w: string) =>
+  w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w;
+
+/** Abbreviated tx hash for display */
+const shortHash = (h: string) =>
+  h && h.length > 16 ? `${h.slice(0, 8)}…${h.slice(-6)}` : h;
+
+/** Format ISO date string to readable date + time */
+const fmtDatetime = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+
+/** Format ISO date string to date only */
+const fmtDate = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+/** Format escrow label */
+const escrowLabel = (tx: TxRecord) =>
+  tx.escrowId !== undefined ? `ESC-${String(tx.escrowId).padStart(3, '0')}` : (tx.mongoEscrowId ? tx.mongoEscrowId.slice(-6).toUpperCase() : '—');
+
+const STELLAR_EXPLORER = 'https://stellar.expert/explorer/testnet/tx/';
+
+const PAGE_SIZE = 10;
+
+const TYPE_FILTERS = [
+  { value: 'All', label: 'All Types' },
+  { value: 'ESCROW_CREATED', label: 'Escrow Created' },
+  { value: 'DEPOSIT', label: 'Deposit' },
+  { value: 'STUDENT_CONFIRM', label: 'Student Confirmation' },
+  { value: 'LANDLORD_CONFIRM', label: 'Landlord Confirmation' },
+  { value: 'RELEASE', label: 'Deposit Released' },
 ];
+
+// Loading skeleton row
+const SkeletonRow = () => (
+  <tr>
+    {Array.from({ length: 9 }).map((_, i) => (
+      <td key={i} style={{ padding: '14px 8px' }}>
+        <div style={{ height: 14, borderRadius: 6, background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
+      </td>
+    ))}
+  </tr>
+);
+
+// Transaction detail modal
+const TxModal = ({ tx, onClose }: { tx: TxRecord; onClose: () => void }) => (
+  <div
+    onClick={onClose}
+    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 520, width: '92%', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflowY: 'auto' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, margin: 0 }}>Transaction Detail</h2>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: C.textMid, lineHeight: 1 }}>×</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {[
+          { label: 'Action', value: ACTION_LABELS[tx.action] || tx.action },
+          { label: 'Escrow ID', value: escrowLabel(tx) },
+          { label: 'Property', value: tx.propertyName || '—' },
+          { label: 'Amount', value: tx.amount !== undefined ? `${tx.amount} ${tx.currency || 'XLM'}` : '—' },
+          { label: 'Actor Wallet', value: tx.actorWallet, mono: true },
+          { label: 'Network', value: tx.network },
+          { label: 'Status Before', value: tx.statusBefore || '—' },
+          { label: 'Status After', value: tx.statusAfter || '—' },
+          { label: 'Timestamp', value: fmtDatetime(tx.createdAt) },
+        ].map(({ label, value, mono }) => (
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ fontFamily: font, fontSize: '0.8rem', color: C.textLight, fontWeight: 600, flexShrink: 0 }}>{label}</span>
+            <span style={{ fontFamily: mono ? 'monospace' : font, fontSize: '0.82rem', color: C.textDark, fontWeight: 700, wordBreak: 'break-all', textAlign: 'right' }}>{value}</span>
+          </div>
+        ))}
+        <div style={{ padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontFamily: font, fontSize: '0.8rem', color: C.textLight, fontWeight: 600 }}>Blockchain Tx Hash</span>
+            <a
+              href={`${STELLAR_EXPLORER}${tx.txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: C.orange, wordBreak: 'break-all', textAlign: 'right', textDecoration: 'none', fontWeight: 700 }}
+            >
+              {tx.txHash}
+            </a>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+        <a
+          href={`${STELLAR_EXPLORER}${tx.txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 999, padding: '12px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}
+        >
+          View on Stellar Expert ↗
+        </a>
+        <button
+          onClick={onClose}
+          style={{ flex: 1, border: `1.5px solid ${C.border}`, borderRadius: 999, padding: '12px', background: C.white, color: C.textMid, fontFamily: font, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
   const navigate = useNavigate();
+
+  // Derive display name from localStorage — same pattern as every other dashboard page
+  const displayName = (() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.name || (role === 'student' ? 'Student' : 'Landlord');
+      }
+    } catch {
+      // ignore JSON parse errors
+    }
+    return role === 'student' ? 'Student' : 'Landlord';
+  })();
+
+  // ── Data state ──
+  const [transactions, setTransactions] = useState<TxRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [total, setTotal] = useState(0);
+
+  // ── UI state ──
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTx, setSelectedTx] = useState<TxRecord | null>(null);
 
+  // ── Load data ──
+  const loadHistory = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (!storedUser) { setLoading(false); return; }
+      const parsed = JSON.parse(storedUser);
+      const wallet: string = parsed.walletAddress || '';
+      if (!wallet) { setLoading(false); return; }
+
+      const data = await getTransactionsByWallet(wallet, {
+        sort: sortOrder,
+        page: currentPage,
+        limit: PAGE_SIZE,
+        type: typeFilter !== 'All' ? typeFilter : undefined,
+      });
+      setTransactions(data.history || []);
+      setTotal(data.total || 0);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load transactions.');
+    } finally {
+      setLoading(false);
+    }
+  }, [sortOrder, currentPage, typeFilter]);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+
+  // ── Client-side search (across already-loaded page) ──
   const filtered = useMemo(() => {
-    return sampleTransactions.filter((tx) => {
-      const matchesSearch = [tx.id, tx.escrowId, tx.property, tx.hash, tx.wallet].some((value) => value.toLowerCase().includes(search.toLowerCase()));
-      const matchesStatus = statusFilter === 'All' || tx.status === statusFilter;
-      const matchesType = typeFilter === 'All' || tx.type === typeFilter;
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [search, statusFilter, typeFilter]);
+    if (!search.trim()) return transactions;
+    const q = search.toLowerCase();
+    return transactions.filter((tx) =>
+      [
+        escrowLabel(tx),
+        tx.propertyName || '',
+        tx.txHash,
+        tx.actorWallet,
+        ACTION_LABELS[tx.action] || tx.action,
+      ].some((v) => v.toLowerCase().includes(q))
+    );
+  }, [transactions, search]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / 3));
-  const visible = filtered.slice((currentPage - 1) * 3, currentPage * 3);
+  // ── Stats computed from all loaded records ──
+  const stats = useMemo(() => {
+    const released = transactions.filter((t) => t.action === 'RELEASE').length;
+    const confirms = transactions.filter((t) => t.action === 'STUDENT_CONFIRM' || t.action === 'LANDLORD_CONFIRM').length;
+    const deposits = transactions.filter((t) => t.action === 'DEPOSIT').length;
+    return { released, confirms, deposits, total: transactions.length };
+  }, [transactions]);
+
+  // ── Pagination (server-driven) ──
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // ── CSV export ──
+  const handleExportCSV = () => {
+    if (filtered.length === 0) return;
+    const headers = ['Date', 'Escrow ID', 'Property', 'Type', 'Amount', 'Currency', 'Wallet', 'Actor', 'Status After', 'Network', 'Tx Hash'];
+    const rows = filtered.map((tx) => [
+      fmtDatetime(tx.createdAt),
+      escrowLabel(tx),
+      tx.propertyName || '',
+      ACTION_LABELS[tx.action] || tx.action,
+      tx.amount ?? '',
+      tx.currency || 'XLM',
+      tx.actorWallet,
+      tx.role ? (tx.role.charAt(0).toUpperCase() + tx.role.slice(1)) : '—',
+      tx.statusAfter || '',
+      tx.network,
+      tx.txHash,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <DashboardLayout role={role} userName={role === 'student' ? 'Alex Johnson' : 'Mina Park'} navItems={buildNavItems(role)} activeId={role === 'student' ? 'history' : 'transactions'} onNavChange={(id) => {
-      if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
-      if (id === 'deposits') navigate('/student/my-deposits');
-      if (id === 'escrow') navigate('/student/create-escrow');
-      if (id === 'history' || id === 'transactions') navigate(role === 'student' ? '/student/transactions' : '/landlord/transactions');
-      if (id === 'profile') navigate(role === 'student' ? '/student/profile' : '/landlord/profile');
-      if (id === 'settings') navigate(role === 'student' ? '/student/settings' : '/landlord/settings');
-    }}>
+    <DashboardLayout
+      role={role}
+      userName={displayName}
+      navItems={buildNavItems(role)}
+      activeId={role === 'student' ? 'history' : 'transactions'}
+      onNavChange={(id) => {
+        if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
+        if (id === 'deposits') navigate('/student/my-deposits');
+        if (id === 'escrow') navigate('/student/create-escrow');
+        if (id === 'incoming') navigate('/landlord/incoming-escrows');
+        if (id === 'history' || id === 'transactions') navigate(role === 'student' ? '/student/transactions' : '/landlord/transactions');
+        if (id === 'profile') navigate(role === 'student' ? '/student/profile' : '/landlord/profile');
+        if (id === 'settings') navigate(role === 'student' ? '/student/settings' : '/landlord/settings');
+      }}
+    >
+      <style>{`
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+      `}</style>
+
+      {selectedTx && <TxModal tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+
       <div style={{ padding: '24px 24px 40px', background: C.bg, minHeight: '100vh' }}>
-        <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
         <div style={{ ...fadeIn(), display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* ── Header ── */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
               <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.45rem', color: C.textDark, margin: 0 }}>Transaction History</h1>
-              <p style={{ fontFamily: font, fontSize: '0.92rem', color: C.textMid, margin: '6px 0 0' }}>View all blockchain and escrow transactions in one place.</p>
+              <p style={{ fontFamily: font, fontSize: '0.88rem', color: C.textMid, margin: '6px 0 0' }}>All blockchain and escrow transactions — live from MongoDB.</p>
             </div>
-            <button style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>Export CSV</button>
+            <button
+              onClick={handleExportCSV}
+              disabled={filtered.length === 0}
+              style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: filtered.length === 0 ? '#eee' : `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: filtered.length === 0 ? C.textLight : '#fff', fontFamily: font, fontWeight: 700, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer', boxShadow: filtered.length === 0 ? 'none' : '0 8px 20px rgba(232,115,74,0.25)', transition: 'all 0.2s' }}
+            >
+              Export CSV
+            </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+          {/* ── Stats strip ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
             {[
-              { label: 'Total Transactions', value: '128', tone: 'info' },
-              { label: 'Successful', value: '112', tone: 'success' },
-              { label: 'Pending', value: '8', tone: 'warning' },
-              { label: 'Released', value: '76', tone: 'success' },
-              { label: 'Disputed', value: '4', tone: 'danger' },
-              { label: 'TVL', value: '$84.2K', tone: 'info' },
-            ].map((stat) => (
-              <Card key={stat.label} style={{ padding: 18 }}>
-                <div style={{ fontFamily: font, fontSize: '0.78rem', color: C.textLight, marginBottom: 8 }}>{stat.label}</div>
-                <div style={{ fontFamily: font, fontWeight: 800, fontSize: '1.15rem', color: C.textDark }}>{stat.value}</div>
+              { label: 'Total Transactions', value: loading ? '…' : String(total), tone: 'info' as const },
+              { label: 'Deposits', value: loading ? '…' : String(stats.deposits), tone: 'warning' as const },
+              { label: 'Confirmations', value: loading ? '…' : String(stats.confirms), tone: 'info' as const },
+              { label: 'Released', value: loading ? '…' : String(stats.released), tone: 'success' as const },
+            ].map((s) => (
+              <Card key={s.label} style={{ padding: 18 }}>
+                <div style={{ fontFamily: font, fontSize: '0.75rem', color: C.textLight, marginBottom: 8 }}>{s.label}</div>
+                <div style={{ fontFamily: font, fontWeight: 800, fontSize: '1.15rem', color: C.textDark }}>{s.value}</div>
               </Card>
             ))}
           </div>
 
+          {/* ── Filters + table ── */}
           <Card style={{ padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
               <SectionTitle label="Search & Filters" />
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder="Search by escrow, property, hash or wallet" style={{ minWidth: 240, borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, color: C.textDark }} />
-                <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, color: C.textDark }}>
-                  <option value="All">All Status</option>
-                  <option value="Created">Created</option>
-                  <option value="Funded">Funded</option>
-                  <option value="Released">Released</option>
-                  <option value="Disputed">Disputed</option>
+                {/* Search */}
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search ID, property, hash, wallet…"
+                  style={{ minWidth: 220, borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark, outline: 'none' }}
+                />
+                {/* Type filter */}
+                <select
+                  value={typeFilter}
+                  onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
+                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark }}
+                >
+                  {TYPE_FILTERS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                 </select>
-                <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, color: C.textDark }}>
-                  <option value="All">All Types</option>
-                  <option value="Escrow Created">Escrow Created</option>
-                  <option value="Deposit">Deposit</option>
-                  <option value="Release">Release</option>
-                  <option value="Dispute">Dispute</option>
+                {/* Sort */}
+                <select
+                  value={sortOrder}
+                  onChange={(e) => { setSortOrder(e.target.value as 'newest' | 'oldest'); setCurrentPage(1); }}
+                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark }}
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
                 </select>
               </div>
             </div>
+
+            {/* Error */}
+            {error && (
+              <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(234,67,53,0.08)', border: '1px solid rgba(234,67,53,0.25)', fontFamily: font, fontSize: '0.85rem', color: '#C53030', marginBottom: 16 }}>
+                ⚠️ {error}
+              </div>
+            )}
 
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: font }}>
                 <thead>
-                  <tr style={{ borderBottom: `1px solid ${C.border}`, color: C.textLight, fontSize: '0.75rem', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 8px' }}>Transaction ID</th>
-                    <th style={{ padding: '10px 8px' }}>Escrow ID</th>
-                    <th style={{ padding: '10px 8px' }}>Property</th>
-                    <th style={{ padding: '10px 8px' }}>Type</th>
-                    <th style={{ padding: '10px 8px' }}>Status</th>
-                    <th style={{ padding: '10px 8px' }}>Amount</th>
-                    <th style={{ padding: '10px 8px' }}>Wallet</th>
-                    <th style={{ padding: '10px 8px' }}>Date</th>
-                    <th style={{ padding: '10px 8px' }}>Action</th>
+                  <tr style={{ borderBottom: `2px solid ${C.border}`, color: C.textLight, fontSize: '0.73rem', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <th style={{ padding: '10px 10px' }}>Date</th>
+                    <th style={{ padding: '10px 10px' }}>Escrow ID</th>
+                    <th style={{ padding: '10px 10px' }}>Property</th>
+                    <th style={{ padding: '10px 10px' }}>Type</th>
+                    <th style={{ padding: '10px 10px' }}>Amount</th>
+                    <th style={{ padding: '10px 10px' }}>Wallet</th>
+                    <th style={{ padding: '10px 10px' }}>Actor</th>
+                    <th style={{ padding: '10px 10px' }}>Status</th>
+                    <th style={{ padding: '10px 10px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((tx) => (
-                    <tr key={tx.id} style={{ borderBottom: `1px solid ${C.border}` }}>
-                      <td style={{ padding: '12px 8px', fontWeight: 700, color: C.textDark }}>{tx.id}</td>
-                      <td style={{ padding: '12px 8px', color: C.textMid }}>{tx.escrowId}</td>
-                      <td style={{ padding: '12px 8px', color: C.textMid }}>{tx.property}</td>
-                      <td style={{ padding: '12px 8px', color: C.textMid }}>{tx.type}</td>
-                      <td style={{ padding: '12px 8px' }}><StatusBadge label={tx.status} tone={tx.status === 'Released' ? 'success' : tx.status === 'Disputed' ? 'danger' : tx.status === 'Funded' ? 'warning' : 'info'} /></td>
-                      <td style={{ padding: '12px 8px', color: C.textDark, fontWeight: 700 }}>{tx.amount}</td>
-                      <td style={{ padding: '12px 8px', color: C.textMid }}>{tx.wallet}</td>
-                      <td style={{ padding: '12px 8px', color: C.textMid }}>{tx.date}</td>
-                      <td style={{ padding: '12px 8px' }}>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <button style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 10px', background: '#fff', color: C.textDark, cursor: 'pointer', fontSize: '0.72rem' }}>View</button>
-                          <button style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '6px 10px', background: '#fff', color: C.orange, cursor: 'pointer', fontSize: '0.72rem' }}>Stellar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {loading
+                    ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                    : filtered.length === 0
+                    ? (
+                      <tr>
+                        <td colSpan={9} style={{ padding: '48px 0', textAlign: 'center' }}>
+                          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📭</div>
+                          <div style={{ fontFamily: font, fontWeight: 700, color: C.textMid, fontSize: '0.95rem' }}>No transactions found</div>
+                          <div style={{ fontFamily: font, color: C.textLight, fontSize: '0.82rem', marginTop: 6 }}>
+                            {search || typeFilter !== 'All' ? 'Try adjusting your search or filters.' : 'Transactions will appear here after escrow operations.'}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                    : filtered.map((tx) => (
+                      <tr
+                        key={tx._id}
+                        onClick={() => setSelectedTx(tx)}
+                        style={{ borderBottom: `1px solid ${C.border}`, cursor: 'pointer', transition: 'background 0.15s' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFAFA')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <td style={{ padding: '13px 10px', color: C.textMid, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{fmtDate(tx.createdAt)}</td>
+                        <td style={{ padding: '13px 10px', fontWeight: 700, color: C.textDark, fontSize: '0.82rem' }}>{escrowLabel(tx)}</td>
+                        <td style={{ padding: '13px 10px', color: C.textMid, fontSize: '0.82rem', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.propertyName || '—'}</td>
+                        <td style={{ padding: '13px 10px', fontSize: '0.82rem' }}>
+                          <StatusBadge label={ACTION_LABELS[tx.action] || tx.action} tone={ACTION_TONE[tx.action] || 'neutral'} />
+                        </td>
+                        <td style={{ padding: '13px 10px', fontWeight: 700, color: C.textDark, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                          {tx.amount !== undefined ? `${tx.amount} ${tx.currency || 'XLM'}` : '—'}
+                        </td>
+                        <td style={{ padding: '13px 10px', color: C.textMid, fontSize: '0.78rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{shortWallet(tx.actorWallet)}</td>
+                        <td style={{ padding: '13px 10px', fontSize: '0.82rem', textTransform: 'capitalize', fontWeight: 600, color: tx.role === 'landlord' ? '#2AAF5C' : tx.role === 'student' ? '#E8734A' : C.textMid, whiteSpace: 'nowrap' }}>
+                          {tx.role || '—'}
+                        </td>
+                        <td style={{ padding: '13px 10px', fontSize: '0.78rem', color: C.textMid, whiteSpace: 'nowrap' }}>{tx.statusAfter || '—'}</td>
+                        <td style={{ padding: '13px 10px' }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedTx(tx); }}
+                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: '#fff', color: C.textDark, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600 }}
+                            >
+                              View
+                            </button>
+                            <a
+                              href={`${STELLAR_EXPLORER}${tx.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: '#fff', color: C.orange, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                            >
+                              Stellar ↗
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  }
                 </tbody>
               </table>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, flexWrap: 'wrap', gap: 10 }}>
-              <div style={{ color: C.textLight, fontSize: '0.82rem' }}>Showing {visible.length} of {filtered.length} transactions</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {Array.from({ length: pageCount }, (_, index) => index + 1).map((p) => (
-                  <button key={p} onClick={() => setCurrentPage(p)} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: currentPage === p ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#fff', color: currentPage === p ? '#fff' : C.textDark, cursor: 'pointer', fontWeight: 700 }}>{p}</button>
-                ))}
+            {/* Pagination */}
+            {!loading && total > PAGE_SIZE && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ color: C.textLight, fontFamily: font, fontSize: '0.82rem' }}>
+                  Showing {Math.min(PAGE_SIZE, filtered.length)} of {total} transactions
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: '#fff', color: currentPage === 1 ? C.textLight : C.textDark, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                  >
+                    ← Prev
+                  </button>
+                  {Array.from({ length: pageCount }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === pageCount || Math.abs(p - currentPage) <= 1)
+                    .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                      if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push('…');
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, i) =>
+                      p === '…' ? (
+                        <span key={`ellipsis-${i}`} style={{ padding: '8px 4px', fontFamily: font, color: C.textLight }}>…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => setCurrentPage(p as number)}
+                          style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 13px', background: currentPage === p ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#fff', color: currentPage === p ? '#fff' : C.textDark, cursor: 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )
+                  }
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(pageCount, p + 1))}
+                    disabled={currentPage === pageCount}
+                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: '#fff', color: currentPage === pageCount ? C.textLight : C.textDark, cursor: currentPage === pageCount ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                  >
+                    Next →
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </Card>
         </div>
       </div>

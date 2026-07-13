@@ -1,6 +1,7 @@
 const Escrow = require("../models/Escrow");
+const { createHistoryRecord } = require("./historyController");
 
-// Create Escrow
+// ─── Create Escrow ────────────────────────────────────────────────────────────
 exports.createEscrow = async (req, res) => {
   try {
     const {
@@ -67,6 +68,23 @@ exports.createEscrow = async (req, res) => {
 
     await escrow.save();
 
+    // ── Record history (fire-and-forget, never blocks response) ──
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash: transactionHash,
+      action: "ESCROW_CREATED",
+      actorWallet: studentWallet,
+      role: "student",
+      propertyName: propertyName,
+      amount: Number(depositAmount),
+      currency: currency || "XLM",
+      network: blockchainNetwork,
+      contractId: contractId,
+      statusBefore: null,
+      statusAfter: "CREATED",
+    }).catch((err) => console.error("History record error (createEscrow):", err.message));
+
     res.status(201).json({
       success: true,
       escrow,
@@ -81,18 +99,16 @@ exports.createEscrow = async (req, res) => {
   }
 };
 
-// Get Escrow by ID (MongoDB _id or contract escrowId)
+// ─── Get Escrow by ID (MongoDB _id or contract escrowId) ─────────────────────
 exports.getEscrowById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     let escrow;
-    // Check if valid ObjectId string
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
       escrow = await Escrow.findById(id);
     }
-    
-    // If not found by mongoId, check if it's a numeric escrowId
+
     if (!escrow && !isNaN(Number(id))) {
       escrow = await Escrow.findOne({ escrowId: Number(id) });
     }
@@ -118,11 +134,11 @@ exports.getEscrowById = async (req, res) => {
   }
 };
 
-// Get Escrows by Student Wallet
+// ─── Get Escrows by Student Wallet ────────────────────────────────────────────
 exports.getEscrowsByStudent = async (req, res) => {
   try {
     const { wallet } = req.params;
-    
+
     if (!wallet) {
       return res.status(400).json({
         success: false,
@@ -146,7 +162,7 @@ exports.getEscrowsByStudent = async (req, res) => {
   }
 };
 
-// Get Escrows by Landlord Wallet
+// ─── Get Escrows by Landlord Wallet ───────────────────────────────────────────
 exports.getEscrowsByLandlord = async (req, res) => {
   try {
     const { wallet } = req.params;
@@ -177,79 +193,8 @@ exports.getEscrowsByLandlord = async (req, res) => {
     });
   }
 };
-// Release Escrow
-exports.releaseEscrow = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { txHash } = req.body;
 
-    if (!txHash) {
-      return res.status(400).json({
-        success: false,
-        message: "Release transaction hash is required",
-      });
-    }
-
-    let escrow;
-
-    // Try MongoDB ObjectId first
-    if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      escrow = await Escrow.findById(id);
-    }
-
-    // Otherwise treat it as contract escrowId
-    if (!escrow && !isNaN(Number(id))) {
-      escrow = await Escrow.findOne({
-        escrowId: Number(id),
-      });
-    }
-
-    if (!escrow) {
-      return res.status(404).json({
-        success: false,
-        message: "Escrow not found",
-      });
-    }
-
-    // Prevent releasing twice
-    if (escrow.status === "RELEASED") {
-      return res.status(400).json({
-        success: false,
-        message: "Escrow is already released",
-      });
-    }
-
-    // Optional safety check
-    if (escrow.status !== "PENDING_CONFIRMATION") {
-      return res.status(400).json({
-        success: false,
-        message: "Escrow is not ready for release",
-      });
-    }
-
-    escrow.status = "RELEASED";
-    escrow.releasedTxHash = txHash;
-    escrow.releasedAt = new Date();
-
-    await escrow.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Escrow released successfully",
-      escrow,
-    });
-  } catch (error) {
-    console.error("Release Escrow Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
-  }
-};
-
-// Fund Escrow
+// ─── Fund Escrow ──────────────────────────────────────────────────────────────
 exports.fundEscrow = async (req, res) => {
   try {
     const { id } = req.params;
@@ -264,16 +209,12 @@ exports.fundEscrow = async (req, res) => {
 
     let escrow;
 
-    // Try MongoDB ObjectId first
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
       escrow = await Escrow.findById(id);
     }
 
-    // Otherwise treat it as contract escrowId
     if (!escrow && !isNaN(Number(id))) {
-      escrow = await Escrow.findOne({
-        escrowId: Number(id),
-      });
+      escrow = await Escrow.findOne({ escrowId: Number(id) });
     }
 
     if (!escrow) {
@@ -290,11 +231,29 @@ exports.fundEscrow = async (req, res) => {
       });
     }
 
+    const statusBefore = escrow.status;
     escrow.status = "FUNDED";
     escrow.fundedTxHash = txHash;
     escrow.fundedAt = new Date();
 
     await escrow.save();
+
+    // ── Record history ──
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash,
+      action: "DEPOSIT",
+      actorWallet: escrow.studentWallet,
+      role: "student",
+      propertyName: escrow.propertyName,
+      amount: escrow.depositAmount,
+      currency: escrow.currency,
+      network: escrow.blockchainNetwork,
+      contractId: escrow.contractId,
+      statusBefore,
+      statusAfter: "FUNDED",
+    }).catch((err) => console.error("History record error (fundEscrow):", err.message));
 
     res.status(200).json({
       success: true,
@@ -303,7 +262,6 @@ exports.fundEscrow = async (req, res) => {
     });
   } catch (error) {
     console.error("Fund Escrow Error:", error);
-
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -312,7 +270,7 @@ exports.fundEscrow = async (req, res) => {
   }
 };
 
-// Confirm Escrow
+// ─── Confirm Escrow ───────────────────────────────────────────────────────────
 exports.confirmEscrow = async (req, res) => {
   try {
     const { id } = req.params;
@@ -327,16 +285,12 @@ exports.confirmEscrow = async (req, res) => {
 
     let escrow;
 
-    // Try MongoDB ObjectId
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
       escrow = await Escrow.findById(id);
     }
 
-    // Otherwise use contract escrowId
     if (!escrow && !isNaN(Number(id))) {
-      escrow = await Escrow.findOne({
-        escrowId: Number(id),
-      });
+      escrow = await Escrow.findOne({ escrowId: Number(id) });
     }
 
     if (!escrow) {
@@ -360,33 +314,60 @@ exports.confirmEscrow = async (req, res) => {
       });
     }
 
-    if (req.user.role === 'student' && escrow.studentConfirmed) {
+    if (req.user.role === "student" && escrow.studentConfirmed) {
       return res.status(400).json({
         success: false,
         message: "Student has already confirmed",
       });
     }
 
-    if (req.user.role === 'landlord' && escrow.landlordConfirmed) {
+    if (req.user.role === "landlord" && escrow.landlordConfirmed) {
       return res.status(400).json({
         success: false,
         message: "Landlord has already confirmed",
       });
     }
 
-    if (req.user.role === 'student') {
+    const statusBefore = escrow.status;
+    const actorRole = req.user.role;
+    const actorWallet =
+      actorRole === "student" ? escrow.studentWallet : escrow.landlordWallet;
+
+    if (actorRole === "student") {
       escrow.studentConfirmed = true;
-    } else if (req.user.role === 'landlord') {
+    } else if (actorRole === "landlord") {
       escrow.landlordConfirmed = true;
     }
 
+    let statusAfter = escrow.status;
     if (escrow.studentConfirmed && escrow.landlordConfirmed) {
       escrow.status = "PENDING_CONFIRMATION";
       escrow.confirmTxHash = txHash;
       escrow.confirmedAt = new Date();
+      statusAfter = "PENDING_CONFIRMATION";
     }
 
     await escrow.save();
+
+    // ── Record history ──
+    const action =
+      actorRole === "student" ? "STUDENT_CONFIRM" : "LANDLORD_CONFIRM";
+
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash,
+      action,
+      actorWallet,
+      role: actorRole,
+      propertyName: escrow.propertyName,
+      amount: escrow.depositAmount,
+      currency: escrow.currency,
+      network: escrow.blockchainNetwork,
+      contractId: escrow.contractId,
+      statusBefore,
+      statusAfter,
+    }).catch((err) => console.error("History record error (confirmEscrow):", err.message));
 
     res.status(200).json({
       success: true,
@@ -395,7 +376,6 @@ exports.confirmEscrow = async (req, res) => {
     });
   } catch (error) {
     console.error("Confirm Escrow Error:", error);
-
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -404,7 +384,90 @@ exports.confirmEscrow = async (req, res) => {
   }
 };
 
-// Cancel Escrow
+// ─── Release Escrow ───────────────────────────────────────────────────────────
+exports.releaseEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { txHash } = req.body;
+
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Release transaction hash is required",
+      });
+    }
+
+    let escrow;
+
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({ escrowId: Number(id) });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    if (escrow.status === "RELEASED") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is already released",
+      });
+    }
+
+    if (escrow.status !== "PENDING_CONFIRMATION") {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow is not ready for release",
+      });
+    }
+
+    const statusBefore = escrow.status;
+    escrow.status = "RELEASED";
+    escrow.releasedTxHash = txHash;
+    escrow.releasedAt = new Date();
+
+    await escrow.save();
+
+    // ── Record history ──
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash,
+      action: "RELEASE",
+      actorWallet: escrow.landlordWallet,
+      role: "landlord",
+      propertyName: escrow.propertyName,
+      amount: escrow.depositAmount,
+      currency: escrow.currency,
+      network: escrow.blockchainNetwork,
+      contractId: escrow.contractId,
+      statusBefore,
+      statusAfter: "RELEASED",
+    }).catch((err) => console.error("History record error (releaseEscrow):", err.message));
+
+    res.status(200).json({
+      success: true,
+      message: "Escrow released successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Release Escrow Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// ─── Cancel Escrow ────────────────────────────────────────────────────────────
 exports.cancelEscrow = async (req, res) => {
   try {
     const { id } = req.params;
@@ -441,6 +504,7 @@ exports.cancelEscrow = async (req, res) => {
       });
     }
 
+    const statusBefore = escrow.status;
     escrow.status = "CANCELLED";
     if (reason) escrow.cancelReason = reason;
     escrow.cancelledAt = new Date();
