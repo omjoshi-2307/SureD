@@ -151,6 +151,8 @@ exports.getEscrowsByLandlord = async (req, res) => {
   try {
     const { wallet } = req.params;
 
+    console.log("Requested landlord wallet:", wallet);
+
     if (!wallet) {
       return res.status(400).json({
         success: false,
@@ -159,6 +161,8 @@ exports.getEscrowsByLandlord = async (req, res) => {
     }
 
     const escrows = await Escrow.find({ landlordWallet: wallet });
+
+    console.log("Escrows found:", escrows.length);
 
     res.status(200).json({
       success: true,

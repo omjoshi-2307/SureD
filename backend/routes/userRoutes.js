@@ -3,7 +3,10 @@ const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
-const { updateWallet } = require("../controllers/userController");
+const { getLandlordWallet, updateWallet } = require("../controllers/userController");
+
+// Get landlord wallet (accessible by any logged-in user — students need this during escrow creation)
+router.get("/landlord-wallet", authMiddleware, getLandlordWallet);
 
 // Accessible by any logged-in user
 router.get("/profile", authMiddleware, (req, res) => {

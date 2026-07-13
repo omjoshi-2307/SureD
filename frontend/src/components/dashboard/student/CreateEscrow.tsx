@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
 import { createEscrow } from '@/services/sorobanService';
 import { createEscrowDb } from '@/services/escrowService';
+import API from '@/api/axios';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -41,16 +42,15 @@ const NAV_ITEMS: NavItem[] = [
 /* ─── Mock property data ─────────────────────────────────────────── */
 interface Property {
   id: number; name: string; address: string; city: string;
-  rent: number; deposit: number; landlord: string; landlordAddress: string; rating: number;
+  rent: number; deposit: number; landlord: string; rating: number;
   available: string; type: string; lease: string; emoji: string; rooms: number;
 }
-const LANDLORD_ADDRESS = 'GBZ6RDOP4M4WRCUUDEOUR6W53OK3C3SPD66R3YBR4INIYOR6H6HT2QLK';
 const PROPERTIES: Property[] = [
-  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', landlordAddress: LANDLORD_ADDRESS, rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', emoji: '🏢', rooms: 2 },
-  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   landlordAddress: LANDLORD_ADDRESS, rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', emoji: '🏙️', rooms: 3 },
-  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     landlordAddress: LANDLORD_ADDRESS, rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', emoji: '🏠', rooms: 1 },
-  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    landlordAddress: LANDLORD_ADDRESS, rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  emoji: '🏗️', rooms: 2 },
-  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  landlordAddress: LANDLORD_ADDRESS, rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', emoji: '🎓', rooms: 1 },
+  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', emoji: '🏢', rooms: 2 },
+  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', emoji: '🏙️', rooms: 3 },
+  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', emoji: '🏠', rooms: 1 },
+  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  emoji: '🏗️', rooms: 2 },
+  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', emoji: '🎓', rooms: 1 },
 ];
 
 const PLATFORM_FEE = 25;
@@ -142,8 +142,15 @@ const Toast = ({ visible, message, isError }: { visible: boolean; message: strin
 /* ══════════════════════════════════════════════════════════════════ */
 const CreateEscrow: React.FC = () => {
   const storedUser = localStorage.getItem("user");
-  const displayName = storedUser ? (JSON.parse(storedUser).name || "Student") : "Student";
+  const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+  const studentWalletAddress = parsedUser?.walletAddress || "NOT_CONNECTED";
+  console.log("Connected student wallet (from localStorage):", studentWalletAddress);
+  const displayName = parsedUser?.name || "Student";
   const navigate = useNavigate();
+
+  /* ── landlord wallet (fetched from backend) ── */
+  const [landlordWallet, setLandlordWallet] = useState<string>('');
+  const [walletLoading,  setWalletLoading]  = useState(true);
 
   /* ── form state ── */
   const [search,         setSearch]        = useState('');
@@ -166,10 +173,29 @@ const CreateEscrow: React.FC = () => {
 
   useEffect(() => { setTimeout(() => setMounted(true), 60); }, []);
 
+  /* Fetch the landlord wallet from backend */
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await API.get("/user/landlord-wallet");
+        if (res.data.success && res.data.walletAddress) {
+          setLandlordWallet(res.data.walletAddress);
+          console.log("Landlord wallet fetched:", res.data.walletAddress);
+        } else {
+          console.error("Failed to get landlord wallet:", res.data.message);
+        }
+      } catch (err: any) {
+        console.error("Error fetching landlord wallet:", err?.response?.data?.message || err.message);
+      } finally {
+        setWalletLoading(false);
+      }
+    })();
+  }, []);
+
   /* Close dropdown on outside click */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ddRef.current && !ddRef.current.contains(e.target as Node)) setDropdownOpen(false);
+      if (ddRef.current && !ddRef.current.contains(e.target as Node)) { console.log("setDropdownOpen", false, "outside click"); setDropdownOpen(false); }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -179,8 +205,11 @@ const CreateEscrow: React.FC = () => {
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.city.toLowerCase().includes(search.toLowerCase())
   );
+  console.log("All properties:", PROPERTIES);
+  console.log("Filtered properties:", filteredProps);
 
   const selectProperty = (p: Property) => {
+    console.log("setDropdownOpen", false, "selectProperty");
     setDropdownOpen(false);
     setSearch(p.name);
     setPropLoading(true);
@@ -203,9 +232,20 @@ const CreateEscrow: React.FC = () => {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
+      if (!landlordWallet) {
+        showToast("Landlord wallet not loaded. Please wait and try again.", true);
+        setSubmitting(false);
+        return;
+      }
+      console.log("=== PRE-CREATE ESCROW ===");
+      console.log("Fetched landlord wallet:", landlordWallet);
+      console.log({
+        studentWallet: studentWalletAddress,
+        landlordWallet,
+      });
       // 1. Blockchain execution
       const result = await createEscrow({
-        landlordAddress: selectedProp!.landlordAddress,
+        landlordAddress: landlordWallet,
         amountXlm: deposit,
       });
 
@@ -215,7 +255,7 @@ const CreateEscrow: React.FC = () => {
           escrowId: result.escrowId,
           transactionHash: result.txHash,
           studentWallet: result.studentWallet,
-          landlordWallet: selectedProp!.landlordAddress,
+          landlordWallet: landlordWallet,
           propertyName: selectedProp!.name,
           propertyAddress: `${selectedProp!.address}, ${selectedProp!.city}`,
           depositAmount: deposit,
@@ -339,24 +379,31 @@ const CreateEscrow: React.FC = () => {
                   </span>
                   <input
                     value={search}
-                    onChange={e => { setSearch(e.target.value); setDropdownOpen(true); }}
-                    onFocus={() => setDropdownOpen(true)}
+                    onChange={e => { console.log("setDropdownOpen", true, "onChange"); setSearch(e.target.value); setDropdownOpen(true); }}
                     placeholder="Search by property name or city…"
                     style={{ ...inputBase, paddingLeft: 38 }}
-                    onFocus={e => { setDropdownOpen(true); focusIn(e); }}
+                    onFocus={e => { console.log("setDropdownOpen", true, "onFocus"); setDropdownOpen(true); focusIn(e); }}
                     onBlur={focusOut}
                   />
                 </div>
 
                 {/* Dropdown */}
+                {console.log({ dropdownOpen, search, filteredLength: filteredProps.length, selectedProperty: selectedProp?.name })}
                 {dropdownOpen && filteredProps.length > 0 && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
                     background: C.white, border: `1.5px solid ${C.border}`,
                     borderRadius: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-                    marginTop: 4, overflow: 'hidden',
+                    marginTop: 4, overflow: 'visible',
+                    maxHeight: 320, overflowY: 'auto',
                   }}>
-                    {filteredProps.map((p, i) => (
+                    {console.log("Dropdown open:", dropdownOpen)}
+                    {console.log("Search:", search)}
+                    {console.log("Filtered length:", filteredProps.length)}
+                    {console.log(filteredProps)}
+                    {filteredProps.map((p, i) => {
+                      console.log("Rendering property:", p.id, p.name);
+                      return (
                       <button
                         key={p.id}
                         onMouseDown={() => selectProperty(p)}
@@ -380,7 +427,8 @@ const CreateEscrow: React.FC = () => {
                           £{p.rent}/mo
                         </div>
                       </button>
-                    ))}
+                    );
+                      })}
                   </div>
                 )}
               </div>

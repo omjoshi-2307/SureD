@@ -126,6 +126,11 @@ export async function createEscrow(
   const landlordScVal = Address.fromString(landlordAddress).toScVal();
   const amountScVal   = nativeToScVal(xlmToStroops(amountXlm), { type: "i128" });
 
+  console.log("=== SCAVALS ===");
+  console.log("studentScVal:", JSON.stringify(studentScVal));
+  console.log("landlordScVal:", JSON.stringify(landlordScVal));
+  console.log("amountScVal:", JSON.stringify(amountScVal));
+
   const rawTx = new TransactionBuilder(account, {
     fee: BASE_FEE,
     networkPassphrase: NETWORK_PASSPHRASE,
@@ -146,6 +151,19 @@ export async function createEscrow(
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`Transaction simulation failed: ${msg}`);
+  }
+
+  /* Log XDR before signing */
+  const preparedTxXdr = preparedTx.toXDR();
+  console.log("=== PREPARED TX XDR ===", preparedTxXdr);
+  /* Attempt to decode and log the operation arguments */
+  try {
+    const txFromXdr = TransactionBuilder.fromXDR(preparedTxXdr, NETWORK_PASSPHRASE);
+    const op = txFromXdr.operations[0];
+    console.log("Operation type:", op.type);
+    console.log("Operation args (raw):", JSON.stringify((op as any).toXDR ? "available" : "n/a"));
+  } catch (e) {
+    console.log("Could not decode XDR for arg logging:", e);
   }
 
   /* 6 ── Sign via Freighter (wallet approval popup) ───────────────── */

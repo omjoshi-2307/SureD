@@ -14,9 +14,9 @@ const {
 
 // All escrow routes are protected by authMiddleware
 router.post("/", authMiddleware, createEscrow);
-router.get("/:id", authMiddleware, getEscrowById);
 router.get("/student/:wallet", authMiddleware, getEscrowsByStudent);
 router.get("/landlord/:wallet", authMiddleware, getEscrowsByLandlord);
+router.get("/:id", authMiddleware, getEscrowById);
 router.patch("/:id/fund", authMiddleware, fundEscrow);
 router.patch("/:id/release", authMiddleware, releaseEscrow);
 router.patch("/:id/confirm", authMiddleware, confirmEscrow);

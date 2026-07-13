@@ -123,6 +123,7 @@ const LandlordDashboard: React.FC = () => {
       const parsed = JSON.parse(stored);
       if (parsed.walletAddress) {
         setWalletAddress(parsed.walletAddress);
+        console.log("Landlord wallet:", parsed.walletAddress);
         loadData(parsed.walletAddress);
         return;
       }
@@ -224,6 +225,13 @@ const LandlordDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* ── Error Banner ── */}
+      {error && (
+        <div style={{ background: '#FFF0F0', border: '1px solid #FFC0C0', borderRadius: 12, padding: '12px 18px', marginBottom: 16, fontFamily: font, fontSize: '0.85rem', color: '#C53030', fontWeight: 600 }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* ── Stats Cards ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>

@@ -1,5 +1,29 @@
 const User = require("../models/User");
 
+// Get landlord wallet address (accessible by any authenticated user)
+exports.getLandlordWallet = async (req, res) => {
+  try {
+    const walletAddress = process.env.LANDLORD_WALLET_ADDRESS;
+    if (!walletAddress) {
+      return res.status(500).json({
+        success: false,
+        message: "LANDLORD_WALLET_ADDRESS not configured in backend .env",
+      });
+    }
+    console.log("Landlord wallet retrieved:", walletAddress);
+    res.status(200).json({
+      success: true,
+      walletAddress,
+    });
+  } catch (error) {
+    console.error("Get Landlord Wallet Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
 // Update Wallet Address
 exports.updateWallet = async (req, res) => {
   try {
