@@ -1,196 +1,134 @@
-import React, { useEffect, useState } from 'react';
-import Sparkle from './Sparkle';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 interface WelcomePageProps {
   onEnterLanding: () => void;
 }
 
+/**
+ * Splash — a ~2s dark brand moment: the vault ring blooms out of black,
+ * the wordmark fades in beneath it, then we auto-advance to the landing.
+ * Click anywhere or press Escape to skip instantly.
+ */
 const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterLanding }) => {
-  const [animate, setAnimate] = useState(false);
+  const firedRef = useRef(false);
+
+  const advance = useCallback(() => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+    onEnterLanding();
+  }, [onEnterLanding]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimate(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    const timer = setTimeout(advance, 2200);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') advance();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [advance]);
 
   return (
     <div
+      onClick={advance}
+      role="button"
+      tabIndex={0}
+      aria-label="DepositSafe — click to continue"
+      className="dl-canvas"
       style={{
-        background: '#FAFAFA',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 40,
         position: 'relative',
         overflow: 'hidden',
-        padding: '24px',
+        cursor: 'pointer',
         textAlign: 'center',
+        padding: 24,
       }}
     >
-      {/* Premium Subtle Grid Background (fades out at edges) */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: 'linear-gradient(rgba(232, 115, 74, 0.035) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(232, 115, 74, 0.035) 1.5px, transparent 1.5px)',
-        backgroundSize: '56px 56px',
-        backgroundPosition: 'center',
-        maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 80%)',
-        WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 80%)',
-        pointerEvents: 'none',
-        zIndex: 1,
-      }} />
+      {/* Edge vignette to black */}
+      <div className="dl-vignette" />
 
-      {/* Background glow blobs */}
-      <div style={{
-        position: 'absolute',
-        top: '25%',
-        left: '20%',
-        width: 450,
-        height: 450,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(232,115,74,0.18) 0%, transparent 70%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '20%',
-        right: '15%',
-        width: 350,
-        height: 350,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(240,149,107,0.14) 0%, transparent 70%)',
-        filter: 'blur(50px)',
-        pointerEvents: 'none',
-        zIndex: 0,
-      }} />
-
-      {/* Floating Sparkles around the center content */}
-      <span style={{
-        position: 'absolute',
-        top: '32%',
-        left: '25%',
-        zIndex: 2,
-        opacity: animate ? 1 : 0,
-        transition: 'opacity 1s ease',
-      }}>
-        <Sparkle size={26} color="#E8734A" />
-      </span>
-      <span style={{
-        position: 'absolute',
-        bottom: '30%',
-        right: '24%',
-        zIndex: 2,
-        opacity: animate ? 1 : 0,
-        transition: 'opacity 1s ease 0.3s',
-      }}>
-        <Sparkle size={18} color="#F0956B" />
-      </span>
-      <span style={{
-        position: 'absolute',
-        top: '22%',
-        right: '30%',
-        zIndex: 2,
-        opacity: animate ? 1 : 0,
-        transition: 'opacity 1s ease 0.5s',
-      }}>
-        <Sparkle size={15} color="#E8734A" />
-      </span>
-
-      {/* Main Centered Container */}
+      {/* The vault ring, blooming in from black */}
       <div
         style={{
-          maxWidth: 680,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 28,
-          zIndex: 10,
-          opacity: animate ? 1 : 0,
-          transform: animate ? 'translateY(0)' : 'translateY(32px)',
-          transition: 'opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
+          position: 'relative',
+          width: 'min(360px, 70vw)',
+          height: 'min(360px, 70vw)',
+          animation: 'vaultBloomIn 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards',
+          opacity: 0,
         }}
       >
-        {/* Big SureDeposit Header */}
-        <h1
+        {/* Outer violet bloom */}
+        <div
           style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 900,
-            fontSize: 'clamp(3rem, 8vw, 5.2rem)',
-            lineHeight: 1.05,
-            color: '#1A1A1A',
-            letterSpacing: '-2.5px',
+            position: 'absolute',
+            inset: '-30%',
+            borderRadius: '50%',
+            background:
+              'radial-gradient(circle, rgba(124,92,255,0.35) 0%, rgba(124,92,255,0.12) 45%, transparent 70%)',
+            filter: 'blur(24px)',
+            animation: 'bloom 6s ease-in-out infinite',
           }}
-        >
-          Sure<span className="gradient-text">deposit</span>
-        </h1>
+        />
+        {/* Horizontal light slit */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '-6%',
+            right: '-6%',
+            height: 5,
+            transform: 'translateY(-50%)',
+            borderRadius: 999,
+            background:
+              'linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.9) 18%, #FFFFFF 50%, rgba(167,139,250,0.9) 82%, transparent 100%)',
+            boxShadow: '0 0 40px 8px rgba(124,92,255,0.55)',
+            filter: 'blur(0.5px)',
+          }}
+        />
+        {/* Thin spinning conic light ring */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: '8%',
+            borderRadius: '50%',
+            padding: 1.5,
+            background:
+              'conic-gradient(from 0deg, transparent 0%, rgba(224,215,255,0.9) 12%, transparent 30%, transparent 60%, rgba(124,92,255,0.5) 75%, transparent 90%)',
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude',
+            animation: 'ringSpin 20s linear infinite',
+          }}
+        />
+      </div>
 
-        {/* Classic Line regarding Student Rentals */}
+      {/* Wordmark + tagline */}
+      <div
+        className="dl-stagger"
+        style={{ animationDelay: '450ms', display: 'flex', flexDirection: 'column', gap: 12, zIndex: 2 }}
+      >
+        <h1
+          className="text-hero-gradient"
+          style={{ fontSize: 'clamp(2.4rem, 6vw, 3.6rem)', letterSpacing: '-1.5px', lineHeight: 1.05 }}
+        >
+          DepositSafe
+        </h1>
         <p
           style={{
-            fontFamily: "'Poppins', sans-serif",
-            fontWeight: 500,
-            fontSize: 'clamp(1.1rem, 2.5vw, 1.35rem)',
-            color: '#5A5A5A',
-            lineHeight: 1.65,
-            maxWidth: 580,
-            letterSpacing: '-0.3px',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
+            color: 'rgba(255,255,255,0.64)',
           }}
         >
-          Simplifying student rentals. Lock in your university home without locking up your hard-earned cash — fully secure, transparent, and hassle-free.
+          Deposits, locked in trust.
         </p>
-
-        {/* Action Button */}
-        <div style={{ marginTop: 12 }}>
-          <button
-            onClick={onEnterLanding}
-            className="btn-shimmer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 12,
-              color: '#fff',
-              fontFamily: "'Poppins', sans-serif",
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              letterSpacing: '0.4px',
-              padding: '16px 20px 16px 32px',
-              borderRadius: 50,
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 8px 28px rgba(232,115,74,0.45)',
-              transition: 'transform 0.25s, box-shadow 0.25s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 16px 40px rgba(232,115,74,0.55)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 8px 28px rgba(232,115,74,0.45)';
-            }}
-          >
-            GET STARTED
-            <span style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.25)',
-              backdropFilter: 'blur(8px)',
-              flexShrink: 0,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </span>
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,486 +1,575 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Sparkle from './Sparkle';
 
-/* ─── Dotted Journey Path ─────────────────────────────────────────── */
-const DottedPath: React.FC = () => (
-  <svg
-    className="dotted-path"
-    viewBox="0 0 500 460"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    preserveAspectRatio="none"
+/* Deterministic star field — fixed positions so render is stable */
+const STARS: Array<{ top: string; left: string; size: number; delay: number }> = [
+  { top: '14%', left: '12%', size: 2, delay: 0 },
+  { top: '22%', left: '82%', size: 1, delay: 0.7 },
+  { top: '9%', left: '55%', size: 1, delay: 1.4 },
+  { top: '30%', left: '25%', size: 1, delay: 2.1 },
+  { top: '18%', left: '68%', size: 2, delay: 0.4 },
+  { top: '38%', left: '90%', size: 1, delay: 1.8 },
+  { top: '42%', left: '8%', size: 2, delay: 1.1 },
+  { top: '6%', left: '30%', size: 1, delay: 2.5 },
+  { top: '26%', left: '45%', size: 1, delay: 3.0 },
+  { top: '48%', left: '78%', size: 1, delay: 0.2 },
+];
+
+const STATUS_STEPS = [
+  { label: 'Created', color: '#97A0B5', state: 'done' as const },
+  { label: 'Funded', color: '#2E6BFF', state: 'active' as const },
+  { label: 'Confirmed', color: '#F59E0B', state: 'todo' as const },
+  { label: 'Released', color: '#10B981', state: 'todo' as const },
+];
+
+/* ─── Hand-built dashboard mock (no images) ───────────────────────── */
+const DashboardMock: React.FC = () => (
+  <div
+    style={{
+      display: 'flex',
+      background: '#0E0D15',
+      borderRadius: '0 0 16px 16px',
+      overflow: 'hidden',
+      minHeight: 300,
+      textAlign: 'left',
+    }}
     aria-hidden="true"
   >
-    <path
-      d="M 70 400 Q 140 310 200 220 Q 268 118 390 55"
-      stroke="rgba(255,255,255,0.9)"
-      strokeWidth="2.5"
-      strokeDasharray="7 9"
-      strokeLinecap="round"
-      fill="none"
-    />
-    {[
-      { cx: 110, cy: 350 },
-      { cx: 168, cy: 262 },
-      { cx: 244, cy: 165 },
-      { cx: 316, cy: 105 },
-    ].map((pt, i) => (
-      <circle key={i} cx={pt.cx} cy={pt.cy} r="5.5" fill="white" opacity="0.85" />
-    ))}
-    {/* Start dot */}
-    <circle cx="70" cy="400" r="12" fill="rgba(232,115,74,0.3)" />
-    <circle cx="70" cy="400" r="8"  fill="#E8734A" />
-    <circle cx="70" cy="400" r="4"  fill="white" />
-    {/* End dot */}
-    <circle cx="390" cy="55" r="8"  fill="rgba(255,255,255,0.5)" />
-    <circle cx="390" cy="55" r="4"  fill="white" />
-  </svg>
-);
+    {/* Slim sidebar */}
+    <div
+      className="hidden sm:flex"
+      style={{
+        width: 64,
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 18,
+        padding: '20px 0',
+        flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 8,
+          background: 'linear-gradient(135deg,#7C5CFF,#A78BFA)',
+          boxShadow: '0 0 12px rgba(124,92,255,0.4)',
+        }}
+      />
+      {[0.5, 0.25, 0.25, 0.25].map((op, i) => (
+        <span
+          key={i}
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            background: `rgba(255,255,255,${op * 0.3})`,
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        />
+      ))}
+    </div>
 
-/* ─── Glass Floating Card ─────────────────────────────────────────── */
-const GlassCard: React.FC<{
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  delay?: string;
-}> = ({ children, className = '', style, delay = '0s' }) => (
-  <div
-    className={`glass ${className}`}
-    style={{
-      position:             'absolute',
-      borderRadius:         20,
-      padding:              '14px 18px',
-      display:              'flex',
-      alignItems:           'center',
-      gap:                  12,
-      animation:            `float 4s ease-in-out ${delay} infinite`,
-      boxShadow:            '0 12px 40px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.8)',
-      zIndex:               10,
-      ...style,
-    }}
-  >
-    {children}
+    {/* Main pane */}
+    <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <span
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 600,
+            fontSize: '0.8rem',
+            color: 'rgba(255,255,255,0.85)',
+          }}
+        >
+          My escrows
+        </span>
+        <span
+          className="mono-addr"
+          style={{
+            fontSize: '0.62rem',
+            color: 'rgba(255,255,255,0.4)',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 999,
+            padding: '4px 10px',
+          }}
+        >
+          GDKF…X4TQ
+        </span>
+      </div>
+
+      {/* Escrow card */}
+      <div
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 12,
+          padding: '16px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <p
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                color: '#fff',
+              }}
+            >
+              Sunrise Residency, Pune
+            </p>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)' }}>
+              Security deposit · 11-month tenancy
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 700,
+                fontSize: '1.05rem',
+                color: '#fff',
+                letterSpacing: '-0.3px',
+              }}
+            >
+              ₹85,000
+            </p>
+            <p className="mono-addr" style={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)' }}>
+              ≈ 3,400 XLM
+            </p>
+          </div>
+        </div>
+
+        {/* 4-step status timeline */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+          {STATUS_STEPS.map((step, i) => (
+            <React.Fragment key={step.label}>
+              {i > 0 && (
+                <span
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background:
+                      STATUS_STEPS[i - 1].state === 'done'
+                        ? `linear-gradient(90deg, ${STATUS_STEPS[i - 1].color}, ${step.color})`
+                        : 'rgba(255,255,255,0.12)',
+                    minWidth: 12,
+                  }}
+                />
+              )}
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                <span
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: step.state === 'todo' ? 'transparent' : step.color,
+                    border: step.state === 'todo' ? `1.5px solid rgba(255,255,255,0.25)` : `1.5px solid ${step.color}`,
+                    animation: step.state === 'active' ? 'statusPulse 2s ease-in-out infinite' : 'none',
+                  }}
+                >
+                  {step.state === 'done' && (
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0A10" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </span>
+                <span
+                  className="mono-addr"
+                  style={{
+                    fontSize: '0.56rem',
+                    color: step.state === 'todo' ? 'rgba(255,255,255,0.35)' : step.color,
+                  }}
+                >
+                  {step.label}
+                </span>
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* Fee line */}
+      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
+        Network fee <span className="mono-addr" style={{ color: '#A78BFA' }}>≈ ₹0.001</span> · settles in ~5s on Stellar
+      </p>
+    </div>
   </div>
 );
 
-/* ─── Hero Section ────────────────────────────────────────────────── */
+/* ─── Hero ─────────────────────────────────────────────────────────── */
 const Hero: React.FC = () => {
-  const leftRef  = useRef<HTMLDivElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
+  const screenshotRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
-  /* Trigger hero animations on mount */
+  useEffect(() => setMounted(true), []);
+
+  /* Scroll-linked tilt: 18deg → 0 as the mock enters the viewport */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      leftRef.current?.classList.add('animated');
-      setTimeout(() => rightRef.current?.classList.add('animated'), 200);
-    }, 100);
-    return () => clearTimeout(timer);
+    const el = screenshotRef.current;
+    if (!el) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      el.style.transform = 'none';
+      return;
+    }
+    let raf = 0;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // 0 when the card's top is at the bottom of the screen, 1 when its center reaches ~60% viewport
+      const progress = Math.min(1, Math.max(0, (vh - rect.top) / (vh * 0.75)));
+      const angle = 18 * (1 - progress);
+      el.style.transform = `perspective(1200px) rotateX(${angle}deg)`;
+      raf = 0;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
+
+  const rise = (i: number): React.CSSProperties => ({
+    animationDelay: `${i * 80}ms`,
+    animationPlayState: mounted ? 'running' : 'paused',
+  });
 
   return (
     <section
       id="hero"
       aria-label="Hero"
+      className="dl-canvas"
       style={{
-        maxWidth:    1280,
-        margin:      '0 auto',
-        padding:     '100px 48px 80px',
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: 'clamp(48px, 8vh, 88px) 24px 0',
       }}
     >
-      {/* ═══ Two-column flex layout ═══ */}
-      <div style={{
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        gap:            72,
-        flexWrap:       'wrap',
-      }}>
+      {/* Atmosphere: glow, horizon streaks, vignette, stars */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '30%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'min(900px, 120vw)',
+          height: 'min(900px, 120vw)',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,92,255,0.25) 0%, transparent 65%)',
+          filter: 'blur(60px)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div className="dl-horizon dl-horizon-left" aria-hidden="true" />
+      <div className="dl-horizon dl-horizon-right" aria-hidden="true" />
+      {STARS.map((s, i) => (
+        <span
+          key={i}
+          className="dl-star"
+          style={{ top: s.top, left: s.left, width: s.size, height: s.size, animationDelay: `${s.delay}s` }}
+          aria-hidden="true"
+        />
+      ))}
+      <div className="dl-vignette" aria-hidden="true" />
 
-        {/* ════ LEFT COLUMN ════ */}
-        <div
-          ref={leftRef}
-          className="reveal-left"
-          style={{
-            flex:         '1 1 420px',
-            maxWidth:     520,
-            display:      'flex',
-            flexDirection:'column',
-            gap:          32,
-          }}
-        >
-          {/* Eyebrow pill */}
-          <div style={{
-            display:        'inline-flex',
-            alignItems:     'center',
-            gap:            8,
-            background:     'rgba(232,115,74,0.1)',
-            border:         '1px solid rgba(232,115,74,0.25)',
-            color:          '#E8734A',
-            fontFamily:     "'Poppins', sans-serif",
-            fontWeight:     600,
-            fontSize:       '0.8rem',
-            padding:        '8px 18px',
-            borderRadius:   50,
-            width:          'fit-content',
-            backdropFilter: 'blur(8px)',
-            letterSpacing:  '0.3px',
-          }}>
-            <span style={{
-              width: 8, height: 8, borderRadius: '50%',
-              background: '#E8734A',
-              display: 'inline-block',
-              boxShadow: '0 0 0 3px rgba(232,115,74,0.2)',
-            }} />
-            #1 Deposit Protection Service
-          </div>
-
-          {/* Main heading — centered vertically between top & image */}
-          <div style={{ position: 'relative' }}>
-            {/* Decorative sparkles */}
-            <span style={{ position: 'absolute', top: -24, left: -12 }}>
-              <Sparkle size={18} color="#E8734A" />
+      <div style={{ position: 'relative', zIndex: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+        {/* 1 — Announcement pill */}
+        <div className="dl-stagger" style={rise(0)}>
+          <div
+            className="glass dl-shimmer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              borderRadius: 999,
+              padding: '8px 18px',
+              marginBottom: 32,
+            }}
+          >
+            <Sparkle size={13} color="#A78BFA" />
+            <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)' }}>
+              New: Instant escrow on Stellar Soroban
             </span>
-            <span style={{ position: 'absolute', top: 0, right: 24 }}>
-              <Sparkle size={11} color="#F0956B" />
-            </span>
-
-            <h1 style={{
-              fontFamily:    "'Poppins', sans-serif",
-              fontWeight:    900,
-              fontSize:      'clamp(3rem, 5.5vw, 4.2rem)',
-              lineHeight:    1.08,
-              color:         '#1A1A1A',
-              letterSpacing: '-2px',
-            }}>
-              Renting &amp;
-              <br />
-              <span className="gradient-text">Deposits</span>
-            </h1>
-          </div>
-
-          {/* Sub-heading */}
-          <p style={{
-            fontFamily:  "'Poppins', sans-serif",
-            fontWeight:  400,
-            fontSize:    '1.125rem',
-            color:       '#5A5A5A',
-            lineHeight:  1.75,
-            maxWidth:    400,
-          }}>
-            A perfect guide to keeping your rental deposit safe, transparent,
-            and fully protected — every step of the way.
-          </p>
-
-          {/* CTA row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <a
-              href="#pricing"
-              className="btn-shimmer"
-              style={{
-                display:        'inline-flex',
-                alignItems:     'center',
-                gap:            12,
-                color:          '#fff',
-                fontFamily:     "'Poppins', sans-serif",
-                fontWeight:     700,
-                fontSize:       '0.95rem',
-                letterSpacing:  '0.4px',
-                padding:        '16px 16px 16px 28px',
-                borderRadius:   50,
-                textDecoration: 'none',
-                boxShadow:      '0 8px 28px rgba(232,115,74,0.45)',
-                transition:     'transform 0.25s, box-shadow 0.25s',
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget as HTMLAnchorElement;
-                el.style.transform = 'translateY(-3px) scale(1.02)';
-                el.style.boxShadow = '0 16px 40px rgba(232,115,74,0.55)';
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLAnchorElement;
-                el.style.transform = 'none';
-                el.style.boxShadow = '0 8px 28px rgba(232,115,74,0.45)';
-              }}
-            >
-              GET STARTED
-              <span style={{
-                display:         'flex',
-                alignItems:      'center',
-                justifyContent:  'center',
-                width:           40,
-                height:          40,
-                borderRadius:    '50%',
-                background:      'rgba(255,255,255,0.25)',
-                backdropFilter:  'blur(8px)',
-                flexShrink:      0,
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            </a>
-
-            <a
-              href="#how-it-works"
-              style={{
-                display:        'inline-flex',
-                alignItems:     'center',
-                gap:            8,
-                fontFamily:     "'Poppins', sans-serif",
-                fontWeight:     600,
-                fontSize:       '0.9rem',
-                color:          '#3A3A3A',
-                textDecoration: 'none',
-                transition:     'color 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#E8734A')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#3A3A3A')}
-            >
-              <span style={{
-                display:         'flex',
-                alignItems:      'center',
-                justifyContent:  'center',
-                width:           36,
-                height:          36,
-                borderRadius:    '50%',
-                border:          '2px solid #E0E0E0',
-                transition:      'border-color 0.2s',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-              How it works
-            </a>
-          </div>
-
-          {/* Stats row */}
-          <div style={{
-            display:       'flex',
-            alignItems:    'center',
-            gap:           0,
-            marginTop:     8,
-            paddingTop:    24,
-            borderTop:     '1px solid #ECECEC',
-          }}>
-            {[
-              { val: '100K+', label: 'Protected' },
-              { val: '£2B+',  label: 'Covered'   },
-              { val: '4.9★',  label: 'Rating'     },
-            ].map((s, i) => (
-              <React.Fragment key={s.label}>
-                {i > 0 && (
-                  <div style={{ width: 1, height: 36, background: '#ECECEC', margin: '0 28px' }} />
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{
-                    fontFamily:    "'Poppins', sans-serif",
-                    fontWeight:    800,
-                    fontSize:      '1.25rem',
-                    color:         '#1A1A1A',
-                    letterSpacing: '-0.5px',
-                  }}>{s.val}</span>
-                  <span style={{
-                    fontFamily: "'Poppins', sans-serif",
-                    fontWeight: 400,
-                    fontSize:   '0.75rem',
-                    color:      '#8A8A8A',
-                    letterSpacing: '0.3px',
-                  }}>{s.label}</span>
-                </div>
-              </React.Fragment>
-            ))}
           </div>
         </div>
 
-        {/* ════ RIGHT COLUMN ════ */}
-        <div
-          ref={rightRef}
-          className="reveal-right"
+        {/* 2 — Headline */}
+        <h1
+          className="text-hero-gradient dl-stagger"
           style={{
-            flex:        '1 1 400px',
-            maxWidth:    520,
-            position:    'relative',
-            minHeight:   460,
+            ...rise(1),
+            fontSize: 'clamp(48px, 8vw, 88px)',
+            lineHeight: 1.02,
+            letterSpacing: '-3px',
+            marginBottom: 24,
           }}
         >
-          {/* Background glow blob */}
-          <div style={{
-            position:     'absolute',
-            top:          -40,
-            right:        -40,
-            width:        300,
-            height:       300,
-            borderRadius: '50%',
-            background:   'radial-gradient(circle, rgba(232,115,74,0.18) 0%, transparent 70%)',
-            filter:       'blur(40px)',
-            pointerEvents:'none',
-            zIndex:       0,
-          }} />
-          <div style={{
-            position:     'absolute',
-            bottom:       -20,
-            left:         -20,
-            width:        200,
-            height:       200,
-            borderRadius: '50%',
-            background:   'radial-gradient(circle, rgba(240,149,107,0.12) 0%, transparent 70%)',
-            filter:       'blur(32px)',
-            pointerEvents:'none',
-            zIndex:       0,
-          }} />
+          Your deposit.
+          <br />
+          Locked. Guaranteed.
+        </h1>
 
-          {/* Sparkles */}
-          <span style={{ position:'absolute', top: -16, right: 60, zIndex: 12 }}>
-            <Sparkle size={22} color="#E8734A" />
-          </span>
-          <span style={{ position:'absolute', top: 40, right: -12, zIndex: 12 }}>
-            <Sparkle size={13} color="#F0956B" />
-          </span>
-          <span style={{ position:'absolute', bottom: 60, left: -20, zIndex: 12 }}>
-            <Sparkle size={17} color="#E8734A" />
-          </span>
-          <span style={{ position:'absolute', bottom: -8, left: '40%', zIndex: 12 }}>
-            <Sparkle size={10} color="#F0956B" />
-          </span>
+        {/* 3 — Subhead */}
+        <p
+          className="dl-stagger"
+          style={{
+            ...rise(2),
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 'clamp(1.05rem, 2.5vw, 1.25rem)',
+            color: 'rgba(255,255,255,0.64)',
+            lineHeight: 1.6,
+            maxWidth: '60ch',
+            marginBottom: 36,
+          }}
+        >
+          DepositSafe holds student rental deposits in on-chain escrow — released only when both sides agree.
+        </p>
 
-          {/* Main image */}
-          <div style={{
-            position:     'relative',
-            borderRadius: '40px 40px 40px 96px',
-            overflow:     'hidden',
-            boxShadow:    '0 32px 80px rgba(0,0,0,0.18)',
-            zIndex:       2,
-          }}>
-            <img
-              src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=900&auto=format&fit=crop"
-              alt="Modern apartment building"
+        {/* 4 — CTA row */}
+        <div className="dl-stagger" style={{ ...rise(3), display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 24 }}>
+          <a href="#how-it-works" className="btn-glow" style={{ fontSize: '0.95rem', padding: '14px 30px' }}>
+            Start an escrow
+          </a>
+          <a href="#how-it-works" className="btn-glass" style={{ fontSize: '0.95rem', padding: '14px 26px' }}>
+            See how it works
+          </a>
+        </div>
+      </div>
+
+        {/* 5 — THE VAULT */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: 'clamp(180px, 32vw, 300px)',
+            marginTop: 8,
+          }}
+          aria-hidden="true"
+        >
+          <div
+            className="dl-stagger"
+            style={{
+              ...rise(4),
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 'min(520px, 80vw)',
+              height: '100%',
+            }}
+          >
+            <div
               style={{
-                width:      '100%',
-                height:     460,
-                objectFit:  'cover',
-                display:    'block',
+                position: 'absolute',
+                inset: 0,
+                animation: 'bloom 6s ease-in-out infinite',
+              }}
+            >
+              {/* Violet bloom */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '55%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '120%',
+                  height: '150%',
+                  background: 'radial-gradient(ellipse 60% 45% at center, rgba(124,92,255,0.5) 0%, rgba(124,92,255,0.18) 45%, transparent 70%)',
+                  filter: 'blur(28px)',
+                }}
+              />
+              {/* Intense white-violet horizontal light slit */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '4%',
+                  right: '4%',
+                  top: '55%',
+                  height: 6,
+                  transform: 'translateY(-50%)',
+                  borderRadius: 999,
+                  background:
+                    'linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.85) 15%, #FFFFFF 50%, rgba(167,139,250,0.85) 85%, transparent 100%)',
+                  boxShadow: '0 0 60px 12px rgba(124,92,255,0.6), 0 0 20px 4px rgba(224,215,255,0.8)',
+                }}
+              />
+              {/* Secondary softer slit above, like an eclipse rim */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '18%',
+                  right: '18%',
+                  top: '48%',
+                  height: 2,
+                  borderRadius: 999,
+                  background: 'linear-gradient(90deg, transparent, rgba(224,215,255,0.5), transparent)',
+                  filter: 'blur(2px)',
+                }}
+              />
+            </div>
+
+            {/* Spinning conic light ring */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '55%',
+                width: 'min(400px, 62vw)',
+                height: 'min(400px, 62vw)',
+                marginLeft: 'calc(min(400px, 62vw) / -2)',
+                marginTop: 'calc(min(400px, 62vw) / -2)',
+                borderRadius: '50%',
+                padding: 1,
+                background:
+                  'conic-gradient(from 0deg, transparent 0%, rgba(224,215,255,0.8) 10%, transparent 28%, transparent 55%, rgba(124,92,255,0.45) 72%, transparent 88%)',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                animation: 'ringSpin 20s linear infinite',
               }}
             />
-            {/* Inner gradient overlay */}
-            <div style={{
-              position:   'absolute',
-              inset:      0,
-              background: 'linear-gradient(145deg, rgba(26,26,26,0.15) 0%, rgba(0,0,0,0.3) 100%)',
-              pointerEvents:'none',
-            }} />
 
-            {/* Dotted journey path */}
-            <DottedPath />
+            {/* Ghost shield-lock glyph rising above the rim */}
+            <svg
+              id="hero-shield"
+              width="90"
+              height="90"
+              viewBox="0 0 24 24"
+              fill="none"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '12%',
+                transform: 'translateX(-50%)',
+                opacity: 0.12,
+              }}
+            >
+              <path
+                d="M12 2.5 L20 5.5 V11.5 C20 16.5 16.6 20.4 12 21.8 C7.4 20.4 4 16.5 4 11.5 V5.5 Z"
+                stroke="#FFFFFF"
+                strokeWidth="1"
+              />
+              <rect x="9" y="10" width="6" height="5" rx="1" stroke="#FFFFFF" strokeWidth="1" />
+              <path d="M10.5 10 V8.5 a1.5 1.5 0 0 1 3 0 V10" stroke="#FFFFFF" strokeWidth="1" />
+            </svg>
+
+            {/* Floating glass chips */}
+            <div
+              className="glass"
+              style={{
+                position: 'absolute',
+                left: '2%',
+                top: '18%',
+                borderRadius: 999,
+                padding: '7px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                animation: 'float 4s ease-in-out infinite',
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2E6BFF', boxShadow: '0 0 8px rgba(46,107,255,0.8)' }} />
+              <span className="mono-addr" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.8)' }}>₹85,000 secured</span>
+            </div>
+            <div
+              className="glass"
+              style={{
+                position: 'absolute',
+                right: '2%',
+                top: '30%',
+                borderRadius: 999,
+                padding: '7px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                animation: 'float 4s ease-in-out 1.8s infinite',
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span className="mono-addr" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.8)' }}>Released</span>
+            </div>
           </div>
+        </div>
 
-          {/* ── Floating glass card: Deposit Protected ── */}
-          <GlassCard
-            delay="0s"
-            style={{ top: 32, right: -24, minWidth: 195 }}
+        {/* 6 — Product screenshot emerging from the glow */}
+        <div
+          className="dl-stagger"
+          style={{
+            ...rise(5),
+            width: 'min(860px, 100%)',
+            marginTop: 'calc(clamp(180px, 32vw, 300px) * -0.28)',
+            position: 'relative',
+            zIndex: 3,
+          }}
+        >
+          <div
+            ref={screenshotRef}
+            style={{
+              transform: 'perspective(1200px) rotateX(18deg)',
+              transformOrigin: 'center top',
+              willChange: 'transform',
+              borderRadius: 16,
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderTop: '1px solid rgba(224,215,255,0.45)',
+              background: 'rgba(255,255,255,0.03)',
+              boxShadow: '0 -20px 80px rgba(124,92,255,0.25), 0 40px 80px rgba(0,0,0,0.6)',
+              overflow: 'hidden',
+            }}
           >
-            {/* Orange pulse dot */}
-            <span style={{
-              width:      10,
-              height:     10,
-              borderRadius: '50%',
-              background: '#E8734A',
-              boxShadow:  '0 0 0 4px rgba(232,115,74,0.2)',
-              flexShrink: 0,
-            }} />
-            <img
-              src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=80&h=80&auto=format&fit=crop&crop=face"
-              alt="Renter"
-              style={{ width:38, height:38, borderRadius:'50%', objectFit:'cover', border:'2.5px solid #fff', flexShrink:0 }}
-            />
-            <div>
-              <p style={{
-                fontFamily:  "'Poppins', sans-serif",
-                fontWeight:  700,
-                fontSize:    '0.82rem',
-                color:       '#1A1A1A',
-                lineHeight:  1.2,
-                whiteSpace:  'nowrap',
-              }}>Deposit Protected</p>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 500,
-                fontSize:   '0.75rem',
-                color:      '#6B6B6B',
-              }}>$2,000</p>
-            </div>
-          </GlassCard>
-
-          {/* ── Floating glass card: 100k renters ── */}
-          <GlassCard
-            delay="1.8s"
-            style={{ bottom: 32, right: -20, minWidth: 210 }}
-          >
-            {/* Stacked avatars */}
-            <div style={{ display:'flex', alignItems:'center' }}>
-              {[
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=80&h=80&auto=format&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=80&h=80&auto=format&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=80&h=80&auto=format&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=80&h=80&auto=format&fit=crop&crop=face',
-              ].map((src, i) => (
-                <img key={i} src={src} alt={`Renter ${i+1}`}
-                  style={{
-                    width:      30,
-                    height:     30,
-                    borderRadius:'50%',
-                    objectFit:  'cover',
-                    border:     '2.5px solid white',
-                    marginLeft:  i === 0 ? 0 : -9,
-                    flexShrink: 0,
-                  }}
-                />
+            {/* Browser chrome bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '10px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.03)',
+              }}
+              aria-hidden="true"
+            >
+              {['#FF5F57', '#FEBC2E', '#28C840'].map((c) => (
+                <span key={c} style={{ width: 9, height: 9, borderRadius: '50%', background: c, opacity: 0.7 }} />
               ))}
+              <span
+                className="mono-addr"
+                style={{
+                  margin: '0 auto',
+                  fontSize: '0.62rem',
+                  color: 'rgba(255,255,255,0.4)',
+                  background: 'rgba(255,255,255,0.04)',
+                  borderRadius: 6,
+                  padding: '3px 14px',
+                }}
+              >
+                app.depositsafe.in
+              </span>
             </div>
-            <div>
-              <p style={{
-                fontFamily:    "'Poppins', sans-serif",
-                fontWeight:    800,
-                fontSize:      '1rem',
-                color:         '#1A1A1A',
-                lineHeight:    1.1,
-                letterSpacing: '-0.3px',
-              }}>100k+</p>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 400,
-                fontSize:   '0.72rem',
-                color:      '#6B6B6B',
-                whiteSpace: 'nowrap',
-              }}>Deposits protected</p>
-            </div>
-          </GlassCard>
-
-          {/* ── Floating glass card: Live protection badge ── */}
-          <GlassCard
-            delay="0.9s"
-            style={{ top: '42%', left: -28, zIndex:11 }}
-          >
-            <span style={{ fontSize: 20 }}>🔒</span>
-            <div>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 700,
-                fontSize:   '0.78rem',
-                color:      '#1A1A1A',
-                whiteSpace: 'nowrap',
-              }}>Live Protection</p>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 400,
-                fontSize:   '0.68rem',
-                color:      '#6B6B6B',
-                whiteSpace: 'nowrap',
-              }}>Active coverage 24/7</p>
-            </div>
-          </GlassCard>
+            <DashboardMock />
+          </div>
         </div>
       </div>
     </section>

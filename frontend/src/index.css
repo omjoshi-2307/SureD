@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────────── */
@@ -94,12 +95,12 @@ body {
 ::-webkit-scrollbar-track { background: #F5F5F5; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#E8734A,#F0956B); border-radius: 4px; }
 
-/* ─── Glassmorphism Utility ─────────────────────────────────────── */
+/* ─── Glassmorphism Utility (dark landing) ──────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .glass-dark {
@@ -241,4 +242,321 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK LANDING — "Reflect-style" design system
+   Tokens · fonts · keyframes · utilities. Additive only: nothing above
+   this divider (dashboard/auth styles) is renamed or removed.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Dark landing tokens ────────────────────────────────────────── */
+:root {
+  --dl-bg:            #0B0A10;
+  --dl-violet:        #7C5CFF;
+  --dl-violet-soft:   #A78BFA;
+  --dl-violet-hi:     #E0D7FF;
+  --dl-violet-hover:  #6847E6;
+  --dl-glow:          rgba(124, 92, 255, 0.25);
+  --dl-text-body:     rgba(255, 255, 255, 0.64);
+  --dl-text-dim:      rgba(255, 255, 255, 0.5);
+  --dl-border:        rgba(255, 255, 255, 0.09);
+  --dl-surface:       rgba(255, 255, 255, 0.05);
+  --dl-status-created:   #97A0B5;
+  --dl-status-funded:    #2E6BFF;
+  --dl-status-confirmed: #F59E0B;
+  --dl-status-released:  #10B981;
+  --dl-font-display: 'Space Grotesk', 'Poppins', sans-serif;
+  --dl-font-body:    'Inter', 'Poppins', sans-serif;
+  --dl-font-mono:    'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ─── Dark landing keyframes ─────────────────────────────────────── */
+
+/* Vault glow breathing */
+@keyframes bloom {
+  0%, 100% { transform: scale(1);    opacity: 0.8; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+/* Load-in rise (applied per-element with inline animation-delay) */
+@keyframes staggerRise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Thin conic light ring rotation */
+@keyframes ringSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Star dot pulse */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50%      { opacity: 0.8; }
+}
+
+/* Light sweep across announcement pill */
+@keyframes pillShimmer {
+  0%       { transform: translateX(-150%) skewX(-18deg); }
+  18%      { transform: translateX(250%)  skewX(-18deg); }
+  100%     { transform: translateX(250%)  skewX(-18deg); }
+}
+
+/* Splash: vault blooming out of black */
+@keyframes vaultBloomIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+/* Status dot pulse (FUNDED step) */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 107, 255, 0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(46, 107, 255, 0); }
+}
+
+/* Glowing dot traveling along the how-it-works path */
+@keyframes pathDot {
+  from { offset-distance: 0%; }
+  to   { offset-distance: 100%; }
+}
+
+/* ─── Dark landing utilities ─────────────────────────────────────── */
+
+.dl-canvas {
+  background-color: var(--dl-bg);
+  font-family: var(--dl-font-body);
+  color: var(--dl-text-body);
+}
+
+/* The LandingFlow wrapper in App.tsx carries an inline #FAFAFA background
+   that is out of scope to edit — repaint it dark whenever it contains the
+   dark landing hero. Scoped tightly so dashboard/auth screens never match. */
+div:has(> main > section#hero.dl-canvas) {
+  background: #0B0A10 !important;
+}
+body:has(section#hero.dl-canvas) {
+  background-color: #0B0A10;
+}
+
+/* Headline: white vertical-gradient text */
+.text-hero-gradient {
+  font-family: var(--dl-font-display);
+  font-weight: 700;
+  background: linear-gradient(180deg, #FFFFFF 0%, #B9B4C7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Wallet addresses / tx hashes / step numbers */
+.mono-addr {
+  font-family: var(--dl-font-mono);
+  letter-spacing: 0.02em;
+  font-feature-settings: 'liga' 0;
+}
+
+/* Primary violet glow button */
+.btn-glow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #7C5CFF;
+  color: #fff;
+  font-family: var(--dl-font-body);
+  font-weight: 600;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 0 24px rgba(124, 92, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease, background 0.25s ease;
+}
+.btn-glow:hover {
+  background: #6847E6;
+  transform: translateY(-2px);
+  box-shadow: 0 0 44px rgba(124, 92, 255, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.btn-glow:active { transform: translateY(0); }
+.btn-glow:focus-visible {
+  outline: 2px solid #E0D7FF;
+  outline-offset: 3px;
+}
+
+/* Secondary glass pill button/link */
+.btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--dl-font-body);
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.25s ease, border-color 0.25s ease,
+              color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.btn-glass:focus-visible {
+  outline: 2px solid #E0D7FF;
+  outline-offset: 3px;
+}
+
+/* Load-in stagger: parents add .dl-stagger, children get animation +
+   inline animation-delay (i * 80ms) from the components */
+.dl-stagger {
+  opacity: 0;
+  animation: staggerRise 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Announcement pill shimmer layer */
+.dl-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.dl-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(105deg, transparent 0%,
+              rgba(224, 215, 255, 0.22) 50%, transparent 100%);
+  transform: translateX(-150%) skewX(-18deg);
+  animation: pillShimmer 6s ease-in-out 1.5s infinite;
+  pointer-events: none;
+}
+
+/* Twinkle star dot — size/position/delay set inline per dot */
+.dl-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.2;
+  animation: twinkle 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Horizon light streaks at far screen edges */
+.dl-horizon {
+  position: absolute;
+  top: 38%;
+  width: 42vw;
+  height: 2px;
+  opacity: 0.5;
+  filter: blur(6px);
+  pointer-events: none;
+}
+.dl-horizon-left {
+  left: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%,
+              rgba(124,92,255,0.6) 35%, transparent 100%);
+}
+.dl-horizon-right {
+  right: 0;
+  background: linear-gradient(270deg, rgba(255,255,255,0.85) 0%,
+              rgba(124,92,255,0.6) 35%, transparent 100%);
+}
+
+/* Edge vignette to pure black over the whole landing */
+.dl-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 90% at 50% 40%,
+              transparent 55%, rgba(0, 0, 0, 0.65) 100%);
+  pointer-events: none;
+}
+
+/* Violet underline draw for links */
+.dl-link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.dl-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, #7C5CFF, #A78BFA);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dl-link:hover { color: #fff; }
+.dl-link:hover::after { transform: scaleX(1); }
+
+/* Glow-underline draw for TrustBanner stats */
+.dl-stat-underline {
+  display: block;
+  height: 2px;
+  margin: 10px auto 0;
+  width: 56px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #7C5CFF, #A78BFA);
+  box-shadow: 0 0 12px rgba(124, 92, 255, 0.7);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animated .dl-stat-underline,
+.dl-stat-underline.animated { transform: scaleX(1); }
+
+/* Dark glass card hover for HowItWorks / Plans */
+.dl-card-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.dl-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 32px rgba(124, 92, 255, 0.12);
+}
+
+/* Arrow nudge on "Read the contract →" */
+.dl-arrow-link svg {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dl-arrow-link:hover svg { transform: translateX(4px); }
+
+/* ─── Reduced motion: everything degrades to opacity fades ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .dl-stagger {
+    animation: revealFade 0.6s ease-out forwards;
+  }
+  .dl-shimmer::after,
+  .dl-star {
+    animation: none;
+  }
+  .dl-star { opacity: 0.4; }
+  .btn-glow:hover,
+  .btn-glass:hover,
+  .dl-card-hover:hover {
+    transform: none;
+  }
+  .reveal-up, .reveal-left, .reveal-right {
+    transform: none;
+    transition: opacity 0.6s ease-out;
+  }
+  .reveal-up.animated, .reveal-left.animated, .reveal-right.animated {
+    transform: none;
+  }
 }

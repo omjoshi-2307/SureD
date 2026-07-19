@@ -1,293 +1,323 @@
 import React, { useState, useEffect } from 'react';
 
 const NAV_LINKS = [
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Coverage',     href: '#coverage'     },
-  { label: 'Pricing',      href: '#pricing'       },
-  { label: 'For Landlords',href: '#landlords'     },
-  { label: 'Contact',      href: '#contact'       },
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Security', href: '#security' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'For Landlords', href: '#landlords' },
 ];
 
 interface NavbarProps {
   onSignIn?: () => void;
 }
 
+const ShieldMark: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M12 2.5 L20 5.5 V11.5 C20 16.5 16.6 20.4 12 21.8 C7.4 20.4 4 16.5 4 11.5 V5.5 Z"
+      fill="rgba(255,255,255,0.95)"
+    />
+    <path
+      d="M9.2 11.8 L11.2 13.8 L15 9.6"
+      stroke="#7C5CFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
-  const [menuOpen,  setMenuOpen]  = useState(false);
-  const [scrolled,  setScrolled]  = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [isLg, setIsLg] = useState<boolean>(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
+    const handler = () => setScrolled(window.scrollY > 24);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsLg(mq.matches);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
   return (
     <header
+      className="dl-stagger"
       style={{
-        position:   'sticky',
-        top:        0,
-        zIndex:     100,
-        /* Glassmorphism activates once user scrolls */
-        background: scrolled
-          ? 'rgba(255,255,255,0.82)'
-          : 'rgba(255,255,255,0.98)',
-        backdropFilter:         scrolled ? 'blur(24px) saturate(180%)' : 'none',
-        WebkitBackdropFilter:   scrolled ? 'blur(24px) saturate(180%)' : 'none',
-        borderBottom:           scrolled ? '1px solid rgba(232,115,74,0.12)' : '1px solid #F0F0F0',
-        boxShadow:              scrolled ? '0 4px 32px rgba(0,0,0,0.08)' : 'none',
-        transition:             'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        background: scrolled ? 'rgba(11,10,16,0.7)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        transition: 'background 0.4s ease, border-color 0.4s ease',
       }}
       aria-label="Main navigation"
     >
-      {/* ── Main nav bar ── */}
-      <nav
-        style={{
-          maxWidth:       1280,
-          margin:         '0 auto',
-          padding:        '0 48px',
-          height:         80,
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          gap:            24,
-        }}
-      >
-        {/* Logo */}
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
+        <nav
+          style={{
+            width: '100%',
+            height: 64,
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
+        {/* LEFT: logomark + wordmark */}
         <a
           href="#"
-          aria-label="Suredeposit home"
-          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: 6, flexShrink: 0 }}
+          aria-label="DepositSafe home"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
         >
-          <span style={{ fontSize: 26, lineHeight: 1 }}>🛡️</span>
-          <span style={{
-            fontFamily:   "'Poppins', sans-serif",
-            fontWeight:   800,
-            fontSize:     '1.45rem',
-            color:        '#1A1A1A',
-            letterSpacing:'-0.5px',
-            lineHeight:   1,
-          }}>
-            Sure
+          <span
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              background: 'linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 18px rgba(124,92,255,0.45)',
+            }}
+          >
+            <ShieldMark />
           </span>
-          <span style={{
-            fontFamily:   "'Poppins', sans-serif",
-            fontWeight:   800,
-            fontSize:     '1.45rem',
-            background:   'linear-gradient(135deg,#E8734A 0%,#F0956B 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-            backgroundClip:       'text',
-            letterSpacing:        '-0.5px',
-            lineHeight:           1,
-          }}>
-            deposit
+          <span
+            style={{
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 600,
+              fontSize: '1.1rem',
+              color: '#fff',
+              letterSpacing: '-0.3px',
+            }}
+          >
+            DepositSafe
           </span>
         </a>
 
-        {/* Desktop links */}
-        <ul style={{ display: 'flex', alignItems: 'center', gap: 36, listStyle: 'none', margin: 0, padding: 0 }}
-            className="hidden md:flex">
-          {NAV_LINKS.map(link => (
-            <li key={link.label}>
+        {/* CENTER: floating glass pill (desktop) */}
+        <ul
+          className="hidden lg:flex glass"
+          style={{
+            justifySelf: 'center',
+            alignItems: 'center',
+            gap: 4,
+            listStyle: 'none',
+            margin: 0,
+            padding: '4px 6px',
+            borderRadius: 999,
+          }}
+        >
+          {NAV_LINKS.map((link) => (
+            <li key={link.label} style={{ position: 'relative' }}>
               <a
                 href={link.href}
+                onMouseEnter={() => setHovered(link.label)}
+                onMouseLeave={() => setHovered(null)}
                 style={{
-                  fontFamily:     "'Poppins', sans-serif",
-                  fontWeight:     500,
-                  fontSize:       '0.92rem',
-                  color:          '#3A3A3A',
+                  display: 'block',
+                  fontFamily: "'Inter', sans-serif",
+                  fontWeight: 500,
+                  fontSize: '0.85rem',
+                  color: hovered === link.label ? '#fff' : 'rgba(255,255,255,0.65)',
                   textDecoration: 'none',
-                  position:       'relative',
-                  paddingBottom:  4,
-                  transition:     'color 0.2s',
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  transition: 'color 0.2s ease',
+                  whiteSpace: 'nowrap',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#E8734A')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#3A3A3A')}
               >
                 {link.label}
               </a>
+              {/* Violet glow dot under the hovered link */}
+              <span
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: 1,
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  background: '#A78BFA',
+                  boxShadow: '0 0 8px 2px rgba(124,92,255,0.8)',
+                  transform: 'translateX(-50%)',
+                  opacity: hovered === link.label ? 1 : 0,
+                  transition: 'opacity 0.25s ease',
+                  pointerEvents: 'none',
+                }}
+              />
             </li>
           ))}
         </ul>
 
-        {/* Desktop CTA group */}
-        <div className="hidden md:flex" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Sign In */}
+        {/* RIGHT: login + CTA (desktop) - hamburger moved inside this column so it never wraps */}
+        <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 18, justifySelf: 'end', display: isLg ? 'flex' : 'none' }}>
           <button
             onClick={onSignIn}
             style={{
-              fontFamily:     "'Poppins', sans-serif",
-              fontWeight:     600,
-              fontSize:       '0.875rem',
-              color:          '#3A3A3A',
-              background:     'none',
-              border:         '1.5px solid #EAEAEA',
-              borderRadius:   50,
-              padding:        '10px 22px',
-              cursor:         'pointer',
-              transition:     'all 0.25s ease',
-              whiteSpace:     'nowrap',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              color: 'rgba(255,255,255,0.7)',
+              transition: 'color 0.2s ease',
+              padding: '8px 4px',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = '#E8734A';
-              e.currentTarget.style.color       = '#E8734A';
-              e.currentTarget.style.boxShadow   = '0 4px 12px rgba(232,115,74,0.12)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = '#EAEAEA';
-              e.currentTarget.style.color       = '#3A3A3A';
-              e.currentTarget.style.boxShadow   = 'none';
-            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
           >
-            Sign In
+            Login
           </button>
-
-          {/* Get Protected */}
-          <a
-            href="#pricing"
-            className="btn-shimmer"
+          <button
+            onClick={onSignIn}
+            className="btn-glow"
+            style={{ fontSize: '0.875rem', padding: '10px 22px' }}
+          >
+            Get started
+          </button>
+          {/* Hamburger (mobile) - shows only when not lg */}
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
             style={{
-              display:        'inline-flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              color:          '#fff',
-              fontFamily:     "'Poppins', sans-serif",
-              fontWeight:     700,
-              fontSize:       '0.875rem',
-              letterSpacing:  '0.3px',
-              padding:        '12px 28px',
-              borderRadius:   50,
-              textDecoration: 'none',
-              boxShadow:      '0 4px 20px rgba(232,115,74,0.4)',
-              transition:     'transform 0.25s, box-shadow 0.25s',
-              whiteSpace:     'nowrap',
-            }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLAnchorElement;
-              el.style.transform = 'translateY(-2px) scale(1.02)';
-              el.style.boxShadow = '0 10px 30px rgba(232,115,74,0.5)';
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLAnchorElement;
-              el.style.transform = 'none';
-              el.style.boxShadow = '0 4px 20px rgba(232,115,74,0.4)';
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 8,
+              display: isLg ? 'none' : 'flex',
+              flexDirection: 'column',
+              gap: 5,
+              zIndex: 210,
             }}
           >
-            Get Protected
-          </a>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                style={{
+                  display: 'block',
+                  width: 22,
+                  height: 2,
+                  borderRadius: 2,
+                  background: '#fff',
+                  transition: 'all 0.3s',
+                  transformOrigin: 'center',
+                  transform: menuOpen
+                    ? i === 0
+                      ? 'rotate(45deg) translate(5px,5px)'
+                      : i === 1
+                        ? 'scaleX(0)'
+                        : 'rotate(-45deg) translate(5px,-5px)'
+                    : 'none',
+                  opacity: menuOpen && i === 1 ? 0 : 1,
+                }}
+              />
+            ))}
+          </button>
         </div>
+      </nav>
+      </div>
 
-        {/* Hamburger */}
-        <button
-          className="md:hidden"
-          onClick={() => setMenuOpen(v => !v)}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
+      {/* Mobile full-screen overlay */}
+      {menuOpen && (
+        <div
           style={{
-            background: 'none',
-            border:     'none',
-            cursor:     'pointer',
-            padding:    8,
-            display:    'flex',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 200,
+            background: 'rgba(11,10,16,0.96)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            display: 'flex',
             flexDirection: 'column',
-            gap:        5,
+            padding: '96px 32px 32px',
           }}
         >
-          {[0,1,2].map(i => (
-            <span key={i} style={{
-              display:    'block',
-              width:      24,
-              height:     2,
-              borderRadius: 2,
-              background: '#1A1A1A',
-              transition: 'all 0.3s',
-              transformOrigin: 'center',
-              transform: menuOpen
-                ? i === 0 ? 'rotate(45deg) translate(5px,5px)'
-                : i === 1 ? 'scaleX(0)'
-                : 'rotate(-45deg) translate(5px,-5px)'
-                : 'none',
-              opacity: menuOpen && i === 1 ? 0 : 1,
-            }} />
-          ))}
-        </button>
-      </nav>
-
-      {/* ── Mobile menu with glass ── */}
-      {menuOpen && (
-        <div style={{
-          background:           'rgba(255,255,255,0.92)',
-          backdropFilter:       'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderTop:            '1px solid rgba(232,115,74,0.1)',
-          padding:              '20px 32px 28px',
-        }}>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {NAV_LINKS.map(link => (
-              <li key={link.label}>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8, margin: 0, padding: 0 }}>
+            {NAV_LINKS.map((link, i) => (
+              <li key={link.label} className="dl-stagger" style={{ animationDelay: `${i * 80}ms` }}>
                 <a
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
                   style={{
-                    fontFamily:     "'Poppins', sans-serif",
-                    fontWeight:     500,
-                    fontSize:       '1rem',
-                    color:          '#1A1A1A',
+                    display: 'block',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontWeight: 600,
+                    fontSize: '1.6rem',
+                    color: 'rgba(255,255,255,0.85)',
                     textDecoration: 'none',
-                    display:        'block',
-                    padding:        '8px 0',
-                    borderBottom:   '1px solid #F5F5F5',
+                    padding: '14px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
                   }}
                 >
                   {link.label}
                 </a>
               </li>
             ))}
-            {/* Mobile: Sign In */}
-            <li style={{ paddingTop: 4 }}>
+            <li className="dl-stagger" style={{ animationDelay: `${NAV_LINKS.length * 80}ms` }}>
               <button
-                onClick={() => { setMenuOpen(false); onSignIn?.(); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                  onSignIn?.();
+                }}
                 style={{
-                  display:        'block',
-                  width:          '100%',
-                  textAlign:      'center',
-                  color:          '#1A1A1A',
-                  fontFamily:     "'Poppins', sans-serif",
-                  fontWeight:     600,
-                  fontSize:       '0.95rem',
-                  padding:        '13px',
-                  borderRadius:   50,
-                  border:         '1.5px solid #EAEAEA',
-                  background:     '#FFFFFF',
-                  cursor:         'pointer',
-                  marginBottom:   6,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontWeight: 600,
+                  fontSize: '1.6rem',
+                  color: 'rgba(255,255,255,0.85)',
+                  padding: '14px 0',
+                  width: '100%',
+                  textAlign: 'left',
                 }}
               >
-                Sign In
+                Login
               </button>
             </li>
-            <li style={{ paddingTop: 4 }}>
-              <a
-                href="#pricing"
-                onClick={() => setMenuOpen(false)}
-                className="btn-shimmer"
-                style={{
-                  display:        'block',
-                  textAlign:      'center',
-                  color:          '#fff',
-                  fontFamily:     "'Poppins', sans-serif",
-                  fontWeight:     700,
-                  fontSize:       '0.95rem',
-                  padding:        '14px',
-                  borderRadius:   50,
-                  textDecoration: 'none',
-                }}
-              >
-                Get Protected
-              </a>
-            </li>
           </ul>
+
+          {/* Glowing CTA pinned to the bottom */}
+          <div style={{ marginTop: 'auto' }}>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onSignIn?.();
+              }}
+              className="btn-glow"
+              style={{ width: '100%', padding: '16px', fontSize: '1rem' }}
+            >
+              Get started
+            </button>
+          </div>
         </div>
       )}
     </header>
