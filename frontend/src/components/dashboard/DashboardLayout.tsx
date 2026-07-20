@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LogoMark from '@/components/ui/LogoMark';
 
 export interface NavItem {
   id: string;
@@ -15,26 +16,50 @@ interface DashboardLayoutProps {
   activeId: string;
   onNavChange: (id: string) => void;
   children: React.ReactNode;
+  /** Opt-in dark violet theme (used by the main dashboard). Defaults to the original light look. */
+  dark?: boolean;
 }
 
-/* ─── Brand colours (must stay in sync with index.css tokens) ─── */
-const C = {
-  orange: '#E8734A',
-  orangeLight: '#F0956B',
+/* ─── Light brand colours (original, kept for all other pages) ─── */
+const LIGHT = {
+  accent: '#E8734A',
+  accentLight: '#F0956B',
   bg: '#F4F6FA',
-  white: '#FFFFFF',
-  sidebar: '#FFFFFF',
+  surface: '#FFFFFF',
   border: '#EEEEEE',
   textDark: '#1A1A1A',
   textMid: '#6B6B6B',
   textLight: '#AAAAAA',
+  font: "'Poppins', sans-serif",
+  logoutHover: 'rgba(232,84,84,0.08)',
+  navHover: 'rgba(232,115,74,0.07)',
+  activeShadow: '0 4px 14px rgba(232,115,74,0.35)',
+  headerShadow: '0 1px 0 #EEEEEE',
+};
+
+/* ─── Dark violet theme (DepositSafe dark landing system) ─── */
+const DARK = {
+  accent: '#7C5CFF',
+  accentLight: '#A78BFA',
+  bg: '#0B0A10',
+  surface: '#12101B',
+  border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF',
+  textMid: 'rgba(255,255,255,0.64)',
+  textLight: 'rgba(255,255,255,0.4)',
+  font: "'Inter', sans-serif",
+  logoutHover: 'rgba(239,68,68,0.12)',
+  navHover: 'rgba(124,92,255,0.12)',
+  activeShadow: '0 0 20px rgba(124,92,255,0.45)',
+  headerShadow: 'none',
 };
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  role, userName, navItems, activeId, onNavChange, children,
+  role, userName, navItems, activeId, onNavChange, children, dark = false,
 }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const C = dark ? DARK : LIGHT;
 
   const handleNav = (item: NavItem) => {
     if (item.isLogout) {
@@ -45,37 +70,63 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setSidebarOpen(false);
   };
 
+  const gradient = `linear-gradient(135deg, ${C.accent} 0%, ${C.accentLight} 100%)`;
+
   const SidebarContent = () => (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Brand */}
       <div style={{
         padding: '28px 24px 24px',
         borderBottom: `1px solid ${C.border}`,
-        display: 'flex', alignItems: 'center', gap: 8,
+        display: 'flex', alignItems: 'center', gap: dark ? 10 : 8,
       }}>
-        <span style={{
-          fontFamily: "'Poppins', sans-serif", fontWeight: 800,
-          fontSize: '1.2rem', color: C.textDark, letterSpacing: '-0.4px',
-        }}>Sure</span>
-        <span style={{
-          fontFamily: "'Poppins', sans-serif", fontWeight: 800, fontSize: '1.2rem',
-          background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text', letterSpacing: '-0.4px',
-        }}>deposit</span>
+        {dark ? (
+          <>
+            <LogoMark
+              size={30}
+              style={{ filter: 'drop-shadow(0 0 10px rgba(168,85,247,0.45))', flexShrink: 0 }}
+            />
+            <span style={{
+              fontFamily: C.font, fontWeight: 600,
+              fontSize: '1.05rem', color: '#fff', letterSpacing: '-0.3px',
+            }}>DepositSafe</span>
+          </>
+        ) : (
+          <>
+            <span style={{
+              fontFamily: C.font, fontWeight: 800,
+              fontSize: '1.2rem', color: C.textDark, letterSpacing: '-0.4px',
+            }}>Sure</span>
+            <span style={{
+              fontFamily: C.font, fontWeight: 800, fontSize: '1.2rem',
+              background: gradient,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text', letterSpacing: '-0.4px',
+            }}>deposit</span>
+          </>
+        )}
       </div>
 
       {/* Role badge */}
       <div style={{ padding: '16px 24px 0' }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: 'rgba(232,115,74,0.1)',
-          border: '1px solid rgba(232,115,74,0.2)',
+          background: dark ? 'rgba(124,92,255,0.12)' : 'rgba(232,115,74,0.1)',
+          border: dark ? '1px solid rgba(124,92,255,0.35)' : '1px solid rgba(232,115,74,0.2)',
           borderRadius: 50, padding: '4px 12px',
-          fontFamily: "'Poppins', sans-serif", fontSize: '0.72rem',
-          fontWeight: 700, color: C.orange, textTransform: 'capitalize',
+          fontFamily: C.font, fontSize: '0.72rem',
+          fontWeight: dark ? 600 : 700,
+          color: dark ? C.accentLight : C.accent, textTransform: 'capitalize',
         }}>
-          {role === 'student' ? '🎓' : '🏢'} {role}
+          {dark ? (
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%', background: C.accentLight,
+              boxShadow: '0 0 8px rgba(124,92,255,0.8)', display: 'inline-block',
+            }} />
+          ) : (
+            <span>{role === 'student' ? '🎓' : '🏢'}</span>
+          )}
+          {role}
         </span>
       </div>
 
@@ -83,6 +134,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {navItems.map(item => {
           const isActive = item.id === activeId && !item.isLogout;
+          const logoutColor = dark ? '#F87171' : '#E85454';
           return (
             <button
               key={item.id}
@@ -90,28 +142,26 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '11px 14px', borderRadius: 12, border: 'none',
-                background: isActive
-                  ? `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`
-                  : 'transparent',
-                color: isActive ? '#fff' : item.isLogout ? '#E85454' : C.textMid,
-                fontFamily: "'Poppins', sans-serif", fontWeight: isActive ? 700 : 500,
+                background: isActive ? gradient : 'transparent',
+                color: isActive ? '#fff' : item.isLogout ? logoutColor : C.textMid,
+                fontFamily: C.font, fontWeight: isActive ? 700 : 500,
                 fontSize: '0.875rem', cursor: 'pointer', width: '100%', textAlign: 'left',
                 transition: 'all 0.2s ease',
-                boxShadow: isActive ? '0 4px 14px rgba(232,115,74,0.35)' : 'none',
+                boxShadow: isActive ? C.activeShadow : 'none',
                 marginTop: item.isLogout ? 'auto' : 0,
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.background = item.isLogout
-                    ? 'rgba(232,84,84,0.08)'
-                    : 'rgba(232,115,74,0.07)';
-                  e.currentTarget.style.color = item.isLogout ? '#E85454' : C.orange;
+                  e.currentTarget.style.background = item.isLogout ? C.logoutHover : C.navHover;
+                  e.currentTarget.style.color = item.isLogout
+                    ? logoutColor
+                    : dark ? '#fff' : C.accent;
                 }
               }}
               onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = item.isLogout ? '#E85454' : C.textMid;
+                  e.currentTarget.style.color = item.isLogout ? logoutColor : C.textMid;
                 }
               }}
             >
@@ -130,21 +180,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-          background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
+          background: gradient,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+          fontFamily: C.font, fontWeight: 700,
           fontSize: '0.85rem', color: '#fff',
+          boxShadow: dark ? '0 0 14px rgba(124,92,255,0.4)' : 'none',
         }}>
           {userName.charAt(0)}
         </div>
         <div style={{ overflow: 'hidden' }}>
           <div style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 600,
+            fontFamily: C.font, fontWeight: 600,
             fontSize: '0.82rem', color: C.textDark,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{userName}</div>
           <div style={{
-            fontFamily: "'Poppins', sans-serif", fontSize: '0.7rem',
+            fontFamily: C.font, fontSize: '0.7rem',
             color: C.textLight, textTransform: 'capitalize',
           }}>{role} account</div>
         </div>
@@ -153,11 +204,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, fontFamily: C.font }}>
 
       {/* ── Desktop Sidebar ── */}
       <aside style={{
-        width: 240, flexShrink: 0, background: C.sidebar,
+        width: 240, flexShrink: 0, background: dark ? '#0E0D15' : C.surface,
         borderRight: `1px solid ${C.border}`,
         display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh',
@@ -174,15 +225,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div
             onClick={() => setSidebarOpen(false)}
             style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+              position: 'fixed', inset: 0,
+              background: dark ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.4)',
               zIndex: 40, backdropFilter: 'blur(2px)',
             }}
           />
           <aside style={{
             position: 'fixed', left: 0, top: 0, bottom: 0, width: 260,
-            background: C.sidebar, zIndex: 50,
+            background: dark ? '#0E0D15' : C.surface, zIndex: 50,
             display: 'flex', flexDirection: 'column',
-            boxShadow: '4px 0 32px rgba(0,0,0,0.15)',
+            boxShadow: dark ? '4px 0 40px rgba(0,0,0,0.7)' : '4px 0 32px rgba(0,0,0,0.15)',
           }}>
             <SidebarContent />
           </aside>
@@ -194,11 +246,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Top Navbar */}
         <header style={{
-          background: C.white, borderBottom: `1px solid ${C.border}`,
+          background: dark ? 'rgba(11,10,16,0.8)' : C.surface,
+          backdropFilter: dark ? 'blur(16px)' : undefined,
+          WebkitBackdropFilter: dark ? 'blur(16px)' : undefined,
+          borderBottom: `1px solid ${C.border}`,
           padding: '0 28px', height: 68,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           position: 'sticky', top: 0, zIndex: 30,
-          boxShadow: '0 1px 0 #EEEEEE',
+          boxShadow: C.headerShadow,
         }}>
           {/* Left: hamburger + page title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -221,7 +276,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </button>
             <div>
               <h2 style={{
-                fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+                fontFamily: C.font, fontWeight: 700,
                 fontSize: '1rem', color: C.textDark, lineHeight: 1.2,
               }}>
                 {navItems.find(n => n.id === activeId)?.label ?? 'Dashboard'}
@@ -242,8 +297,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               color: C.textMid, transition: 'all 0.2s',
             }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = C.orange;
-                e.currentTarget.style.color = C.orange;
+                e.currentTarget.style.borderColor = dark ? 'rgba(124,92,255,0.6)' : C.accent;
+                e.currentTarget.style.color = dark ? C.accentLight : C.accent;
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.borderColor = C.border;
@@ -259,18 +314,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <span style={{
                 position: 'absolute', top: 6, right: 6,
                 width: 7, height: 7, borderRadius: '50%',
-                background: C.orange, border: '1.5px solid #fff',
+                background: C.accent,
+                border: dark ? '1.5px solid #0B0A10' : '1.5px solid #fff',
+                boxShadow: dark ? '0 0 8px rgba(124,92,255,0.8)' : 'none',
               }} />
             </button>
 
             {/* Avatar */}
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
-              background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
+              background: gradient,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+              fontFamily: C.font, fontWeight: 700,
               fontSize: '0.85rem', color: '#fff', cursor: 'pointer',
               flexShrink: 0,
+              boxShadow: dark ? '0 0 14px rgba(124,92,255,0.4)' : 'none',
             }}>
               {userName.charAt(0)}
             </div>

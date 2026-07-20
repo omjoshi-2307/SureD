@@ -51,63 +51,65 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-
-
-
+/* ── Escrow lifecycle status palette (matches the landing design system) ── */
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  CREATED:              { background: 'rgba(74,144,226,0.12)', color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
-  FUNDED:               { background: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { background: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
-  RELEASED:             { background: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  DISPUTED:             { background: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
-  CANCELLED:            { background: 'rgba(107,114,128,0.12)', color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
+  CREATED:              { background: 'rgba(151,160,181,0.12)', color: '#97A0B5', border: '1px solid rgba(151,160,181,0.35)' },
+  FUNDED:               { background: 'rgba(46,107,255,0.12)',  color: '#6E9BFF', border: '1px solid rgba(46,107,255,0.4)' },
+  PENDING_CONFIRMATION: { background: 'rgba(245,158,11,0.12)',  color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)' },
+  RELEASED:             { background: 'rgba(16,185,129,0.12)',  color: '#10B981', border: '1px solid rgba(16,185,129,0.35)' },
+  DISPUTED:             { background: 'rgba(239,68,68,0.12)',   color: '#F87171', border: '1px solid rgba(239,68,68,0.35)' },
+  CANCELLED:            { background: 'rgba(107,114,128,0.12)', color: '#9CA3AF', border: '1px solid rgba(107,114,128,0.35)' },
 };
 
-const C = { orange: '#E8734A', orangeLight: '#F0956B', border: '#EEEEEE', textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA' };
+/* ── Dark violet palette ── */
+const C = {
+  violet: '#7C5CFF',
+  violetSoft: '#A78BFA',
+  border: 'rgba(255,255,255,0.08)',
+  surface: 'rgba(255,255,255,0.04)',
+  textDark: '#FFFFFF',
+  textMid: 'rgba(255,255,255,0.64)',
+  textLight: 'rgba(255,255,255,0.4)',
+  font: "'Inter', sans-serif",
+  mono: "'JetBrains Mono', monospace",
+  display: "'Space Grotesk', sans-serif",
+};
+
+const cardBase: React.CSSProperties = {
+  background: C.surface,
+  border: `1px solid ${C.border}`,
+  borderRadius: 16,
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+};
 
 /* ── Quick action button ── */
-const QuickBtn = ({ label, icon, primary, onClick }: { label: string; icon: string; primary?: boolean; onClick?: () => void }) => (
+const QuickBtn = ({ label, icon, primary, onClick }: { label: string; icon: React.ReactNode; primary?: boolean; onClick?: () => void }) => (
   <button
     onClick={onClick}
-    style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      padding: '11px 20px', borderRadius: 50, border: 'none',
-      fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: '0.83rem',
-      cursor: 'pointer', transition: 'all 0.25s ease',
-      ...(primary
-        ? {
-          background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
-          color: '#fff', boxShadow: '0 6px 20px rgba(232,115,74,0.35)',
-        }
-        : {
-          background: '#FFFFFF', color: C.textDark,
-          border: `1.5px solid ${C.border}`,
-        }),
-    }}
-    onMouseEnter={e => {
-      e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = primary
-        ? '0 10px 28px rgba(232,115,74,0.45)'
-        : '0 4px 14px rgba(0,0,0,0.08)';
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.transform = 'none';
-      e.currentTarget.style.boxShadow = primary ? '0 6px 20px rgba(232,115,74,0.35)' : 'none';
-    }}
+    className={primary ? 'btn-glow' : 'btn-glass'}
+    style={{ padding: '11px 20px', fontSize: '0.83rem', fontWeight: 600 }}
   >
-    <span>{icon}</span> {label}
+    <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span> {label}
   </button>
+);
+
+/* ── Small inline SVG helpers for quick actions ── */
+const MiniIcon = ({ children }: { children: React.ReactNode }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {children}
+  </svg>
 );
 
 /* ── Skeleton loading row ── */
 const SkeletonRow = () => (
   <tr style={{ borderTop: `1px solid ${C.border}`, animation: 'pulse 1.5s infinite ease-in-out' }}>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 60, background: '#F0F0F0', borderRadius: 4 }} /></td>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 180, background: '#F0F0F0', borderRadius: 4 }} /></td>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 100, background: '#F0F0F0', borderRadius: 4 }} /></td>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 80, background: '#F0F0F0', borderRadius: 4 }} /></td>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 22, width: 70, background: '#F0F0F0', borderRadius: 50 }} /></td>
-    <td style={{ padding: '14px 20px' }}><div style={{ height: 16, width: 80, background: '#F0F0F0', borderRadius: 4 }} /></td>
+    {[60, 180, 100, 80, 70, 80].map((w, i) => (
+      <td key={i} style={{ padding: '14px 20px' }}>
+        <div style={{ height: i === 4 ? 22 : 16, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: i === 4 ? 50 : 4 }} />
+      </td>
+    ))}
   </tr>
 );
 
@@ -121,6 +123,7 @@ const StudentDashboard: React.FC = () => {
   const [escrows, setEscrows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
   const loadDashboardData = async (wallet: string) => {
     try {
@@ -173,6 +176,7 @@ const StudentDashboard: React.FC = () => {
   const handleConnectWallet = async () => {
     try {
       setConnecting(true);
+      setNotice(null);
       const address = await connectWallet();
 
       // Save wallet to backend
@@ -184,26 +188,38 @@ const StudentDashboard: React.FC = () => {
       // Fetch escrows
       await loadDashboardData(address);
 
-      alert("Wallet Connected and Saved Successfully!");
+      setNotice({ kind: 'success', text: 'Wallet connected and saved successfully.' });
     } catch (error: any) {
       console.error(error);
-      alert(error.message || "Failed to connect wallet.");
+      setNotice({ kind: 'error', text: error.message || 'Failed to connect wallet.' });
     } finally {
       setConnecting(false);
     }
   };
 
-  // Dynamic stats calculation
+  // Dynamic stats calculation (same data, ordered by lifecycle: active → pending → completed → value)
   const activeEscrowsCount = escrows.filter(e => ["CREATED", "FUNDED", "PENDING_CONFIRMATION", "DISPUTED"].includes(e.status)).length;
   const completedDepositsCount = escrows.filter(e => e.status === "RELEASED").length;
   const pendingDepositsCount = escrows.filter(e => ["CREATED", "PENDING_CONFIRMATION"].includes(e.status)).length;
   const totalDepositValue = escrows.reduce((sum, e) => sum + (e.depositAmount || 0), 0);
 
   const dynamicStats = [
-    { label: 'Active Escrows', value: String(activeEscrowsCount), sub: 'Currently locked or created', icon: '🔐', color: '#E8734A' },
-    { label: 'Completed Deposits', value: String(completedDepositsCount), sub: 'Released to landlord', icon: '✅', color: '#4ACF7A' },
-    { label: 'Pending Deposits', value: String(pendingDepositsCount), sub: 'Awaiting action', icon: '⏳', color: '#F0A34A' },
-    { label: 'Total Deposit Value', value: `${totalDepositValue} XLM`, sub: 'Across all properties', icon: '💷', color: '#4ACFE8' },
+    {
+      label: 'Active Escrows', value: String(activeEscrowsCount), sub: 'Currently locked or created', color: '#6E9BFF',
+      icon: <MiniIcon><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></MiniIcon>,
+    },
+    {
+      label: 'Pending Deposits', value: String(pendingDepositsCount), sub: 'Awaiting action', color: '#F59E0B',
+      icon: <MiniIcon><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></MiniIcon>,
+    },
+    {
+      label: 'Completed Deposits', value: String(completedDepositsCount), sub: 'Released to landlord', color: '#10B981',
+      icon: <MiniIcon><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></MiniIcon>,
+    },
+    {
+      label: 'Total Deposit Value', value: `${totalDepositValue} XLM`, sub: 'Across all properties', color: '#A78BFA',
+      icon: <MiniIcon><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></MiniIcon>,
+    },
   ];
 
   return (
@@ -213,6 +229,7 @@ const StudentDashboard: React.FC = () => {
       navItems={NAV_ITEMS}
       activeId={activeId}
       onNavChange={handleNavChange}
+      dark
     >
       <style>{`
         @keyframes pulse {
@@ -224,65 +241,79 @@ const StudentDashboard: React.FC = () => {
 
       {/* ── Welcome Banner ── */}
       <div style={{
-        background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
-        borderRadius: 20, padding: '28px 32px', marginBottom: 28,
+        ...cardBase,
+        borderRadius: 20, padding: '28px 32px', marginBottom: 16,
+        borderTop: '1px solid rgba(224,215,255,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: 16,
-        boxShadow: '0 8px 32px rgba(232,115,74,0.3)',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Decorative circle */}
+        {/* Violet glow atmosphere */}
         <div style={{
-          position: 'absolute', right: -30, top: -30,
-          width: 160, height: 160, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.1)', pointerEvents: 'none',
+          position: 'absolute', right: -60, top: '-80%',
+          width: 380, height: 380, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,92,255,0.35) 0%, transparent 65%)',
+          filter: 'blur(40px)', pointerEvents: 'none',
         }} />
         <div style={{
-          position: 'absolute', right: 60, bottom: -60,
-          width: 200, height: 200, borderRadius: '50%',
-          background: 'rgba(255,255,255,0.06)', pointerEvents: 'none',
+          position: 'absolute', left: '30%', bottom: -120,
+          width: 260, height: 260, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,92,255,0.18) 0%, transparent 70%)',
+          filter: 'blur(36px)', pointerEvents: 'none',
         }} />
-        <div>
-          <h1 style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 800,
-            fontSize: 'clamp(1.25rem, 3vw, 1.7rem)', color: '#fff',
-            marginBottom: 6, letterSpacing: '-0.5px',
+
+        <div style={{ position: 'relative' }}>
+          <h1 className="text-hero-gradient" style={{
+            fontSize: 'clamp(1.3rem, 3vw, 1.8rem)',
+            marginBottom: 6, letterSpacing: '-0.8px',
           }}>
-            Welcome back, {displayName} 👋
+            Welcome back, {displayName}
           </h1>
           <p style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-            fontSize: '0.9rem', color: 'rgba(255,255,255,0.85)',
+            fontFamily: C.font, fontWeight: 400,
+            fontSize: '0.9rem', color: C.textMid,
           }}>
             {loading ? "Loading escrows..." : `You have ${pendingDepositsCount} pending deposits and ${activeEscrowsCount} active escrows to manage.`}
           </p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <QuickBtn label="Create Escrow" icon="+" primary onClick={() => navigate('/student/create-escrow')} />
+            <QuickBtn
+              label="Create Escrow"
+              primary
+              onClick={() => navigate('/student/create-escrow')}
+              icon={<MiniIcon><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></MiniIcon>}
+            />
             <QuickBtn
               label={connecting ? 'Connecting…' : walletAddress ? 'Wallet Connected' : 'Connect Wallet'}
-              icon={walletAddress ? '✅' : '🔗'}
               onClick={walletAddress ? undefined : handleConnectWallet}
+              icon={walletAddress
+                ? <MiniIcon><polyline points="20 6 9 17 4 12" /></MiniIcon>
+                : <MiniIcon><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /></MiniIcon>}
             />
           </div>
           {walletAddress && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: 'rgba(255,255,255,0.18)',
-              border: '1px solid rgba(255,255,255,0.35)',
+              background: 'rgba(124,92,255,0.12)',
+              border: '1px solid rgba(124,92,255,0.35)',
               borderRadius: 50,
               padding: '5px 14px',
             }}>
-              <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.75)', fontFamily: "'Poppins', sans-serif" }}>
-                Stellar:
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%', background: '#10B981',
+                boxShadow: '0 0 8px rgba(16,185,129,0.8)', flexShrink: 0,
+              }} />
+              <span style={{ fontSize: '0.7rem', color: C.textLight, fontFamily: C.font }}>
+                Stellar
               </span>
               <span style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                color: '#fff',
-                letterSpacing: '0.3px',
+                fontFamily: C.mono,
+                fontWeight: 500,
+                fontSize: '0.72rem',
+                color: '#E0D7FF',
+                letterSpacing: '0.03em',
               }}>
                 {walletAddress.slice(0, 6)}…{walletAddress.slice(-6)}
               </span>
@@ -291,52 +322,82 @@ const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Wallet notice (replaces blocking alerts) ── */}
+      {notice && (
+        <div style={{
+          marginBottom: 16,
+          padding: '11px 16px',
+          borderRadius: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          background: notice.kind === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+          border: notice.kind === 'success' ? '1px solid rgba(16,185,129,0.35)' : '1px solid rgba(239,68,68,0.35)',
+          fontFamily: C.font, fontSize: '0.82rem', fontWeight: 500,
+          color: notice.kind === 'success' ? '#34D399' : '#FCA5A5',
+        }}>
+          <span>{notice.text}</span>
+          <button
+            onClick={() => setNotice(null)}
+            aria-label="Dismiss notification"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 2, display: 'flex' }}
+          >
+            <MiniIcon><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></MiniIcon>
+          </button>
+        </div>
+      )}
+
       {/* ── Stats Cards ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 16, marginBottom: 28,
+        gap: 16, marginBottom: 16, marginTop: notice ? 0 : 12,
       }}>
         {dynamicStats.map(stat => (
           <div key={stat.label} style={{
-            background: '#FFFFFF', borderRadius: 16, padding: '20px 22px',
-            border: `1px solid ${C.border}`,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-            transition: 'box-shadow 0.25s, transform 0.25s',
+            ...cardBase,
+            padding: '20px 22px',
+            transition: 'border-color 0.25s, transform 0.25s, box-shadow 0.25s',
             cursor: 'default',
           }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 28px rgba(0,0,0,0.09)';
               (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.18)';
+              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.4), 0 0 24px rgba(124,92,255,0.1)';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)';
               (e.currentTarget as HTMLDivElement).style.transform = 'none';
+              (e.currentTarget as HTMLDivElement).style.borderColor = C.border;
+              (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{
-                fontSize: '1.5rem', background: `${stat.color}18`,
+                color: stat.color,
+                background: `${stat.color}1F`,
+                border: `1px solid ${stat.color}40`,
+                boxShadow: `0 0 16px ${stat.color}26`,
                 borderRadius: 10, width: 42, height: 42,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{stat.icon}</span>
               <span style={{
-                fontFamily: "'Poppins', sans-serif", fontSize: '0.68rem',
-                fontWeight: 600, color: '#4ACF7A',
-                background: 'rgba(74,207,122,0.1)', borderRadius: 50,
+                fontFamily: C.mono, fontSize: '0.62rem',
+                fontWeight: 500, color: '#34D399',
+                background: 'rgba(16,185,129,0.1)',
+                border: '1px solid rgba(16,185,129,0.25)',
+                borderRadius: 50,
                 padding: '3px 8px',
-              }}>↑ Live</span>
+                letterSpacing: '0.06em',
+              }}>LIVE</span>
             </div>
             <div style={{
-              fontFamily: "'Poppins', sans-serif", fontWeight: 800,
+              fontFamily: C.display, fontWeight: 700,
               fontSize: '1.65rem', color: C.textDark, letterSpacing: '-1px', lineHeight: 1,
             }}>{stat.value}</div>
             <div style={{
-              fontFamily: "'Poppins', sans-serif", fontWeight: 500,
-              fontSize: '0.8rem', color: C.textMid, marginTop: 4,
+              fontFamily: C.font, fontWeight: 500,
+              fontSize: '0.8rem', color: C.textMid, marginTop: 6,
             }}>{stat.label}</div>
             <div style={{
-              fontFamily: "'Poppins', sans-serif", fontSize: '0.72rem',
+              fontFamily: C.font, fontSize: '0.72rem',
               color: C.textLight, marginTop: 4,
             }}>{stat.sub}</div>
           </div>
@@ -345,27 +406,38 @@ const StudentDashboard: React.FC = () => {
 
       {/* ── Quick Actions ── */}
       <div style={{
-        background: '#FFFFFF', borderRadius: 16, padding: '20px 24px',
-        border: `1px solid ${C.border}`, marginBottom: 28,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        ...cardBase,
+        padding: '20px 24px', marginBottom: 16,
       }}>
         <h3 style={{
-          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+          fontFamily: C.font, fontWeight: 600,
           fontSize: '0.95rem', color: C.textDark, marginBottom: 16,
-        }}>Quick Actions</h3>
+        }}>Quick actions</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <QuickBtn label="Create New Escrow" icon="🔐" primary onClick={() => navigate('/student/create-escrow')} />
-          <QuickBtn label="View All Deposits" icon="📋" onClick={() => navigate('/student/my-deposits')} />
-          <QuickBtn label="Download Statement" icon="📥" />
-          <QuickBtn label="Contact Support" icon="💬" />
+          <QuickBtn
+            label="Create New Escrow" primary
+            onClick={() => navigate('/student/create-escrow')}
+            icon={<MiniIcon><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></MiniIcon>}
+          />
+          <QuickBtn
+            label="View All Deposits"
+            onClick={() => navigate('/student/my-deposits')}
+            icon={<MiniIcon><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></MiniIcon>}
+          />
+          <QuickBtn
+            label="Download Statement"
+            icon={<MiniIcon><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></MiniIcon>}
+          />
+          <QuickBtn
+            label="Contact Support"
+            icon={<MiniIcon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></MiniIcon>}
+          />
         </div>
       </div>
 
       {/* ── Recent Escrow Table ── */}
       <div style={{
-        background: '#FFFFFF', borderRadius: 16,
-        border: `1px solid ${C.border}`,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        ...cardBase,
         overflow: 'hidden',
       }}>
         <div style={{
@@ -374,26 +446,30 @@ const StudentDashboard: React.FC = () => {
           borderBottom: `1px solid ${C.border}`,
         }}>
           <h3 style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 700,
+            fontFamily: C.font, fontWeight: 600,
             fontSize: '0.95rem', color: C.textDark,
-          }}>Recent Escrow Activity</h3>
-          <button onClick={() => navigate('/student/my-deposits')} style={{
-            fontFamily: "'Poppins', sans-serif", fontWeight: 600,
-            fontSize: '0.78rem', color: C.orange, background: 'none',
+          }}>Recent escrow activity</h3>
+          <button onClick={() => navigate('/student/my-deposits')} className="dl-arrow-link" style={{
+            fontFamily: C.font, fontWeight: 500,
+            fontSize: '0.78rem', color: C.violetSoft, background: 'none',
             border: 'none', cursor: 'pointer',
-          }}>View all →</button>
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+          }}>
+            View all
+            <MiniIcon><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></MiniIcon>
+          </button>
         </div>
 
         {/* Table — scrollable on small screens */}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#FAFAFA' }}>
+              <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
                 {['Escrow ID', 'Property', 'Landlord', 'Amount', 'Status', 'Date'].map(h => (
                   <th key={h} style={{
-                    fontFamily: "'Poppins', sans-serif", fontWeight: 700,
-                    fontSize: '0.72rem', color: C.textLight, textAlign: 'left',
-                    padding: '12px 20px', letterSpacing: '0.4px', whiteSpace: 'nowrap',
+                    fontFamily: C.mono, fontWeight: 500,
+                    fontSize: '0.64rem', color: C.textLight, textAlign: 'left',
+                    padding: '12px 20px', letterSpacing: '0.12em', whiteSpace: 'nowrap',
                     textTransform: 'uppercase',
                   }}>{h}</th>
                 ))}
@@ -408,33 +484,40 @@ const StudentDashboard: React.FC = () => {
                 </>
               ) : error ? (
                 <tr style={{ borderTop: `1px solid ${C.border}` }}>
-                  <td colSpan={6} style={{ padding: '24px 20px', textAlign: 'center', color: '#ea4335', fontFamily: "'Poppins', sans-serif", fontWeight: 600 }}>
-                    ⚠️ {error}
+                  <td colSpan={6} style={{ padding: '24px 20px', textAlign: 'center', color: '#FCA5A5', fontFamily: C.font, fontWeight: 500, fontSize: '0.85rem' }}>
+                    {error}
                   </td>
                 </tr>
               ) : escrows.length === 0 ? (
                 <tr style={{ borderTop: `1px solid ${C.border}` }}>
-                  <td colSpan={6} style={{ padding: '40px 20px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>📭</div>
-                    <div style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: '1rem', color: C.textDark }}>No escrows found.</div>
-                    <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: '0.8rem', color: C.textMid, marginTop: 4, marginBottom: 14 }}>
+                  <td colSpan={6} style={{ padding: '48px 20px', textAlign: 'center' }}>
+                    <div style={{
+                      width: 56, height: 56, margin: '0 auto 16px', borderRadius: '50%',
+                      background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)',
+                      boxShadow: '0 0 24px rgba(124,92,255,0.2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: C.violetSoft,
+                    }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                    </div>
+                    <div style={{ fontFamily: C.font, fontWeight: 600, fontSize: '1rem', color: C.textDark }}>No escrows yet</div>
+                    <p style={{ fontFamily: C.font, fontSize: '0.8rem', color: C.textMid, marginTop: 4, marginBottom: 16, lineHeight: 1.6 }}>
                       Create your first rental escrow to securely protect your deposit on the Stellar blockchain.
                     </p>
                     <button
                       onClick={() => navigate('/student/create-escrow')}
-                      style={{
-                        fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: '0.8rem', color: '#fff',
-                        background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`,
-                        border: 'none', borderRadius: 50, padding: '8px 20px', cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(232,115,74,0.25)',
-                      }}
+                      className="btn-glow"
+                      style={{ fontSize: '0.8rem', padding: '9px 22px' }}
                     >
-                      Create First Escrow
+                      Create first escrow
                     </button>
                   </td>
                 </tr>
               ) : (
-                escrows.slice(0, 5).map((row, i) => {
+                escrows.slice(0, 5).map((row) => {
                   const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
                   const formattedDate = new Date(row.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
                   return (
@@ -442,47 +525,47 @@ const StudentDashboard: React.FC = () => {
                       onClick={() => navigate(`/student/escrow/${targetId}`)}
                       style={{
                         borderTop: `1px solid ${C.border}`,
-                        background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
+                        background: 'transparent',
                         transition: 'background 0.15s',
                         cursor: 'pointer',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.04)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC')}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.07)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{
-                          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
-                          fontSize: '0.8rem', color: C.orange,
+                          fontFamily: C.mono, fontWeight: 500,
+                          fontSize: '0.76rem', color: C.violetSoft,
                         }}>{row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3, '0')}` : 'Pending'}</span>
                       </td>
                       <td style={{ padding: '14px 20px' }}>
                         <span style={{
-                          fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+                          fontFamily: C.font, fontWeight: 500,
                           fontSize: '0.83rem', color: C.textDark,
                         }}>{row.propertyName}</span>
                       </td>
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{
-                          fontFamily: "'Poppins', sans-serif", fontSize: '0.83rem', color: C.textMid,
+                          fontFamily: C.mono, fontSize: '0.74rem', color: C.textMid,
                         }}>{row.landlordWallet.slice(0, 6)}…{row.landlordWallet.slice(-6)}</span>
                       </td>
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{
-                          fontFamily: "'Poppins', sans-serif", fontWeight: 700,
-                          fontSize: '0.83rem', color: C.textDark,
+                          fontFamily: C.display, fontWeight: 700,
+                          fontSize: '0.85rem', color: C.textDark, letterSpacing: '-0.2px',
                         }}>{row.depositAmount} {row.currency}</span>
                       </td>
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{
                           ...STATUS_STYLE[row.status],
-                          fontFamily: "'Poppins', sans-serif", fontWeight: 600,
-                          fontSize: '0.72rem', borderRadius: 50, padding: '4px 10px',
-                          display: 'inline-block',
+                          fontFamily: C.mono, fontWeight: 500,
+                          fontSize: '0.64rem', borderRadius: 50, padding: '4px 10px',
+                          display: 'inline-block', letterSpacing: '0.08em',
                         }}>{row.status}</span>
                       </td>
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{
-                          fontFamily: "'Poppins', sans-serif", fontSize: '0.8rem', color: C.textLight,
+                          fontFamily: C.font, fontSize: '0.78rem', color: C.textLight,
                         }}>{formattedDate}</span>
                       </td>
                     </tr>

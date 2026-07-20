@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Sparkle from './Sparkle';
+import LogoMark from './LogoMark';
 
 /* Deterministic star field — fixed positions so render is stable */
 const STARS: Array<{ top: string; left: string; size: number; delay: number }> = [
@@ -48,15 +49,7 @@ const DashboardMock: React.FC = () => (
         flexShrink: 0,
       }}
     >
-      <span
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 8,
-          background: 'linear-gradient(135deg,#7C5CFF,#A78BFA)',
-          boxShadow: '0 0 12px rgba(124,92,255,0.4)',
-        }}
-      />
+      <LogoMark size={26} style={{ filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.4))' }} />
       {[0.5, 0.25, 0.25, 0.25].map((op, i) => (
         <span
           key={i}
@@ -450,29 +443,18 @@ const Hero: React.FC = () => {
               }}
             />
 
-            {/* Ghost shield-lock glyph rising above the rim */}
-            <svg
-              id="hero-shield"
-              width="90"
-              height="90"
-              viewBox="0 0 24 24"
-              fill="none"
+            {/* Ghost brand mark rising above the rim */}
+            <LogoMark
+              ghost
+              size={92}
               style={{
                 position: 'absolute',
                 left: '50%',
-                top: '12%',
+                top: '8%',
                 transform: 'translateX(-50%)',
                 opacity: 0.12,
               }}
-            >
-              <path
-                d="M12 2.5 L20 5.5 V11.5 C20 16.5 16.6 20.4 12 21.8 C7.4 20.4 4 16.5 4 11.5 V5.5 Z"
-                stroke="#FFFFFF"
-                strokeWidth="1"
-              />
-              <rect x="9" y="10" width="6" height="5" rx="1" stroke="#FFFFFF" strokeWidth="1" />
-              <path d="M10.5 10 V8.5 a1.5 1.5 0 0 1 3 0 V10" stroke="#FFFFFF" strokeWidth="1" />
-            </svg>
+            />
 
             {/* Floating glass chips */}
             <div

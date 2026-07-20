@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LogoMark from './LogoMark';
 
 const NAV_LINKS = [
   { label: 'How it works', href: '#how-it-works' },
@@ -10,22 +11,6 @@ const NAV_LINKS = [
 interface NavbarProps {
   onSignIn?: () => void;
 }
-
-const ShieldMark: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M12 2.5 L20 5.5 V11.5 C20 16.5 16.6 20.4 12 21.8 C7.4 20.4 4 16.5 4 11.5 V5.5 Z"
-      fill="rgba(255,255,255,0.95)"
-    />
-    <path
-      d="M9.2 11.8 L11.2 13.8 L15 9.6"
-      stroke="#7C5CFF"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -92,20 +77,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
             flexShrink: 0,
           }}
         >
-          <span
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 18px rgba(124,92,255,0.45)',
-            }}
-          >
-            <ShieldMark />
-          </span>
+          <LogoMark
+            size={32}
+            style={{ filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.5))', flexShrink: 0 }}
+          />
           <span
             style={{
               fontFamily: "'Inter', sans-serif",

@@ -207,6 +207,14 @@ const EscrowDetailsPage: React.FC = () => {
     try {
       setDepositing(true);
 
+      console.log("========== ESCROW DEBUG ==========");
+      console.log("Entire Escrow:", escrow);
+      console.log("Mongo ID:", escrow._id);
+      console.log("Contract Escrow ID:", escrow.escrowId);
+      console.log("Status from DB:", escrow.status);
+      console.log("Student Wallet:", escrow.studentWallet);
+      console.log("=================================");
+
       const result = await depositEscrow(
         escrow.escrowId
       );

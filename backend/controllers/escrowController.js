@@ -1,5 +1,20 @@
 const Escrow = require("../models/Escrow");
+const User = require("../models/User");
 const { createHistoryRecord } = require("./historyController");
+
+// ─── Ownership Helper ─────────────────────────────────────────────────────────
+// The JWT only carries { id, role } — it does NOT carry a wallet address.
+// So to know whether the logged-in user is actually the student or landlord
+// on THIS specific escrow, we have to look up their saved walletAddress and
+// compare it to the escrow's studentWallet / landlordWallet.
+async function getRequesterWallet(userId) {
+  const user = await User.findById(userId).select("walletAddress role");
+  return user ? user.walletAddress : null;
+}
+
+function walletsMatch(a, b) {
+  return !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
+}
 
 // ─── Create Escrow ────────────────────────────────────────────────────────────
 exports.createEscrow = async (req, res) => {
@@ -146,6 +161,17 @@ exports.getEscrowsByStudent = async (req, res) => {
       });
     }
 
+    // ── Ownership check ── prevent viewing another user's escrow history
+    if (req.user.role !== "admin") {
+      const requesterWallet = await getRequesterWallet(req.user.id);
+      if (!walletsMatch(requesterWallet, wallet)) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only view your own escrow history",
+        });
+      }
+    }
+
     const escrows = await Escrow.find({ studentWallet: wallet });
 
     res.status(200).json({
@@ -174,6 +200,17 @@ exports.getEscrowsByLandlord = async (req, res) => {
         success: false,
         message: "Wallet address is required",
       });
+    }
+
+    // ── Ownership check ── prevent viewing another user's escrow history
+    if (req.user.role !== "admin") {
+      const requesterWallet = await getRequesterWallet(req.user.id);
+      if (!walletsMatch(requesterWallet, wallet)) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only view your own escrow history",
+        });
+      }
     }
 
     const escrows = await Escrow.find({ landlordWallet: wallet });
@@ -221,6 +258,22 @@ exports.fundEscrow = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Escrow not found",
+      });
+    }
+
+    // ── Ownership check ──
+    // Only the student who this escrow belongs to may fund it.
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        success: false,
+        message: "Only the student on this escrow can fund it",
+      });
+    }
+    const requesterWallet = await getRequesterWallet(req.user.id);
+    if (!walletsMatch(requesterWallet, escrow.studentWallet)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not the student associated with this escrow",
       });
     }
 
@@ -328,6 +381,26 @@ exports.confirmEscrow = async (req, res) => {
       });
     }
 
+    // ── Ownership check ──
+    // Confirm that the logged-in user's saved wallet actually matches the
+    // student/landlord wallet recorded on THIS escrow, not just that they
+    // hold the right role in general.
+    if (req.user.role !== "student" && req.user.role !== "landlord") {
+      return res.status(403).json({
+        success: false,
+        message: "Only the student or landlord on this escrow can confirm it",
+      });
+    }
+    const requesterWallet = await getRequesterWallet(req.user.id);
+    const expectedWallet =
+      req.user.role === "student" ? escrow.studentWallet : escrow.landlordWallet;
+    if (!walletsMatch(requesterWallet, expectedWallet)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not a party to this escrow",
+      });
+    }
+
     const statusBefore = escrow.status;
     const actorRole = req.user.role;
     const actorWallet =
@@ -414,6 +487,22 @@ exports.releaseEscrow = async (req, res) => {
       });
     }
 
+    // ── Ownership check ──
+    // Only the landlord who this escrow belongs to may release it.
+    if (req.user.role !== "landlord") {
+      return res.status(403).json({
+        success: false,
+        message: "Only the landlord on this escrow can release it",
+      });
+    }
+    const requesterWallet = await getRequesterWallet(req.user.id);
+    if (!walletsMatch(requesterWallet, escrow.landlordWallet)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not the landlord associated with this escrow",
+      });
+    }
+
     if (escrow.status === "RELEASED") {
       return res.status(400).json({
         success: false,
@@ -488,6 +577,21 @@ exports.cancelEscrow = async (req, res) => {
         success: false,
         message: "Escrow not found",
       });
+    }
+
+    // ── Ownership check ──
+    // Either party can request a cancellation, but only if they're actually
+    // the student or landlord recorded on THIS escrow.
+    if (req.user.role !== "admin") {
+      const requesterWallet = await getRequesterWallet(req.user.id);
+      const isStudentOnThisEscrow = walletsMatch(requesterWallet, escrow.studentWallet);
+      const isLandlordOnThisEscrow = walletsMatch(requesterWallet, escrow.landlordWallet);
+      if (!isStudentOnThisEscrow && !isLandlordOnThisEscrow) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not a party to this escrow",
+        });
+      }
     }
 
     if (escrow.status === "CANCELLED") {

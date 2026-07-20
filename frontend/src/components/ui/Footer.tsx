@@ -1,5 +1,6 @@
 import React from 'react';
 import { useScrollReveal } from '@/lib/useScrollReveal';
+import LogoMark from './LogoMark';
 
 const COLUMNS: Array<{ heading: string; links: Array<{ label: string; href: string; external?: boolean }> }> = [
   {
@@ -50,16 +51,6 @@ const SOCIALS = [
     ),
   },
 ];
-
-const ShieldMark: React.FC = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M12 2.5 L20 5.5 V11.5 C20 16.5 16.6 20.4 12 21.8 C7.4 20.4 4 16.5 4 11.5 V5.5 Z"
-      fill="rgba(255,255,255,0.95)"
-    />
-    <path d="M9.2 11.8 L11.2 13.8 L15 9.6" stroke="#7C5CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 
 const Footer: React.FC = () => {
   const ref = useScrollReveal<HTMLElement>(0.08);
@@ -151,20 +142,10 @@ const Footer: React.FC = () => {
           {/* Brand column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 9,
-                  background: 'linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 0 14px rgba(124,92,255,0.4)',
-                }}
-              >
-                <ShieldMark />
-              </span>
+              <LogoMark
+                size={30}
+                style={{ filter: 'drop-shadow(0 0 10px rgba(168,85,247,0.45))', flexShrink: 0 }}
+              />
               <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: '1.05rem', color: '#fff' }}>
                 DepositSafe
               </span>

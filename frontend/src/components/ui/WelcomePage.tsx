@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import LogoMark from './LogoMark';
 
 interface WelcomePageProps {
   onEnterLanding: () => void;
@@ -105,6 +106,17 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterLanding }) => {
             WebkitMaskComposite: 'xor',
             maskComposite: 'exclude',
             animation: 'ringSpin 20s linear infinite',
+          }}
+        />
+        {/* Brand mark at the heart of the ring */}
+        <LogoMark
+          size={96}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -54%)',
+            filter: 'drop-shadow(0 0 22px rgba(168,85,247,0.65))',
           }}
         />
       </div>
