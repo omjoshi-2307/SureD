@@ -1,27 +1,30 @@
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!--                     ANIMATED HERO — CAPSULE RENDER                  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+
 <div align="center">
 
-<!-- ─────────────────────────────────────────────────────────────── -->
-<!--                        HERO / BANNER                            -->
-<!-- ─────────────────────────────────────────────────────────────── -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F172A,50:4C1D95,100:7C3AED&height=220&section=header&text=SureDeposit&fontSize=72&fontColor=FFFFFF&animation=fadeIn&fontAlignY=38&desc=Trustless%20Rental%20Deposit%20Escrow%20on%20Stellar&descSize=20&descAlignY=58&descColor=C4B5FD" width="100%" alt="SureDeposit"/>
 
-<img src="frontend/public/favicon.png" alt="SureDeposit Logo" width="120" height="120" />
+<!-- Animated typing tagline -->
+
+<a href="#">
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=22&duration=3000&pause=800&color=8B5CF6&center=true&vCenter=true&width=720&lines=Security+deposits%2C+held+by+code+%E2%80%94+not+by+people.;Locked+on-chain.+Released+by+consensus.;Built+on+Stellar.+Powered+by+Soroban.;Five-second+finality.+Sub-cent+fees." alt="Typing animation"/>
+</a>
+
+<br/><br/>
+
+*A decentralized escrow platform that locks rental security deposits inside Soroban smart contracts —*
+*tenants never lose money, landlords never take risks, and no intermediary ever touches the funds.*
 
 <br/>
 
-# 🏠 SureDeposit
+<!-- ── Badge wall ─────────────────────────────────────────────── -->
 
-### **Trustless Rental Deposits. Powered by Stellar.**
-
-*A decentralized security-deposit escrow platform that locks rental deposits in Soroban smart contracts — so tenants never lose money and landlords never take risks.*
-
-<br/>
-
-<!-- ── Badges ─────────────────────────────────────────────────── -->
-
-[![Stars](https://img.shields.io/github/stars/your-org/suredeposit?style=for-the-badge&logo=github&color=FFD700&labelColor=0D1117)](https://github.com/your-org/suredeposit/stargazers)
-[![Forks](https://img.shields.io/github/forks/your-org/suredeposit?style=for-the-badge&logo=github&color=8A2BE2&labelColor=0D1117)](https://github.com/your-org/suredeposit/network/members)
+[![Stars](https://img.shields.io/github/stars/your-org/suredeposit?style=for-the-badge&logo=github&color=8B5CF6&labelColor=0D1117)](https://github.com/your-org/suredeposit/stargazers)
+[![Forks](https://img.shields.io/github/forks/your-org/suredeposit?style=for-the-badge&logo=github&color=6366F1&labelColor=0D1117)](https://github.com/your-org/suredeposit/network/members)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge&labelColor=0D1117)](LICENSE)
-[![Build](https://img.shields.io/badge/Build-Passing-22C55E?style=for-the-badge&logo=githubactions&logoColor=white&labelColor=0D1117)](#-testing)
+[![Build](https://img.shields.io/badge/Build-Passing-22C55E?style=for-the-badge&logo=githubactions&logoColor=white&labelColor=0D1117)](#testing)
 
 [![Rust](https://img.shields.io/badge/Rust-Soroban_SDK_26-DEA584?style=for-the-badge&logo=rust&logoColor=white&labelColor=0D1117)](https://www.rust-lang.org/)
 [![Stellar](https://img.shields.io/badge/Stellar-Testnet-7C3AED?style=for-the-badge&logo=stellar&logoColor=white&labelColor=0D1117)](https://stellar.org)
@@ -30,161 +33,138 @@
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black&labelColor=0D1117)](https://react.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white&labelColor=0D1117)](https://nodejs.org)
-[![Blockchain](https://img.shields.io/badge/Web3-Blockchain-FF6B6B?style=for-the-badge&logoColor=white&labelColor=0D1117)](#-architecture)
-[![Open Source](https://img.shields.io/badge/Open-Source-EC4899?style=for-the-badge&logo=opensourceinitiative&logoColor=white&labelColor=0D1117)](#-contributing)
-[![Hackathon](https://img.shields.io/badge/Built_For-Stellar_Hackathon-06B6D4?style=for-the-badge&logoColor=white&labelColor=0D1117)](#-acknowledgements)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white&labelColor=0D1117)](https://www.mongodb.com)
+[![Open Source](https://img.shields.io/badge/Open-Source-EC4899?style=for-the-badge&logo=opensourceinitiative&logoColor=white&labelColor=0D1117)](#contributing)
 
 <br/>
 
-<!-- ── Animated banner placeholder ────────────────────────────── -->
+<!-- Product demo GIF -->
 
-<img src="docs/assets/banner-animated.gif" alt="SureDeposit Animated Banner — replace with product demo GIF" width="100%" />
+<img src="docs/assets/demo.gif" alt="SureDeposit product demo — replace with a screen-recorded walkthrough GIF" width="90%"/>
 
-<br/>
+<br/><br/>
 
-**[✨ Live Demo](#)** · **[📖 Documentation](#-table-of-contents)** · **[🐛 Report Bug](https://github.com/your-org/suredeposit/issues)** · **[💡 Request Feature](https://github.com/your-org/suredeposit/issues)**
-
-<br/>
-
-> *"Your deposit. On-chain. Untouchable — until both sides agree."*
+**[Live Demo](#)** &nbsp;·&nbsp; **[Documentation](#table-of-contents)** &nbsp;·&nbsp; **[Report Bug](https://github.com/your-org/suredeposit/issues)** &nbsp;·&nbsp; **[Request Feature](https://github.com/your-org/suredeposit/issues)**
 
 </div>
 
-<br/>
+<!-- Animated gradient divider -->
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 📚 Table of Contents
+## Table of Contents
 
 <details open>
-<summary><b>Click to expand navigation</b></summary>
+<summary><b>Navigation</b></summary>
+<br/>
 
-- [🌍 The Story](#-the-story)
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [📜 Smart Contract](#-smart-contract)
-- [🧰 Tech Stack](#-tech-stack)
-- [📁 Project Structure](#-project-structure)
-- [⚡ Installation](#-installation)
-- [📸 Screenshots](#-screenshots)
-- [🔄 Workflow](#-workflow)
-- [🔐 Security](#-security)
-- [🗺️ Roadmap](#️-roadmap)
-- [🧪 Testing](#-testing)
-- [🚀 Performance](#-performance)
-- [🎯 Use Cases](#-use-cases)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [👥 Authors](#-authors)
-- [🙏 Acknowledgements](#-acknowledgements)
+| | | |
+|---|---|---|
+| [The Story](#the-story) | [Architecture](#architecture) | [Security](#security) |
+| [Features](#features) | [Smart Contract](#smart-contract) | [Roadmap](#roadmap) |
+| [Tech Stack](#tech-stack) | [Installation](#installation) | [Testing](#testing) |
+| [Project Structure](#project-structure) | [Screenshots](#screenshots) | [Performance](#performance) |
+| [Workflow](#workflow) | [Use Cases](#use-cases) | [Contributing](#contributing) |
+| [License](#license) | [Authors](#authors) | [Acknowledgements](#acknowledgements) |
 
 </details>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🌍 The Story
+## The Story
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 💔 The Problem
+### The Problem
 
-Every year, **millions of tenants** — especially students moving to new cities — hand over one to three months of rent as a *security deposit* to a landlord they've never met.
+Every year, millions of tenants — especially students moving to new cities — hand over one to three months of rent as a *security deposit* to a landlord they have never met.
 
-Then the nightmare begins:
+Then the familiar pattern begins:
 
-- 🕳️ Deposits vanish into personal bank accounts
-- 🧾 No receipts, no proof, no paper trail
-- ⏳ Refunds delayed for months — or forever
-- ⚖️ Legal recourse costs more than the deposit itself
-- 🤝 Trust is enforced by *hope*, not by systems
+- Deposits vanish into personal bank accounts
+- No receipts, no proof, no paper trail
+- Refunds delayed for months — or forever
+- Legal recourse costs more than the deposit itself
+- Trust is enforced by hope, not by systems
 
-> **~40% of tenants** report disputes over deposit deductions. The most vulnerable — students and first-time renters — lose the most.
+> Roughly **40% of tenants** report disputes over deposit deductions. The most vulnerable — students and first-time renters — lose the most.
 
 </td>
 <td width="50%" valign="top">
 
-### 💚 The Fix
+### The Fix
 
 **SureDeposit removes the middleman entirely.**
 
-The deposit never touches the landlord's pocket. It lives inside a **Soroban smart contract on Stellar** — a neutral, incorruptible vault that follows one simple rule:
+The deposit never touches the landlord's pocket. It lives inside a **Soroban smart contract on Stellar** — a neutral, incorruptible vault that follows one rule:
 
 > *Funds move only when the rules written in code say they can.*
 
-- 🔒 Tenant deposits → funds lock **on-chain**
-- ✅ Both parties confirm move-in
-- 🔓 Landlord releases → tenant verified payout
-- ↩️ Deal falls through → refund path back to tenant
-- 🧾 Every step → a public, immutable transaction
+- Tenant deposits — funds lock **on-chain**
+- Both parties confirm move-in
+- Landlord releases — instant, verified payout
+- Deal falls through — refund path back to tenant
+- Every step — a public, immutable transaction
 
 </td>
 </tr>
 </table>
 
-### 🧠 Why Blockchain? Why Stellar? Why Soroban?
+### Why Blockchain, Why Stellar, Why Soroban
 
 | Question | Answer |
 |---|---|
-| **Why blockchain at all?** | Escrow requires a neutral third party. Banks charge for it, lawyers are slow, and "trusted" middlemen are the exact problem. A smart contract is a third party that *cannot* be bribed, biased, or bankrupted. |
-| **Why Stellar?** | Transactions settle in **~5 seconds** for **fractions of a cent**. A deposit platform for students cannot ask users to pay $5 gas fees to protect a $300 deposit. Stellar makes micro-escrow economically viable. |
-| **Why Soroban?** | Soroban brings **Rust-based smart contracts** to Stellar — memory-safe, formally testable, and built with a first-class authorization framework (`require_auth`). Financial logic deserves Rust's guarantees. |
-| **Why escrow creates trust** | Neither party has to trust the *other* — they only trust **open-source code** they can read, audit, and verify on a public explorer. Trust is replaced by *verification*. |
+| **Why blockchain at all?** | Escrow requires a neutral third party. Banks charge for it, lawyers are slow, and "trusted" middlemen are the exact problem. A smart contract is a third party that cannot be bribed, biased, or bankrupted. |
+| **Why Stellar?** | Transactions settle in **~5 seconds** for **fractions of a cent**. A deposit platform for students cannot ask users to pay $5 in gas to protect a $300 deposit. Stellar makes micro-escrow economically viable. |
+| **Why Soroban?** | Soroban brings **Rust-based smart contracts** to Stellar — memory-safe, formally testable, with a first-class authorization framework (`require_auth`). Financial logic deserves Rust's guarantees. |
+| **Why escrow creates trust** | Neither party has to trust the *other* — only open-source code they can read, audit, and verify on a public explorer. Trust is replaced by verification. |
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## ✨ Features
+## Features
 
 <div align="center">
 
 | | | |
 |:---:|:---:|:---:|
-| 🔐 **Secure Escrow**<br/><sub>Funds held by the contract itself — no human custody, ever</sub> | 📜 **Soroban Smart Contracts**<br/><sub>Rust-powered, audited state machine on Stellar</sub> | 🌐 **Fully Decentralized**<br/><sub>Fund custody lives on-chain, verifiable by anyone</sub> |
-| 🤝 **Multi-Party Confirmation**<br/><sub>Both tenant *and* landlord must confirm move-in</sub> | ⚡ **Instant Release**<br/><sub>Deposit returned in ~5 seconds once approved</sub> | 🧾 **Immutable Records**<br/><sub>Every action is a permanent Stellar transaction</sub> |
-| 🛡️ **Fraud Prevention**<br/><sub>No party can move funds unilaterally</sub> | 👛 **Freighter Wallet Integration**<br/><sub>One-click connect, sign, and verify</sub> | 🚀 **Fast Transactions**<br/><sub>Stellar finality in seconds, not minutes</sub> |
-| 💸 **Near-Zero Fees**<br/><sub>Fractions of a cent per operation</sub> | 🔍 **Transparent Workflow**<br/><sub>Live status tracking from Created → Released</sub> | 🏗️ **Scalable Architecture**<br/><sub>Off-chain index (MongoDB) + on-chain truth</sub> |
-| ⚖️ **Dispute Resolution** <sub>*(roadmap)*</sub><br/><sub>Structured refund & arbitration flows</sub> | 🔄 **Rental Lifecycle Management**<br/><sub>Dashboards for every stage of the tenancy</sub> | 📊 **Transaction History**<br/><sub>Full audit trail for both roles</sub> |
+| **Secure Escrow**<br/><sub>Funds held by the contract itself — no human custody, ever</sub> | **Soroban Smart Contracts**<br/><sub>Rust-powered, tested state machine on Stellar</sub> | **Fully Decentralized**<br/><sub>Fund custody lives on-chain, verifiable by anyone</sub> |
+| **Multi-Party Confirmation**<br/><sub>Both tenant and landlord must confirm move-in</sub> | **Instant Release**<br/><sub>Deposit settled in ~5 seconds once approved</sub> | **Immutable Records**<br/><sub>Every action is a permanent Stellar transaction</sub> |
+| **Fraud Prevention**<br/><sub>No party can move funds unilaterally</sub> | **Freighter Wallet Integration**<br/><sub>One-click connect, sign, and verify</sub> | **Fast Transactions**<br/><sub>Stellar finality in seconds, not minutes</sub> |
+| **Near-Zero Fees**<br/><sub>Fractions of a cent per operation</sub> | **Transparent Workflow**<br/><sub>Live status tracking from Created to Released</sub> | **Scalable Architecture**<br/><sub>Off-chain index (MongoDB) + on-chain truth</sub> |
+| **Dispute Resolution** <sub>(roadmap)</sub><br/><sub>Structured refund and arbitration flows</sub> | **Rental Lifecycle Management**<br/><sub>Dashboards for every stage of the tenancy</sub> | **Transaction History**<br/><sub>Full audit trail for both roles</sub> |
 
 </div>
-
-<br/>
 
 > [!TIP]
 > **The golden rule of SureDeposit:** the platform *never* holds user funds. The backend is only an index — the **smart contract is the single source of financial truth**.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
+## Architecture
 
-## 🏗️ Architecture
-
-### 🗺️ System Overview
+### System Overview
 
 ```mermaid
 flowchart TB
-    subgraph Client["🖥️ Client Layer"]
+    subgraph Client["Client Layer"]
         UI["React + Vite + Tailwind<br/>Student & Landlord Dashboards"]
-        FW["👛 Freighter Wallet<br/>(Browser Extension)"]
+        FW["Freighter Wallet<br/>(Browser Extension)"]
     end
 
-    subgraph Server["⚙️ API Layer — Node.js / Express"]
-        AUTH["🔑 Auth Controller<br/>JWT + Google OAuth"]
-        ESC["📦 Escrow Controller<br/>Status mirror + ownership checks"]
-        HIST["🧾 History Controller<br/>Transaction audit trail"]
+    subgraph Server["API Layer — Node.js / Express"]
+        AUTH["Auth Controller<br/>JWT + Google OAuth"]
+        ESC["Escrow Controller<br/>Status mirror + ownership checks"]
+        HIST["History Controller<br/>Transaction audit trail"]
     end
 
-    subgraph Chain["⛓️ Stellar Network (Testnet)"]
-        RPC["📡 Soroban RPC<br/>soroban-testnet.stellar.org"]
-        SC["📜 SureDeposit Contract<br/>(Rust / Soroban)"]
-        SAC["💰 Native XLM<br/>Stellar Asset Contract"]
+    subgraph Chain["Stellar Network (Testnet)"]
+        RPC["Soroban RPC<br/>soroban-testnet.stellar.org"]
+        SC["SureDeposit Contract<br/>(Rust / Soroban)"]
+        SAC["Native XLM<br/>Stellar Asset Contract"]
     end
 
-    subgraph Data["🗄️ Data Layer"]
+    subgraph Data["Data Layer"]
         DB[("MongoDB<br/>Users · Escrows · History")]
     end
 
@@ -205,47 +185,47 @@ flowchart TB
     style Data fill:#231a0c,stroke:#F59E0B,color:#fff
 ```
 
-### 🔁 Transaction Lifecycle
+### Transaction Lifecycle
 
-Every on-chain action in SureDeposit follows the same battle-tested pipeline:
+Every on-chain action in SureDeposit follows the same pipeline:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as 👤 User
-    participant F as 🖥️ Frontend
-    participant W as 👛 Freighter
-    participant R as 📡 Soroban RPC
-    participant C as 📜 Contract
-    participant B as ⚙️ Backend
-    participant D as 🗄️ MongoDB
+    actor U as User
+    participant F as Frontend
+    participant W as Freighter
+    participant R as Soroban RPC
+    participant C as Contract
+    participant B as Backend
+    participant D as MongoDB
 
     U->>F: Click action (Deposit / Confirm / Release)
     F->>R: Build raw transaction
     F->>R: prepareTransaction() — simulate + assemble fees & auth
     R-->>F: Prepared XDR
     F->>W: Request signature
-    W-->>U: 🔔 Approval popup (human checkpoint)
+    W-->>U: Approval popup (human checkpoint)
     U-->>W: Approve
     W-->>F: Signed XDR
     F->>R: sendTransaction()
     R->>C: Invoke contract function
     C->>C: require_auth() + state validation
-    C-->>R: ✅ Updated Escrow
+    C-->>R: Updated Escrow
     R-->>F: Transaction hash
     F->>B: Sync status + txHash
     B->>D: Persist mirror record
     D-->>F: Fresh state for dashboard
 ```
 
-### 🧬 Escrow Lifecycle
+### Escrow Lifecycle
 
 ```mermaid
 flowchart LR
-    A["🟢 CREATED<br/><sub>initialize()</sub>"] -->|"Student deposits XLM"| B["🔵 FUNDED<br/><sub>deposit()</sub>"]
-    B -->|"Both parties confirm"| C["🟣 PENDING_CONFIRMATION<br/><sub>confirm() × 2</sub>"]
-    C -->|"Landlord releases"| D["🏆 RELEASED<br/><sub>release()</sub>"]
-    B -->|"Landlord refunds"| E["↩️ CANCELLED<br/><sub>refund()</sub>"]
+    A["CREATED<br/><sub>initialize()</sub>"] -->|"Student deposits XLM"| B["FUNDED<br/><sub>deposit()</sub>"]
+    B -->|"Both parties confirm"| C["PENDING_CONFIRMATION<br/><sub>confirm() × 2</sub>"]
+    C -->|"Landlord releases"| D["RELEASED<br/><sub>release()</sub>"]
+    B -->|"Landlord refunds"| E["CANCELLED<br/><sub>refund()</sub>"]
     C -->|"Landlord refunds"| E
 
     style A fill:#14532d,stroke:#22C55E,color:#fff
@@ -255,26 +235,24 @@ flowchart LR
     style E fill:#7f1d1d,stroke:#EF4444,color:#fff
 ```
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
+## Smart Contract
 
-## 📜 Smart Contract
+The core of SureDeposit is a compact, auditable Soroban contract written in **Rust** — a strict state machine where every transition is guarded by authentication and validation.
 
-The heart of SureDeposit is a compact, auditable Soroban contract written in **Rust** — a strict state machine where every transition is guarded by authentication and validation.
-
-### ⚙️ Public Interface
+### Public Interface
 
 | Function | Caller | Description |
 |---|---|---|
-| `initialize(student, landlord, amount)` | 🧑‍🎓 Student | Creates a new escrow record with a unique auto-incremented ID. Validates `amount > 0` and `student ≠ landlord`. |
-| `deposit(escrow_id, caller)` | 🧑‍🎓 Student | Transfers the deposit **from the student into the contract's own address**. Only allowed once, only from `Created`. |
-| `confirm(escrow_id, caller)` | 🧑‍🎓 + 🏠 Both | Each party independently confirms move-in. When *both* flags are set, status advances automatically. |
-| `release(escrow_id, caller)` | 🏠 Landlord | Pays the locked funds **from the contract to the landlord**. Only from `PendingConfirmation`. |
-| `refund(escrow_id, caller)` | 🏠 Landlord | Returns the locked funds **back to the student** if the deal falls through. |
-| `get_escrow(escrow_id)` | 🌍 Anyone | Public read — full escrow state, verifiable by any observer. |
+| `initialize(student, landlord, amount)` | Student | Creates a new escrow record with a unique auto-incremented ID. Validates `amount > 0` and `student ≠ landlord`. |
+| `deposit(escrow_id, caller)` | Student | Transfers the deposit **from the student into the contract's own address**. Only allowed once, only from `Created`. |
+| `confirm(escrow_id, caller)` | Both parties | Each party independently confirms move-in. When both flags are set, status advances automatically. |
+| `release(escrow_id, caller)` | Landlord | Pays the locked funds **from the contract to the landlord**. Only from `PendingConfirmation`. |
+| `refund(escrow_id, caller)` | Landlord | Returns the locked funds **back to the student** if the deal falls through. |
+| `get_escrow(escrow_id)` | Anyone | Public read — full escrow state, verifiable by any observer. |
 
-### 🧩 On-Chain Data Model
+### On-Chain Data Model
 
 ```rust
 #[contracttype]
@@ -282,24 +260,24 @@ pub struct Escrow {
     pub escrow_id: u64,          // Auto-incremented unique ID
     pub student: Address,        // Tenant's Stellar address
     pub landlord: Address,       // Landlord's Stellar address
-    pub amount: i128,            // Deposit in stroops (1 XLM = 10⁷)
+    pub amount: i128,            // Deposit in stroops (1 XLM = 10^7)
     pub status: EscrowStatus,    // The state machine
     pub student_confirmed: bool, // Move-in confirmation flags
     pub landlord_confirmed: bool,
 }
 ```
 
-### 🔄 State Machine
+### State Machine
 
 ```mermaid
 stateDiagram-v2
     [*] --> Created : initialize()<br/>student.require_auth()
-    Created --> Funded : deposit()<br/>💰 XLM → contract
+    Created --> Funded : deposit()<br/>XLM → contract
     Funded --> Funded : confirm()<br/>(one party)
-    Funded --> PendingConfirmation : confirm()<br/>(both parties ✓)
-    PendingConfirmation --> Released : release()<br/>💰 contract → landlord
-    Funded --> Cancelled : refund()<br/>💰 contract → student
-    PendingConfirmation --> Cancelled : refund()<br/>💰 contract → student
+    Funded --> PendingConfirmation : confirm()<br/>(both parties)
+    PendingConfirmation --> Released : release()<br/>contract → landlord
+    Funded --> Cancelled : refund()<br/>contract → student
+    PendingConfirmation --> Cancelled : refund()<br/>contract → student
     Released --> [*]
     Cancelled --> [*]
 
@@ -315,7 +293,7 @@ stateDiagram-v2
 ```
 
 <details>
-<summary><b>🗄️ Storage Design</b> — click to expand</summary>
+<summary><b>Storage Design</b></summary>
 
 <br/>
 
@@ -330,7 +308,7 @@ The token address is set in `__constructor` at deploy time and **can never be ch
 </details>
 
 <details>
-<summary><b>📣 Events</b> — click to expand</summary>
+<summary><b>Events</b></summary>
 
 <br/>
 
@@ -345,7 +323,7 @@ Events make every escrow independently indexable by explorers and off-chain serv
 </details>
 
 <details>
-<summary><b>🛡️ Error Codes</b> — click to expand</summary>
+<summary><b>Error Codes</b></summary>
 
 <br/>
 
@@ -361,37 +339,43 @@ Events make every escrow independently indexable by explorers and off-chain serv
 
 </details>
 
-### 🔏 Security Model
+### Security Model
 
 > [!IMPORTANT]
 > **Every mutating function enforces two independent gates:**
 > 1. **Identity** — `caller.require_auth()` cryptographically proves the transaction was signed by the claimed address.
-> 2. **Role** — explicit checks that the caller *is* the student (deposit) or *is* the landlord (release/refund) recorded on this exact escrow.
+> 2. **Role** — explicit checks that the caller is the student (deposit) or the landlord (release/refund) recorded on this exact escrow.
 >
-> Combined with strict state-transition validation, this means **no sequence of calls — by anyone — can move funds outside the designed lifecycle.**
+> Combined with strict state-transition validation, no sequence of calls — by anyone — can move funds outside the designed lifecycle.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🧰 Tech Stack
+## Tech Stack
 
 <div align="center">
 
+<!-- Animated skill icons -->
+
+<a href="#tech-stack">
+<img src="https://skillicons.dev/icons?i=rust,react,ts,vite,tailwind,nodejs,express,mongodb,git,vscode&perline=10" alt="Tech stack icons"/>
+</a>
+
+<br/><br/>
+
 | Layer | Technology | Why |
 |---|---|---|
-| 🎨 **Frontend** | React 18 · TypeScript · Vite · Tailwind CSS 4 · React Router 7 · Lucide Icons | Fast DX, type safety, utility-first premium UI |
-| ⚙️ **Backend** | Node.js · Express · JWT · Google OAuth | Lightweight status mirror + role-based auth |
-| ⛓️ **Blockchain** | Stellar (Testnet) · Soroban · Rust · soroban-sdk 26 | 5-second finality, sub-cent fees, memory-safe contracts |
-| 👛 **Wallet** | Freighter (browser extension) · `@stellar/stellar-sdk` v15 | Non-custodial signing, XDR build/simulate/submit |
-| 🗄️ **Database** | MongoDB · Mongoose | Off-chain index for dashboards & history |
-| 🧪 **Testing** | `cargo test` · Soroban testutils · test snapshots | Deterministic contract-level verification |
-| 🚀 **Deployment** | Stellar CLI · Vite build · Express server | One-command contract deploys |
+| **Frontend** | React 18 · TypeScript · Vite · Tailwind CSS 4 · React Router 7 · Lucide Icons | Fast DX, type safety, utility-first premium UI |
+| **Backend** | Node.js · Express · JWT · Google OAuth | Lightweight status mirror + role-based auth |
+| **Blockchain** | Stellar (Testnet) · Soroban · Rust · soroban-sdk 26 | 5-second finality, sub-cent fees, memory-safe contracts |
+| **Wallet** | Freighter (browser extension) · `@stellar/stellar-sdk` v15 | Non-custodial signing, XDR build / simulate / submit |
+| **Database** | MongoDB · Mongoose | Off-chain index for dashboards and history |
+| **Testing** | `cargo test` · Soroban testutils · test snapshots | Deterministic contract-level verification |
+| **Deployment** | Stellar CLI · Vite build · Express server | One-command contract deploys |
 
 </div>
 
 <details>
-<summary><b>📦 Key Libraries</b> — click to expand</summary>
+<summary><b>Key Libraries</b></summary>
 
 <br/>
 
@@ -408,87 +392,83 @@ axios
 
 </details>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 SureD/
 │
-├── 📜 contracts/                          # ⛓️  ON-CHAIN LAYER
+├── contracts/                          #  ON-CHAIN LAYER
 │   └── suredeposit/
-│       ├── Cargo.toml                     # Workspace config (soroban-sdk 26)
+│       ├── Cargo.toml                  #  Workspace config (soroban-sdk 26)
 │       └── contracts/suredeposit/
 │           ├── Makefile
 │           └── src/
-│               ├── lib.rs                 # 🚪 Contract entry points & constructor
-│               ├── escrow.rs              # 💰 Core logic: initialize / deposit / confirm / release / refund
-│               ├── storage.rs             # 🗄️  Persistent storage keys & helpers
-│               ├── types.rs               # 🧬 Escrow struct + EscrowStatus enum
-│               ├── events.rs              # 📣 On-chain event emission
-│               ├── errors.rs              # 🛡️  Typed contract errors
-│               └── test.rs               # 🧪 Unit tests (mock auths + test tokens)
+│               ├── lib.rs              #  Contract entry points & constructor
+│               ├── escrow.rs           #  Core logic: initialize / deposit / confirm / release / refund
+│               ├── storage.rs          #  Persistent storage keys & helpers
+│               ├── types.rs            #  Escrow struct + EscrowStatus enum
+│               ├── events.rs           #  On-chain event emission
+│               ├── errors.rs           #  Typed contract errors
+│               └── test.rs             #  Unit tests (mock auths + test tokens)
 │
-├── ⚙️ backend/                            # 🔌 API LAYER (Node / Express)
-│   ├── server.js                          # App bootstrap + CORS + routes
-│   ├── config/db.js                       # MongoDB connection
+├── backend/                            #  API LAYER (Node / Express)
+│   ├── server.js                       #  App bootstrap + CORS + routes
+│   ├── config/db.js                    #  MongoDB connection
 │   ├── controllers/
-│   │   ├── authController.js              # Register / Login / Google Sign-In
-│   │   ├── escrowController.js            # Escrow CRUD + fund/confirm/release/cancel mirrors
-│   │   ├── historyController.js           # Transaction audit trail
-│   │   └── userController.js              # Profiles & wallet linking
+│   │   ├── authController.js           #  Register / Login / Google Sign-In
+│   │   ├── escrowController.js         #  Escrow CRUD + fund/confirm/release/cancel mirrors
+│   │   ├── historyController.js        #  Transaction audit trail
+│   │   └── userController.js           #  Profiles & wallet linking
 │   ├── middleware/
-│   │   ├── authMiddleware.js              # JWT verification
-│   │   └── roleMiddleware.js              # student / landlord / admin gates
-│   ├── models/                            # Mongoose schemas: User · Escrow · TransactionHistory
-│   ├── routes/                            # REST route definitions
-│   └── services/syncService.js            # Chain ↔ DB reconciliation
+│   │   ├── authMiddleware.js           #  JWT verification
+│   │   └── roleMiddleware.js           #  student / landlord / admin gates
+│   ├── models/                         #  Mongoose schemas: User · Escrow · TransactionHistory
+│   ├── routes/                         #  REST route definitions
+│   └── services/syncService.js         #  Chain ↔ DB reconciliation
 │
-├── 🎨 frontend/                           # 🖥️  CLIENT LAYER (React / Vite / TS)
+├── frontend/                           #  CLIENT LAYER (React / Vite / TS)
 │   ├── src/
-│   │   ├── App.tsx                        # Router: landing + role-protected dashboards
-│   │   ├── api/axios.ts                   # Authenticated API client
+│   │   ├── App.tsx                     #  Router: landing + role-protected dashboards
+│   │   ├── api/axios.ts                #  Authenticated API client
 │   │   ├── services/
-│   │   │   ├── sorobanService.ts          # ⭐ Build → simulate → sign → submit pipeline
-│   │   │   ├── walletService.ts           # Freighter connection
-│   │   │   ├── escrowService.ts           # Backend escrow API
-│   │   │   ├── authService.ts             # Session management
-│   │   │   └── historyService.ts          # Transaction history API
+│   │   │   ├── sorobanService.ts       #  Build → simulate → sign → submit pipeline
+│   │   │   ├── walletService.ts        #  Freighter connection
+│   │   │   ├── escrowService.ts        #  Backend escrow API
+│   │   │   ├── authService.ts          #  Session management
+│   │   │   └── historyService.ts       #  Transaction history API
 │   │   ├── components/
 │   │   │   ├── dashboard/
-│   │   │   │   ├── student/               # 🧑‍🎓 CreateEscrow · MyDeposits · EscrowDetails
-│   │   │   │   ├── landlord/              # 🏠 IncomingEscrows · LandlordEscrowDetails
-│   │   │   │   └── shared/                # Profile · Settings · Transaction history
-│   │   │   └── ui/                        # Landing page: Hero · HowItWorks · Plans · Auth
-│   │   ├── routes/ProtectedRoute.tsx      # Role-based route guard
-│   │   └── hooks/useAuth.ts               # Auth state hook
+│   │   │   │   ├── student/            #  CreateEscrow · MyDeposits · EscrowDetails
+│   │   │   │   ├── landlord/           #  IncomingEscrows · LandlordEscrowDetails
+│   │   │   │   └── shared/             #  Profile · Settings · Transaction history
+│   │   │   └── ui/                     #  Landing page: Hero · HowItWorks · Plans · Auth
+│   │   ├── routes/ProtectedRoute.tsx   #  Role-based route guard
+│   │   └── hooks/useAuth.ts            #  Auth state hook
 │   └── vite.config.ts
 │
-└── package.json                           # Monorepo scripts (dev:frontend / dev:backend)
+└── package.json                        #  Monorepo scripts (dev:frontend / dev:backend)
 ```
 
 > [!NOTE]
 > **Three layers, one rule:** the frontend talks to the chain *directly* for anything involving money (via Freighter + Soroban RPC). The backend never signs, never holds keys, and never touches funds — it only mirrors state for fast dashboards.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
+## Installation
 
-## ⚡ Installation
-
-### ✅ Prerequisites
+### Prerequisites
 
 | Tool | Version | Install |
 |---|---|---|
-| 🦀 Rust | stable | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
-| ⭐ Stellar CLI | latest | `cargo install --locked stellar-cli` |
-| 🟢 Node.js | ≥ 18 | [nodejs.org](https://nodejs.org) |
-| 🍃 MongoDB | ≥ 6 | Local or [Atlas](https://www.mongodb.com/atlas) |
-| 👛 Freighter | latest | [freighter.app](https://www.freighter.app/) browser extension |
+| Rust | stable | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| Stellar CLI | latest | `cargo install --locked stellar-cli` |
+| Node.js | ≥ 18 | [nodejs.org](https://nodejs.org) |
+| MongoDB | ≥ 6 | Local or [Atlas](https://www.mongodb.com/atlas) |
+| Freighter | latest | [freighter.app](https://www.freighter.app/) browser extension |
 
-### 1️⃣ Clone & Install
+### 1 — Clone & Install
 
 ```bash
 git clone https://github.com/your-org/suredeposit.git
@@ -501,7 +481,7 @@ cd frontend && npm install && cd ..
 cd backend && npm install && cd ..
 ```
 
-### 2️⃣ Build & Deploy the Smart Contract
+### 2 — Build & Deploy the Smart Contract
 
 ```bash
 cd contracts/suredeposit
@@ -528,12 +508,12 @@ stellar contract deploy \
   --token <NATIVE_XLM_SAC_ADDRESS>
 ```
 
-> 📋 Copy the printed contract ID (`C...`) — you'll need it in the next step.
+> Copy the printed contract ID (`C...`) — you will need it in the next step.
 
-### 3️⃣ Environment Variables
+### 3 — Environment Variables
 
 <details open>
-<summary><b>🎨 <code>frontend/.env</code></b></summary>
+<summary><b><code>frontend/.env</code></b></summary>
 
 ```env
 VITE_CONTRACT_ID=C...                                        # From step 2
@@ -545,7 +525,7 @@ VITE_GOOGLE_CLIENT_ID=<your-google-oauth-client-id>
 </details>
 
 <details>
-<summary><b>⚙️ <code>backend/.env</code></b></summary>
+<summary><b><code>backend/.env</code></b></summary>
 
 ```env
 PORT=5000
@@ -559,7 +539,7 @@ GOOGLE_CLIENT_ID=<same-as-frontend>
 > [!WARNING]
 > Never commit `.env` files. Both are already covered by `.gitignore` — keep it that way.
 
-### 4️⃣ Run Locally
+### 4 — Run Locally
 
 ```bash
 # Terminal 1 — Backend API
@@ -569,7 +549,7 @@ cd backend && npm run dev        # → http://localhost:5000
 cd frontend && npm run dev       # → http://localhost:5173
 ```
 
-### 5️⃣ Fund Test Wallets
+### 5 — Fund Test Wallets
 
 Create **two** Freighter accounts (student + landlord) and fund each on testnet:
 
@@ -577,15 +557,21 @@ Create **two** Freighter accounts (student + landlord) and fund each on testnet:
 https://friendbot.stellar.org/?addr=G...YOUR_PUBLIC_KEY
 ```
 
-🎉 **You're live.** Register as a student, connect Freighter, and create your first escrow.
+**You're live.** Register as a student, connect Freighter, and create your first escrow.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
+
+<!-- Replace the GIF placeholders below with real screen recordings for maximum impact -->
+
+<img src="docs/assets/flow-create-escrow.gif" alt="Animated walkthrough — creating an escrow" width="90%"/>
+
+<sub>Creating and funding an escrow — end to end</sub>
+
+<br/><br/>
 
 | Landing Page | Student Dashboard |
 |:---:|:---:|
@@ -605,33 +591,31 @@ https://friendbot.stellar.org/?addr=G...YOUR_PUBLIC_KEY
 
 <br/>
 
-<img src="docs/assets/screenshot-mobile.png" alt="Mobile UI" width="280"/>
+<img src="docs/assets/mobile-demo.gif" alt="Mobile UI animated demo" width="260"/>
 
-<sub>📱 Fully responsive — the entire escrow lifecycle works from a phone.</sub>
+<sub>Fully responsive — the entire escrow lifecycle works from a phone.</sub>
 
 </div>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🔄 Workflow
+## Workflow
 
 The complete journey — from a nervous student to a verified, on-chain deposit release:
 
 ```mermaid
 flowchart TD
-    S1["🧑‍🎓 Student registers &<br/>connects Freighter wallet"] --> S2["📝 Creates escrow:<br/>landlord address + deposit amount"]
-    S2 --> S3["📜 initialize() on-chain<br/><sub>Escrow #N — CREATED</sub>"]
-    S3 --> S4["💰 Student signs deposit()<br/><sub>XLM locked in contract — FUNDED</sub>"]
-    S4 --> S5["🏠 Landlord sees escrow<br/>in Incoming Escrows"]
-    S5 --> S6{"🔑 Move-in day:<br/>both confirm?"}
-    S6 -->|"✅ Student confirms"| S7["confirm() — flag 1/2"]
-    S6 -->|"✅ Landlord confirms"| S7
-    S7 --> S8["🟣 PENDING_CONFIRMATION<br/><sub>Both flags true</sub>"]
-    S8 --> S9["🔓 Landlord signs release()<br/><sub>Contract pays landlord — RELEASED</sub>"]
-    S6 -->|"❌ Deal falls through"| S10["↩️ Landlord signs refund()<br/><sub>Contract repays student — CANCELLED</sub>"]
-    S9 --> S11["🔍 Anyone verifies the tx<br/>on Stellar Explorer"]
+    S1["Student registers &<br/>connects Freighter wallet"] --> S2["Creates escrow:<br/>landlord address + deposit amount"]
+    S2 --> S3["initialize() on-chain<br/><sub>Escrow #N — CREATED</sub>"]
+    S3 --> S4["Student signs deposit()<br/><sub>XLM locked in contract — FUNDED</sub>"]
+    S4 --> S5["Landlord sees escrow<br/>in Incoming Escrows"]
+    S5 --> S6{"Move-in day:<br/>both confirm?"}
+    S6 -->|"Student confirms"| S7["confirm() — flag 1/2"]
+    S6 -->|"Landlord confirms"| S7
+    S7 --> S8["PENDING_CONFIRMATION<br/><sub>Both flags true</sub>"]
+    S8 --> S9["Landlord signs release()<br/><sub>Contract pays landlord — RELEASED</sub>"]
+    S6 -->|"Deal falls through"| S10["Landlord signs refund()<br/><sub>Contract repays student — CANCELLED</sub>"]
+    S9 --> S11["Anyone verifies the tx<br/>on Stellar Explorer"]
     S10 --> S11
 
     style S3 fill:#14532d,stroke:#22C55E,color:#fff
@@ -644,36 +628,34 @@ flowchart TD
 > [!TIP]
 > Every step above produces a **transaction hash** shown in the UI. Paste it into [stellar.expert](https://stellar.expert/explorer/testnet) — the entire financial history of your escrow is publicly auditable, forever.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🔐 Security
+## Security
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### ⛓️ On-Chain Guarantees
+### On-Chain Guarantees
 
-- **🔏 Wallet signatures** — every mutating call requires `require_auth()`; the Stellar protocol itself verifies the cryptographic signature before the contract even runs.
-- **👮 Role authorization** — `deposit` only from the recorded student, `release`/`refund` only from the recorded landlord. Checked per-escrow, not globally.
-- **🚦 State-machine enforcement** — no funded twice, no released twice, no release before dual confirmation. `InvalidState` blocks every shortcut.
-- **🧊 Immutable custody** — funds sit at `env.current_contract_address()`. No admin key, no owner backdoor, no upgrade switch to drain them.
-- **🔁 Replay protection** — Stellar sequence numbers make every signed transaction single-use; a captured XDR is worthless the moment it's submitted.
-- **🔒 Fixed token binding** — the XLM token address is set once in the constructor and can never be re-pointed.
+- **Wallet signatures** — every mutating call requires `require_auth()`; the Stellar protocol itself verifies the cryptographic signature before the contract even runs.
+- **Role authorization** — `deposit` only from the recorded student, `release`/`refund` only from the recorded landlord. Checked per-escrow, not globally.
+- **State-machine enforcement** — no funding twice, no releasing twice, no release before dual confirmation. `InvalidState` blocks every shortcut.
+- **Immutable custody** — funds sit at `env.current_contract_address()`. No admin key, no owner backdoor, no upgrade switch to drain them.
+- **Replay protection** — Stellar sequence numbers make every signed transaction single-use; a captured XDR is worthless the moment it is submitted.
+- **Fixed token binding** — the XLM token address is set once in the constructor and can never be re-pointed.
 
 </td>
 <td width="50%" valign="top">
 
-### 🖥️ Off-Chain Guarantees
+### Off-Chain Guarantees
 
-- **🎫 JWT authentication** — every API request carries a signed token; sessions are isolated per user.
-- **🌐 Google OAuth** — optional single-sign-on with server-side token verification.
-- **🧱 Role middleware** — student/landlord/admin gates on every route.
-- **🕵️ Ownership checks** — the backend re-verifies that the requester's wallet is *actually a party* to the escrow before mirroring any state change.
-- **🔍 On-chain verification** — the database is a convenience cache; the contract state is authoritative and can be re-read by anyone at any time via public RPC.
-- **🙅 Zero custody** — the backend has no private keys. Even a full server compromise cannot move a single stroop.
+- **JWT authentication** — every API request carries a signed token; sessions are isolated per user.
+- **Google OAuth** — optional single sign-on with server-side token verification.
+- **Role middleware** — student / landlord / admin gates on every route.
+- **Ownership checks** — the backend re-verifies that the requester's wallet is actually a party to the escrow before mirroring any state change.
+- **On-chain verification** — the database is a convenience cache; the contract state is authoritative and can be re-read by anyone at any time via public RPC.
+- **Zero custody** — the backend has no private keys. Even a full server compromise cannot move a single stroop.
 
 </td>
 </tr>
@@ -682,66 +664,62 @@ flowchart TD
 > [!IMPORTANT]
 > **Threat model in one sentence:** compromise the frontend, compromise the backend, compromise the database — and the funds *still* cannot move, because only the student's and landlord's own wallet signatures satisfy the contract.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🗺️ Roadmap
+## Roadmap
 
 ```mermaid
 timeline
     title SureDeposit Journey
-    section ✅ Foundation
+    section Foundation — done
         Contract v1 : initialize · deposit · confirm · release : Unit tests + snapshots
         Testnet : First deployment : Freighter integration
-    section ✅ Product
+    section Product — done
         Dashboards : Student + Landlord flows : Google Sign-In : Transaction history
         Real custody : Token transfers (XLM) : refund() path
-    section 🔄 Now
+    section Now
         Hardening : E2E testnet verification : Deployment polish
-    section 🔮 Next
+    section Next
         Dispute resolution : Arbitration & timeouts
-        Mainnet : Audit → Launch 🚀
+        Mainnet : Audit → Launch
 ```
 
-### ✅ Completed
+### Completed
 
-- [x] 📜 Soroban smart contract — full escrow state machine
-- [x] 🧪 Unit tests with mock auths & test snapshots
-- [x] ⭐ Stellar Testnet deployment
-- [x] 👛 Freighter wallet integration (connect · sign · submit)
-- [x] 💰 Escrow creation, deposit & dual-confirmation flow
-- [x] 🔓 On-chain release flow (end-to-end)
-- [x] 🖥️ Student dashboard — create, track & manage deposits
-- [x] 🏠 Landlord dashboard — incoming escrows, confirm & release
-- [x] 🔑 JWT auth + Google Sign-In with role selection
-- [x] 🧾 Transaction history for both roles
-- [x] 🌐 Production CORS & deployment preparation
+- [x] Soroban smart contract — full escrow state machine
+- [x] Unit tests with mock auths and test snapshots
+- [x] Stellar Testnet deployment
+- [x] Freighter wallet integration (connect · sign · submit)
+- [x] Escrow creation, deposit and dual-confirmation flow
+- [x] On-chain release flow (end-to-end)
+- [x] Student dashboard — create, track and manage deposits
+- [x] Landlord dashboard — incoming escrows, confirm and release
+- [x] JWT auth + Google Sign-In with role selection
+- [x] Transaction history for both roles
+- [x] Production CORS and deployment preparation
 
-### 🔄 In Progress
+### In Progress
 
-- [ ] 💸 Real XLM custody — token `transfer` inside `deposit`/`release`
-- [ ] ↩️ `refund()` — on-chain path returning funds to the student
-- [ ] 🔗 Chain ↔ DB consistency for cancellations
+- [ ] Real XLM custody — token `transfer` inside `deposit` / `release`
+- [ ] `refund()` — on-chain path returning funds to the student
+- [ ] Chain ↔ DB consistency for cancellations
 
-### 🔮 Planned
+### Planned
 
-- [ ] 🔔 Real-time notifications (escrow events → email / push)
-- [ ] ⚖️ Dispute resolution — arbitration with evidence & timeouts
-- [ ] ⏰ Auto-release deadlines (landlord inactivity protection)
-- [ ] 🏢 Property manager multi-unit dashboards
-- [ ] 📱 Mobile app (React Native)
-- [ ] 🪙 USDC support for stable-value deposits
-- [ ] 🛡️ Independent security audit
-- [ ] 🚀 **Stellar Mainnet launch**
+- [ ] Real-time notifications (escrow events → email / push)
+- [ ] Dispute resolution — arbitration with evidence and timeouts
+- [ ] Auto-release deadlines (landlord inactivity protection)
+- [ ] Property manager multi-unit dashboards
+- [ ] Mobile app (React Native)
+- [ ] USDC support for stable-value deposits
+- [ ] Independent security audit
+- [ ] **Stellar Mainnet launch**
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
+## Testing
 
-## 🧪 Testing
-
-### 🦀 Contract Unit Tests
+### Contract Unit Tests
 
 The contract ships with deterministic Rust tests using Soroban's `testutils` — mock authorization, generated addresses, and a real test token:
 
@@ -760,66 +738,60 @@ test result: ok. 2 passed; 0 failed
 
 | Layer | Method | What It Proves |
 |---|---|---|
-| 🦀 **Unit** | `cargo test` + `mock_all_auths` | State machine correctness, error paths, ID uniqueness |
-| 📸 **Snapshots** | `test_snapshots/` JSON | Storage layout is stable across changes |
-| 🚀 **Deployment** | `stellar contract invoke` on testnet | Real network behavior — auth, fees, footprints |
-| 🖱️ **Manual E2E** | Two Freighter wallets | Full lifecycle: create → fund → confirm ×2 → release / refund |
-| 🔍 **Explorer** | [stellar.expert](https://stellar.expert/explorer/testnet) | Independent, third-party verification of every balance change |
+| **Unit** | `cargo test` + `mock_all_auths` | State machine correctness, error paths, ID uniqueness |
+| **Snapshots** | `test_snapshots/` JSON | Storage layout is stable across changes |
+| **Deployment** | `stellar contract invoke` on testnet | Real network behavior — auth, fees, footprints |
+| **Manual E2E** | Two Freighter wallets | Full lifecycle: create → fund → confirm ×2 → release / refund |
+| **Explorer** | [stellar.expert](https://stellar.expert/explorer/testnet) | Independent, third-party verification of every balance change |
 
 > [!TIP]
 > **The ultimate test** is one no mock can fake: watch the student's XLM balance drop on deposit and the landlord's rise on release — on a public block explorer neither party controls.
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🚀 Performance
+## Performance
 
 <div align="center">
 
-### Why Stellar Is the Perfect Chain for Deposits
+### Why Stellar Is the Right Chain for Deposits
 
-| Metric | ⭐ Stellar | Typical L1 | Why It Matters Here |
+| Metric | Stellar | Typical L1 | Why It Matters Here |
 |---|:---:|:---:|---|
-| ⚡ **Finality** | ~5 seconds | 1–15 minutes | A tenant standing at the door gets their confirmation *now* |
-| 💸 **Tx Fee** | ~0.00001 XLM (< $0.01) | $0.50 – $50 | Fees can't eat into a student's deposit |
-| 🔋 **Consensus** | Stellar Consensus Protocol | PoW / PoS | Energy-efficient, no mining, deterministic finality |
-| 🦀 **Contract Safety** | Rust + Soroban host | Solidity / EVM | Memory safety + first-class auth framework |
-| 📈 **Throughput** | 1000s TPS capacity | Varies | Scales to entire rental markets, not just demos |
+| **Finality** | ~5 seconds | 1–15 minutes | A tenant standing at the door gets confirmation immediately |
+| **Tx Fee** | ~0.00001 XLM (< $0.01) | $0.50 – $50 | Fees cannot eat into a student's deposit |
+| **Consensus** | Stellar Consensus Protocol | PoW / PoS | Energy-efficient, no mining, deterministic finality |
+| **Contract Safety** | Rust + Soroban host | Solidity / EVM | Memory safety + first-class auth framework |
+| **Throughput** | 1000s TPS capacity | Varies | Scales to entire rental markets, not just demos |
 
 </div>
 
 > *A $300 student deposit protected for less than a cent, settled before the landlord finishes shaking your hand. That is why Stellar.*
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 🎯 Use Cases
+## Use Cases
 
 <div align="center">
 
-| | Who | How SureDeposit Helps |
-|:---:|---|---|
-| 🧑‍🎓 | **Students** | Move to a new city without fearing the deposit will vanish — funds are provably locked, provably refundable |
-| 🏠 | **Landlords** | Verified proof of funds before handing over keys; zero handling of other people's money; instant reputation via on-chain history |
-| 🏢 | **Property Managers** | Manage dozens of escrows from one dashboard with a complete audit trail per unit |
-| 🏘️ | **Rental Companies** | Replace deposit-holding bank accounts, compliance overhead, and manual refunds with programmable escrow |
-| 🛏️ | **Hostels & PGs** | High-turnover, small-deposit environments where fee-heavy escrow was never viable — until sub-cent transactions |
-| 🎓 | **Universities** | Offer students an official, neutral deposit rail for accommodation partners |
-| 🌏 | **Cross-Border Renters** | International students pay deposits without wire fees, currency friction, or trusting a stranger overseas |
+| Who | How SureDeposit Helps |
+|---|---|
+| **Students** | Move to a new city without fearing the deposit will vanish — funds are provably locked, provably refundable |
+| **Landlords** | Verified proof of funds before handing over keys; zero handling of other people's money; on-chain reputation |
+| **Property Managers** | Manage dozens of escrows from one dashboard with a complete audit trail per unit |
+| **Rental Companies** | Replace deposit-holding bank accounts, compliance overhead, and manual refunds with programmable escrow |
+| **Hostels & PGs** | High-turnover, small-deposit environments where fee-heavy escrow was never viable — until sub-cent transactions |
+| **Universities** | Offer students an official, neutral deposit rail for accommodation partners |
+| **Cross-Border Renters** | International students pay deposits without wire fees, currency friction, or trusting a stranger overseas |
 
 </div>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
+## Contributing
 
-## 🤝 Contributing
+Contributions are welcome — from typo fixes to new contract features, every PR makes rental markets fairer.
 
-We love contributors! SureDeposit is open source and every PR — from typo fixes to new contract features — makes rental markets fairer.
-
-### 🚀 Quick Start
+### Quick Start
 
 ```bash
 # 1. Fork the repository
@@ -836,13 +808,13 @@ npm run dev           # frontend / backend smoke test
 # 5. Commit using Conventional Commits
 git commit -m "feat(contract): add auto-release deadline"
 
-# 6. Push & open a Pull Request 🎉
+# 6. Push & open a Pull Request
 ```
 
-### 📏 Standards
+### Standards
 
 <details>
-<summary><b>Commit Convention</b> — click to expand</summary>
+<summary><b>Commit Convention</b></summary>
 
 <br/>
 
@@ -862,37 +834,35 @@ Scopes: `contract`, `frontend`, `backend`, `docs` — e.g. `feat(contract): ...`
 </details>
 
 <details>
-<summary><b>Pull Request Guidelines</b> — click to expand</summary>
+<summary><b>Pull Request Guidelines</b></summary>
 
 <br/>
 
-- ✅ One focused change per PR
-- ✅ `cargo test` passes for any contract change
-- ✅ No `.env` files, secrets, or private keys — ever
-- ✅ Screenshots/GIFs for UI changes
-- ✅ Contract changes must include updated tests **and** a note on state-machine impact
-- ✅ Describe *why*, not just *what*
+- One focused change per PR
+- `cargo test` passes for any contract change
+- No `.env` files, secrets, or private keys — ever
+- Screenshots / GIFs for UI changes
+- Contract changes must include updated tests **and** a note on state-machine impact
+- Describe *why*, not just *what*
 
 </details>
 
 <details>
-<summary><b>Reporting Issues</b> — click to expand</summary>
+<summary><b>Reporting Issues</b></summary>
 
 <br/>
 
-**🐛 Bug reports** — include: steps to reproduce, expected vs. actual behavior, network (testnet/local), browser + Freighter version, and the transaction hash if on-chain.
+**Bug reports** — include: steps to reproduce, expected vs. actual behavior, network (testnet / local), browser + Freighter version, and the transaction hash if on-chain.
 
-**💡 Feature requests** — include: the problem it solves, who benefits (student / landlord / both), and whether it touches the contract state machine.
+**Feature requests** — include: the problem it solves, who benefits (student / landlord / both), and whether it touches the contract state machine.
 
-**🔒 Security issues** — please **do not** open a public issue. Email the maintainers directly.
+**Security issues** — please **do not** open a public issue. Email the maintainers directly.
 
 </details>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 📄 License
+## License
 
 <div align="center">
 
@@ -916,11 +886,9 @@ See [LICENSE](LICENSE) for the full text.
 
 </div>
 
-<br/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
----
-
-## 👥 Authors
+## Authors
 
 <div align="center">
 
@@ -931,7 +899,7 @@ See [LICENSE](LICENSE) for the full text.
 <br/>
 <b>Khushal</b>
 <br/>
-<sub>🏗️ Creator & Lead Developer</sub>
+<sub>Creator & Lead Developer</sub>
 <br/>
 <sub>Smart Contracts · Full-Stack · Product</sub>
 <br/><br/>
@@ -944,64 +912,62 @@ See [LICENSE](LICENSE) for the full text.
 <br/>
 <b>Your Name Here</b>
 <br/>
-<sub>🌱 Future Contributor</sub>
+<sub>Future Contributor</sub>
 <br/>
 <sub>This spot is waiting for you</sub>
 <br/><br/>
-<a href="#-contributing">
+<a href="#contributing">
 <img src="https://img.shields.io/badge/Join_Us-22C55E?style=flat-square&logo=git&logoColor=white" alt="Contribute"/>
 </a>
 </td>
 </tr>
 </table>
 
-</div>
-
 <br/>
 
----
+<!-- Star history — animates as the repo grows -->
 
-## 🙏 Acknowledgements
+<a href="https://star-history.com/#your-org/suredeposit&Date">
+<img src="https://api.star-history.com/svg?repos=your-org/suredeposit&type=Date&theme=dark" alt="Star History Chart" width="600"/>
+</a>
+
+</div>
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
+
+## Acknowledgements
 
 <div align="center">
 
 Standing on the shoulders of giants:
 
-⭐ **[Stellar Development Foundation](https://stellar.org)** — for a blockchain that makes financial fairness *affordable*
+**[Stellar Development Foundation](https://stellar.org)** — for a blockchain that makes financial fairness affordable
 
-📜 **[Soroban](https://soroban.stellar.org)** — for bringing Rust-grade safety to smart contracts
+**[Soroban](https://soroban.stellar.org)** — for bringing Rust-grade safety to smart contracts
 
-🦀 **[The Rust Community](https://www.rust-lang.org/community)** — for a language where financial bugs go to die
+**[The Rust Community](https://www.rust-lang.org/community)** — for a language where financial bugs go to die
 
-⚛️ **[React](https://react.dev)** & **[Vite](https://vitejs.dev)** & **[Tailwind CSS](https://tailwindcss.com)** — for making beautiful UIs fast to build
+**[React](https://react.dev)** · **[Vite](https://vitejs.dev)** · **[Tailwind CSS](https://tailwindcss.com)** — for making beautiful UIs fast to build
 
-👛 **[Freighter](https://www.freighter.app/)** — for frictionless, non-custodial signing
+**[Freighter](https://www.freighter.app/)** — for frictionless, non-custodial signing
 
-🏆 **Hackathon organizers & mentors** — for the deadline that turned an idea into a product
+**Hackathon organizers & mentors** — for the deadline that turned an idea into a product
 
-💚 **The Open Source Community** — for every library, answer, and example that made this possible
+**The Open Source Community** — for every library, answer, and example that made this possible
 
 </div>
 
-<br/>
-
----
-
-<!-- ─────────────────────────────────────────────────────────────── -->
-<!--                           FOOTER                                -->
-<!-- ─────────────────────────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!--                              FOOTER                                 -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
 
 <div align="center">
 
 <br/>
 
-<img src="docs/assets/footer-banner.svg" alt="SureDeposit Footer Banner" width="100%"/>
+### SureDeposit
 
-<br/><br/>
-
-### 🏠 SureDeposit
-
-**Made with ❤️ · Built on ⭐ Stellar · Powered by 📜 Soroban**
+**Made with care · Built on Stellar · Powered by Soroban**
 
 <br/>
 
@@ -1012,12 +978,14 @@ Standing on the shoulders of giants:
 
 <br/>
 
-⭐ **If SureDeposit made you rethink how deposits should work — star the repo. It helps more than you know.** ⭐
+**If SureDeposit made you rethink how deposits should work — star the repo.**
 
 <br/>
 
 <sub>© 2026 SureDeposit Contributors · Released under the MIT License</sub>
 
-<sub>*No deposits were harmed in the making of this project.*</sub>
+<!-- Animated wave footer -->
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:7C3AED,50:4C1D95,100:0F172A&height=140&section=footer" width="100%" alt=""/>
 
 </div>
