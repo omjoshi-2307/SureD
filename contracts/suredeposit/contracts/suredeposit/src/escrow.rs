@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Env};
+use soroban_sdk::{token, Address, Env};
 
 use crate::{
     errors::ContractError,
@@ -11,7 +11,6 @@ pub fn initialize(
     landlord: Address,
     amount: i128,
 ) -> Result<Escrow, ContractError> {
-
     // Validation 1
     if amount <= 0 {
         return Err(ContractError::InvalidAmount);
@@ -51,14 +50,9 @@ pub fn initialize(
     Ok(escrow)
 }
 
-pub fn deposit(
-    env: &Env,
-    escrow_id: u64,
-    caller: Address,
-) -> Result<Escrow, ContractError> {
-
-    let mut escrow = crate::storage::get_escrow(env, escrow_id)
-        .ok_or(ContractError::EscrowNotFound)?;
+pub fn deposit(env: &Env, escrow_id: u64, caller: Address) -> Result<Escrow, ContractError> {
+    let mut escrow =
+        crate::storage::get_escrow(env, escrow_id).ok_or(ContractError::EscrowNotFound)?;
 
     // Only the student can deposit
     if caller != escrow.student {
@@ -68,31 +62,29 @@ pub fn deposit(
     caller.require_auth();
 
     // Deposit is only allowed once
+    // Deposit is only allowed once
     if escrow.status != EscrowStatus::Created {
         return Err(ContractError::InvalidState);
     }
+
+    // Transfer XLM from student to this contract
+    let token_addr = crate::storage::get_token(env);
+    let client = token::Client::new(env, &token_addr);
+
+    client.transfer(&caller, &env.current_contract_address(), &escrow.amount);
 
     escrow.status = EscrowStatus::Funded;
 
     crate::storage::save_escrow(env, escrow_id, &escrow);
 
-    crate::events::escrow_funded(
-        env,
-        escrow_id,
-        &escrow.student,
-    );
+    crate::events::escrow_funded(env, escrow_id, &escrow.student);
 
     Ok(escrow)
 }
 
-pub fn confirm(
-    env: &Env,
-    escrow_id: u64,
-    caller: Address,
-) -> Result<Escrow, ContractError> {
-
-    let mut escrow = crate::storage::get_escrow(env, escrow_id)
-        .ok_or(ContractError::EscrowNotFound)?;
+pub fn confirm(env: &Env, escrow_id: u64, caller: Address) -> Result<Escrow, ContractError> {
+    let mut escrow =
+        crate::storage::get_escrow(env, escrow_id).ok_or(ContractError::EscrowNotFound)?;
 
     if escrow.status != EscrowStatus::Funded {
         return Err(ContractError::InvalidState);
@@ -101,25 +93,19 @@ pub fn confirm(
     caller.require_auth();
 
     if caller == escrow.student {
-
         if escrow.student_confirmed {
             return Err(ContractError::AlreadyConfirmed);
         }
 
         escrow.student_confirmed = true;
-
     } else if caller == escrow.landlord {
-
         if escrow.landlord_confirmed {
             return Err(ContractError::AlreadyConfirmed);
         }
 
         escrow.landlord_confirmed = true;
-
     } else {
-
         return Err(ContractError::Unauthorized);
-
     }
 
     // If both parties have confirmed, update the status
@@ -134,20 +120,15 @@ pub fn confirm(
     Ok(escrow)
 }
 
-pub fn release(
-    env: &Env,
-    escrow_id: u64,
-    caller: Address,
-) -> Result<Escrow, ContractError> {
-
-    let mut escrow = crate::storage::get_escrow(env, escrow_id)
-        .ok_or(ContractError::EscrowNotFound)?;
+pub fn release(env: &Env, escrow_id: u64, caller: Address) -> Result<Escrow, ContractError> {
+    let mut escrow =
+        crate::storage::get_escrow(env, escrow_id).ok_or(ContractError::EscrowNotFound)?;
 
     caller.require_auth();
 
     if caller != escrow.landlord {
-    return Err(ContractError::Unauthorized);
-}
+        return Err(ContractError::Unauthorized);
+    }
 
     if escrow.status == EscrowStatus::Released {
         return Err(ContractError::AlreadyReleased);
@@ -157,16 +138,59 @@ pub fn release(
         return Err(ContractError::InvalidState);
     }
 
+    // Transfer XLM from the contract to the landlord
+    let token_addr = crate::storage::get_token(env);
+    let client = token::Client::new(env, &token_addr);
+
+    client.transfer(
+        &env.current_contract_address(),
+        &escrow.landlord,
+        &escrow.amount,
+    );
+
     escrow.status = EscrowStatus::Released;
 
     crate::storage::save_escrow(env, escrow_id, &escrow);
 
-crate::events::escrow_released(
-    env,
-    escrow_id,
-    &escrow.landlord,
-    escrow.amount,
-);
+    crate::events::escrow_released(env, escrow_id, &escrow.landlord, escrow.amount);
 
-Ok(escrow)
+    Ok(escrow)
+}
+
+pub fn refund(
+    env: &Env,
+    escrow_id: u64,
+    caller: Address,
+) -> Result<Escrow, ContractError> {
+    let mut escrow = crate::storage::get_escrow(env, escrow_id)
+        .ok_or(ContractError::EscrowNotFound)?;
+
+    caller.require_auth();
+
+    // Only the landlord can refund
+    if caller != escrow.landlord {
+        return Err(ContractError::Unauthorized);
+    }
+
+    // Refund only while the contract holds funds
+    if escrow.status != EscrowStatus::Funded
+        && escrow.status != EscrowStatus::PendingConfirmation
+    {
+        return Err(ContractError::InvalidState);
+    }
+
+    let token_addr = crate::storage::get_token(env);
+    let client = token::Client::new(env, &token_addr);
+
+    client.transfer(
+        &env.current_contract_address(),
+        &escrow.student,
+        &escrow.amount,
+    );
+
+    escrow.status = EscrowStatus::Cancelled;
+
+    crate::storage::save_escrow(env, escrow_id, &escrow);
+
+    Ok(escrow)
 }
