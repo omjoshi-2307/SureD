@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
 import { getEscrowDb } from '@/services/escrowService';
 
-const C = { orange: '#E8734A', orangeLight: '#F0956B', border: '#EEEEEE', textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA', white: '#FFFFFF' };
-const font = "'Poppins', sans-serif";
+const C = { orange: '#A78BFA', orangeLight: '#8B5CF6', border: 'rgba(255,255,255,0.08)', textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)', white: '#FFFFFF' };
+const font = "'Inter', sans-serif";
 
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -32,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const SkeletonBlock = ({ w = '100%', h = 14, mb = 10 }: { w?: string | number; h?: number; mb?: number }) => (
-  <div style={{ height: h, width: w, background: '#F0F0F0', borderRadius: 6, marginBottom: mb, animation: 'edPulse 1.4s infinite ease-in-out' }} />
+  <div style={{ height: h, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 6, marginBottom: mb, animation: 'edPulse 1.4s infinite ease-in-out' }} />
 );
 
 const EscrowDetails: React.FC = () => {
@@ -71,7 +71,7 @@ const EscrowDetails: React.FC = () => {
     : '—';
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="student"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -124,7 +124,7 @@ const EscrowDetails: React.FC = () => {
         }}>
           <div style={{
             position: 'absolute', right: -20, top: -20, width: 180, height: 180, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(74,207,122,0.2) 0%, transparent 70%)', pointerEvents: 'none',
+            background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)', pointerEvents: 'none',
           }} />
           <div style={{ fontSize: '3.5rem' }}>✅</div>
           <div>
@@ -133,13 +133,13 @@ const EscrowDetails: React.FC = () => {
             </h1>
             <p style={{ font, fontSize: '0.88rem', color: 'rgba(255,255,255,0.75)', marginBottom: 12 }}>
               Your rental deposit is now locked in a secure escrow. Escrow ID:{' '}
-              <span style={{ fontWeight: 700, color: '#4ACF7A' }}>{escrowLabel}</span>
+              <span style={{ fontWeight: 700, color: '#10B981' }}>{escrowLabel}</span>
             </p>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(74,207,122,0.2)', border: '1px solid rgba(74,207,122,0.4)',
+              background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)',
               borderRadius: 50, padding: '5px 14px',
-              font, fontWeight: 700, fontSize: '0.75rem', color: '#4ACF7A',
+              font, fontWeight: 700, fontSize: '0.75rem', color: '#10B981',
             }}>● Active &amp; Locked</span>
           </div>
         </div>
@@ -149,7 +149,7 @@ const EscrowDetails: React.FC = () => {
       {!fetchLoading && escrow && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, ...fadeIn(120) }}>
           {/* Escrow Info */}
-          <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
             <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18 }}>📋 Escrow Information</div>
             {[
               { label: 'Escrow ID', value: escrowLabel, bold: true, accent: true },
@@ -167,7 +167,7 @@ const EscrowDetails: React.FC = () => {
           </div>
 
           {/* Financial Info */}
-          <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
             <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18 }}>💰 Financial Summary</div>
             {[
               { label: 'Deposit Amount', value: `${escrow.depositAmount} ${escrow.currency}`, highlight: true },
@@ -197,18 +197,18 @@ const EscrowDetails: React.FC = () => {
             font, fontWeight: 700, fontSize: '0.88rem', color: '#fff', border: 'none',
             borderRadius: 50, padding: '13px 28px', cursor: 'pointer',
             background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
-            boxShadow: '0 6px 20px rgba(232,115,74,0.35)',
+            boxShadow: '0 6px 20px rgba(124,92,255,0.35)',
             transition: 'transform 0.2s, box-shadow 0.2s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(232,115,74,0.45)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(232,115,74,0.35)'; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(124,92,255,0.45)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,92,255,0.35)'; }}
         >
           🏠 Back to Dashboard
         </button>
         <button
           onClick={() => navigate('/student/create-escrow')}
           style={{
-            font, fontWeight: 600, fontSize: '0.88rem', color: C.textMid, background: C.white,
+            font, fontWeight: 600, fontSize: '0.88rem', color: C.textMid, background: 'rgba(255,255,255,0.04)',
             border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '13px 28px',
             cursor: 'pointer', transition: 'all 0.25s',
           }}

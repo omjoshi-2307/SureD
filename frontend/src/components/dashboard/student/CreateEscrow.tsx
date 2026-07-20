@@ -7,11 +7,11 @@ import API from '@/api/axios';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  bg: '#F4F6FA', white: '#FFFFFF', border: '#EEEEEE',
-  textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  bg: '#0B0A10', white: '#FFFFFF', border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 /* ─── Shared nav items (must match StudentDashboard) ─────────────── */
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
@@ -59,7 +59,7 @@ const NETWORK_FEE  = 3;
 /* ─── Small reusable card shell ──────────────────────────────────── */
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
   <div style={{
-    background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
+    background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`,
     boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px',
     ...style,
   }}>
@@ -77,18 +77,19 @@ const SectionTitle = ({ label }: { label: string }) => (
 const inputBase: React.CSSProperties = {
   width: '100%', padding: '12px 14px', borderRadius: 12,
   border: `1.5px solid ${C.border}`, font, fontSize: '0.88rem',
-  outline: 'none', background: '#FAFAFA', color: C.textDark,
-  transition: 'border-color 0.2s, box-shadow 0.2s', boxSizing: 'border-box',
+  outline: 'none', background: 'rgba(255,255,255,0.03)', color: C.textDark,
+  colorScheme: 'dark', caretColor: '#A78BFA',
+  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s', boxSizing: 'border-box',
 };
 const focusIn  = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
   e.currentTarget.style.borderColor = C.orange;
-  e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(232,115,74,0.14)';
-  e.currentTarget.style.background  = C.white;
+  e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(124,92,255,0.14)';
+  e.currentTarget.style.background  = 'rgba(255,255,255,0.06)';
 };
 const focusOut = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
   e.currentTarget.style.borderColor = C.border;
   e.currentTarget.style.boxShadow   = 'none';
-  e.currentTarget.style.background  = '#FAFAFA';
+  e.currentTarget.style.background  = 'rgba(255,255,255,0.03)';
 };
 const Label = ({ children }: { children: React.ReactNode }) => (
   <label style={{ font, fontWeight: 700, fontSize: '0.78rem', color: C.textMid, display: 'block', marginBottom: 7 }}>
@@ -100,7 +101,7 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 const Stars = ({ rating }: { rating: number }) => (
   <span style={{ display: 'inline-flex', gap: 2 }}>
     {[1,2,3,4,5].map(s => (
-      <span key={s} style={{ color: s <= Math.round(rating) ? '#F0A34A' : '#E0E0E0', fontSize: '0.8rem' }}>★</span>
+      <span key={s} style={{ color: s <= Math.round(rating) ? '#F59E0B' : 'rgba(255,255,255,0.12)', fontSize: '0.8rem' }}>★</span>
     ))}
     <span style={{ font, fontSize: '0.75rem', color: C.textMid, marginLeft: 4 }}>{rating}</span>
   </span>
@@ -109,7 +110,7 @@ const Stars = ({ rating }: { rating: number }) => (
 /* ─── Skeleton shimmer ────────────────────────────────────────────── */
 const Skeleton = ({ w = '100%', h = 16, br = 8 }: { w?: string | number; h?: number; br?: number }) => (
   <div style={{
-    width: w, height: h, borderRadius: br, background: 'linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)',
+    width: w, height: h, borderRadius: br, background: 'linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%)',
     backgroundSize: '200% 100%',
     animation: 'shimmerSkeleton 1.4s ease-in-out infinite',
   }} />
@@ -120,11 +121,12 @@ const Toast = ({ visible, message, isError }: { visible: boolean; message: strin
   <div style={{
     position: 'fixed', bottom: 28, right: 28, zIndex: 9999,
     background: isError
-      ? 'linear-gradient(135deg, #2E1A1A, #4E2E2E)'
-      : 'linear-gradient(135deg, #1A2E1A, #2E4E2E)',
+      ? 'rgba(40,16,20,0.95)'
+      : 'rgba(14,26,22,0.95)',
     color: '#fff', borderRadius: 14, padding: '14px 22px',
     font, fontWeight: 600, fontSize: '0.88rem',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
     display: 'flex', alignItems: 'center', gap: 10,
     opacity: visible ? 1 : 0,
     transform: visible ? 'translateY(0)' : 'translateY(20px)',
@@ -132,7 +134,7 @@ const Toast = ({ visible, message, isError }: { visible: boolean; message: strin
     pointerEvents: 'none',
     maxWidth: 420,
   }}>
-    <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>{isError ? '❌' : '✅'}</span>
+    <span style={{ width: 9, height: 9, borderRadius: '50%', flexShrink: 0, background: isError ? '#F87171' : '#34D399', boxShadow: isError ? '0 0 10px rgba(248,113,113,0.8)' : '0 0 10px rgba(52,211,153,0.8)' }} />
     <span style={{ wordBreak: 'break-word' }}>{message}</span>
   </div>
 );
@@ -315,7 +317,7 @@ const CreateEscrow: React.FC = () => {
   `;
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="student"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -388,21 +390,17 @@ const CreateEscrow: React.FC = () => {
                 </div>
 
                 {/* Dropdown */}
-                {console.log({ dropdownOpen, search, filteredLength: filteredProps.length, selectedProperty: selectedProp?.name })}
                 {dropdownOpen && filteredProps.length > 0 && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                    background: C.white, border: `1.5px solid ${C.border}`,
-                    borderRadius: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-                    marginTop: 4, overflow: 'visible',
+                    background: '#16141F', border: '1px solid rgba(255,255,255,0.12)',
+                    borderTop: '1px solid rgba(224,215,255,0.25)',
+                    borderRadius: 12, boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 32px rgba(124,92,255,0.12)',
+                    marginTop: 6,
                     maxHeight: 320, overflowY: 'auto',
+                    animation: 'fadeUpCard 0.25s ease',
                   }}>
-                    {console.log("Dropdown open:", dropdownOpen)}
-                    {console.log("Search:", search)}
-                    {console.log("Filtered length:", filteredProps.length)}
-                    {console.log(filteredProps)}
                     {filteredProps.map((p, i) => {
-                      console.log("Rendering property:", p.id, p.name);
                       return (
                       <button
                         key={p.id}
@@ -415,7 +413,7 @@ const CreateEscrow: React.FC = () => {
                           transition: 'background 0.15s',
                           font,
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.06)')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.06)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
                         <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{p.emoji}</span>
@@ -447,7 +445,7 @@ const CreateEscrow: React.FC = () => {
 
               {selectedProp && !propLoading && (
                 <div style={{
-                  marginTop: 20, border: `1.5px solid rgba(232,115,74,0.25)`,
+                  marginTop: 20, border: `1.5px solid rgba(124,92,255,0.25)`,
                   borderRadius: 14, overflow: 'hidden',
                   animation: 'fadeUpCard 0.5s ease forwards',
                 }}>
@@ -455,13 +453,13 @@ const CreateEscrow: React.FC = () => {
 
                   {/* Property "image" banner */}
                   <div style={{
-                    height: 130, background: `linear-gradient(135deg, rgba(232,115,74,0.18), rgba(240,149,107,0.12))`,
+                    height: 130, background: `linear-gradient(135deg, rgba(124,92,255,0.22), rgba(233,97,245,0.12))`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
                   }}>
                     <span style={{ fontSize: '4rem', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>{selectedProp.emoji}</span>
                     <span style={{
                       position: 'absolute', top: 10, right: 10,
-                      background: '#4ACF7A', color: '#fff',
+                      background: '#10B981', color: '#fff',
                       font, fontWeight: 700, fontSize: '0.7rem',
                       borderRadius: 50, padding: '4px 10px',
                     }}>● {selectedProp.available}</span>
@@ -486,7 +484,7 @@ const CreateEscrow: React.FC = () => {
                         { label: 'Lease',         value: selectedProp.lease },
                       ].map(s => (
                         <div key={s.label} style={{
-                          background: '#FAFAFA', border: `1px solid ${C.border}`,
+                          background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}`,
                           borderRadius: 10, padding: '10px 12px', textAlign: 'center',
                         }}>
                           <div style={{ font, fontWeight: 800, fontSize: '0.9rem', color: C.textDark }}>{s.value}</div>
@@ -510,10 +508,10 @@ const CreateEscrow: React.FC = () => {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <span style={{ font, fontSize: '0.72rem', fontWeight: 600, color: C.textMid, background: '#F5F5F5', border: `1px solid ${C.border}`, borderRadius: 50, padding: '4px 10px' }}>
+                        <span style={{ font, fontSize: '0.72rem', fontWeight: 600, color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, borderRadius: 50, padding: '4px 10px' }}>
                           {selectedProp.type}
                         </span>
-                        <span style={{ font, fontSize: '0.72rem', fontWeight: 600, color: C.textMid, background: '#F5F5F5', border: `1px solid ${C.border}`, borderRadius: 50, padding: '4px 10px' }}>
+                        <span style={{ font, fontSize: '0.72rem', fontWeight: 600, color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, borderRadius: 50, padding: '4px 10px' }}>
                           {selectedProp.rooms} {selectedProp.rooms === 1 ? 'Room' : 'Rooms'}
                         </span>
                       </div>
@@ -546,7 +544,7 @@ const CreateEscrow: React.FC = () => {
                 <div>
                   <Label>Currency</Label>
                   <select value={currency} onChange={e => setCurrency(e.target.value)}
-                    style={{ ...inputBase, cursor: 'pointer' }}
+                    style={{ ...inputBase, cursor: 'pointer', background: '#16141F' }}
                     onFocus={focusIn} onBlur={focusOut}>
                     <option value="XLM">XLM — Stellar Lumens</option>
                     <option value="GBP">GBP — British Pound</option>
@@ -573,7 +571,7 @@ const CreateEscrow: React.FC = () => {
                 <div style={{ gridColumn: '1 / -1' }}>
                   <Label>Purpose of Deposit</Label>
                   <select value={purpose} onChange={e => setPurpose(e.target.value)}
-                    style={{ ...inputBase, cursor: 'pointer' }}
+                    style={{ ...inputBase, cursor: 'pointer', background: '#16141F' }}
                     onFocus={focusIn} onBlur={focusOut}>
                     <option value="security">Security Deposit</option>
                     <option value="advance">Advance Rent</option>
@@ -598,8 +596,8 @@ const CreateEscrow: React.FC = () => {
               ].map(clause => (
                 <div key={clause.title} style={{
                   display: 'flex', gap: 14, padding: '14px 16px',
-                  borderRadius: 12, background: 'rgba(232,115,74,0.04)',
-                  border: `1px solid rgba(232,115,74,0.12)`,
+                  borderRadius: 12, background: 'rgba(124,92,255,0.04)',
+                  border: `1px solid rgba(124,92,255,0.12)`,
                   marginBottom: 10,
                 }}>
                   <span style={{ fontSize: '1.25rem', flexShrink: 0, marginTop: 1 }}>{clause.icon}</span>
@@ -619,7 +617,7 @@ const CreateEscrow: React.FC = () => {
                   onClick={() => setAgreed(v => !v)}
                   style={{
                     width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
-                    border: `2px solid ${agreed ? C.orange : '#D0D0D0'}`,
+                    border: `2px solid ${agreed ? C.orange : 'rgba(255,255,255,0.25)'}`,
                     background: agreed ? C.orange : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.2s ease',
@@ -646,7 +644,7 @@ const CreateEscrow: React.FC = () => {
 
           {/* ── 4. Help Section ── */}
           <div style={fadeIn(280)}>
-            <Card style={{ background: 'linear-gradient(135deg, rgba(232,115,74,0.06), rgba(240,149,107,0.04))', border: `1px solid rgba(232,115,74,0.18)` }}>
+            <Card style={{ background: 'linear-gradient(135deg, rgba(124,92,255,0.08), rgba(233,97,245,0.04))', border: `1px solid rgba(124,92,255,0.18)` }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                 <div>
                   <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 6 }}>
@@ -659,12 +657,12 @@ const CreateEscrow: React.FC = () => {
                   <div style={{ display: 'flex', gap: 10 }}>
                     <a href="#" onClick={e => e.preventDefault()} style={{
                       font, fontWeight: 600, fontSize: '0.8rem', color: C.orange,
-                      border: `1.5px solid rgba(232,115,74,0.4)`,
+                      border: `1.5px solid rgba(124,92,255,0.4)`,
                       borderRadius: 50, padding: '7px 16px', textDecoration: 'none',
                       transition: 'all 0.2s',
                       display: 'inline-block',
                     }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.1)')}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.1)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       📚 View FAQ
@@ -673,11 +671,11 @@ const CreateEscrow: React.FC = () => {
                       font, fontWeight: 600, fontSize: '0.8rem', color: C.white,
                       background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
                       border: 'none', borderRadius: 50, padding: '7px 16px',
-                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)',
+                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)',
                       transition: 'transform 0.2s, box-shadow 0.2s',
                     }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(232,115,74,0.4)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(232,115,74,0.3)'; }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,92,255,0.4)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,92,255,0.3)'; }}
                     >
                       💬 Contact Support
                     </button>
@@ -695,7 +693,7 @@ const CreateEscrow: React.FC = () => {
               onClick={() => navigate('/student/dashboard')}
               style={{
                 font, fontWeight: 600, fontSize: '0.88rem', color: C.textMid,
-                background: C.white, border: `1.5px solid ${C.border}`,
+                background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`,
                 borderRadius: 50, padding: '13px 28px', cursor: 'pointer',
                 transition: 'all 0.25s',
               }}
@@ -709,19 +707,19 @@ const CreateEscrow: React.FC = () => {
             <button
               onClick={handleCreate}
               disabled={!canSubmit || submitting}
-              className={canSubmit && !submitting ? 'btn-shimmer' : ''}
+              className={canSubmit && !submitting ? 'btn-glow' : ''}
               style={{
                 font, fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px',
                 color: '#fff', border: 'none', borderRadius: 50, padding: '13px 32px',
                 cursor: canSubmit && !submitting ? 'pointer' : 'not-allowed',
                 opacity: canSubmit && !submitting ? 1 : 0.45,
-                background: canSubmit && !submitting ? undefined : '#CCCCCC',
-                boxShadow: canSubmit && !submitting ? '0 8px 28px rgba(232,115,74,0.4)' : 'none',
+                background: canSubmit && !submitting ? undefined : 'rgba(255,255,255,0.15)',
+                boxShadow: canSubmit && !submitting ? '0 8px 28px rgba(124,92,255,0.4)' : 'none',
                 transition: 'opacity 0.3s, transform 0.25s, box-shadow 0.25s',
                 display: 'flex', alignItems: 'center', gap: 8,
               }}
-              onMouseEnter={e => { if (canSubmit && !submitting) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,115,74,0.5)'; } }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = canSubmit && !submitting ? '0 8px 28px rgba(232,115,74,0.4)' : 'none'; }}
+              onMouseEnter={e => { if (canSubmit && !submitting) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(124,92,255,0.5)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = canSubmit && !submitting ? '0 8px 28px rgba(124,92,255,0.4)' : 'none'; }}
             >
               {submitting ? (
                 <>
@@ -734,7 +732,7 @@ const CreateEscrow: React.FC = () => {
                 </>
               ) : (
                 <>
-                  🔐 Create Escrow
+                  Create Escrow
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
@@ -749,7 +747,7 @@ const CreateEscrow: React.FC = () => {
 
           {/* ── Payment Summary (sticky) ── */}
           <div style={{ position: 'sticky', top: 88 }}>
-            <Card style={{ border: `1.5px solid rgba(232,115,74,0.22)` }}>
+            <Card style={{ border: `1.5px solid rgba(124,92,255,0.22)` }}>
               <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
                 💰 Payment Summary
               </div>
@@ -763,7 +761,7 @@ const CreateEscrow: React.FC = () => {
               ].map(row => (
                 <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <span style={{ font, fontSize: '0.82rem', color: C.textMid }}>{row.label}</span>
-                  <span style={{ font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark }}>{row.value}</span>
+                  <span className="mono-addr" style={{ fontWeight: 500, fontSize: '0.85rem', color: C.textDark }}>{row.value}</span>
                 </div>
               ))}
 
@@ -773,7 +771,7 @@ const CreateEscrow: React.FC = () => {
               {/* Total */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ font, fontWeight: 700, fontSize: '0.9rem', color: C.textDark }}>Estimated Total</span>
-                <span style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.orange }}>{deposit > 0 ? `${currency} ${total.toLocaleString()}` : '—'}</span>
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '1.15rem', color: '#E0D7FF', letterSpacing: '-0.3px' }}>{deposit > 0 ? `${currency} ${total.toLocaleString()}` : '—'}</span>
               </div>
 
               {/* Escrow Status Badge */}
@@ -781,16 +779,18 @@ const CreateEscrow: React.FC = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '10px', borderRadius: 10,
                 background: agreed && selectedProp && deposit > 0
-                  ? 'rgba(74,207,122,0.1)'
-                  : 'rgba(240,163,74,0.1)',
-                border: `1px solid ${agreed && selectedProp && deposit > 0 ? 'rgba(74,207,122,0.3)' : 'rgba(240,163,74,0.3)'}`,
+                  ? 'rgba(16,185,129,0.1)'
+                  : 'rgba(46,107,255,0.1)',
+                border: `1px solid ${agreed && selectedProp && deposit > 0 ? 'rgba(16,185,129,0.3)' : 'rgba(46,107,255,0.3)'}`,
               }}>
-                <span style={{ fontSize: '0.85rem' }}>
-                  {agreed && selectedProp && deposit > 0 ? '✅' : '⏳'}
-                </span>
+                {agreed && selectedProp && deposit > 0 ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                ) : (
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#6E9BFF', animation: 'statusPulse 2s ease-in-out infinite', display: 'inline-block' }} />
+                )}
                 <span style={{
                   font, fontWeight: 700, fontSize: '0.78rem',
-                  color: agreed && selectedProp && deposit > 0 ? '#2AAF5C' : '#C07A12',
+                  color: agreed && selectedProp && deposit > 0 ? '#10B981' : '#6E9BFF',
                 }}>
                   {agreed && selectedProp && deposit > 0 ? 'Ready to Lock' : 'Awaiting Details'}
                 </span>
@@ -817,12 +817,12 @@ const CreateEscrow: React.FC = () => {
                       background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       font, fontWeight: 700, fontSize: '0.8rem', color: '#fff',
-                      boxShadow: '0 3px 10px rgba(232,115,74,0.35)',
+                      boxShadow: '0 3px 10px rgba(124,92,255,0.35)',
                     }}>
                       {s.icon}
                     </div>
                     {i < arr.length - 1 && (
-                      <div style={{ width: 2, flex: 1, minHeight: 28, background: 'linear-gradient(180deg, rgba(232,115,74,0.4), rgba(232,115,74,0.1))', margin: '4px 0' }} />
+                      <div style={{ width: 2, flex: 1, minHeight: 28, background: 'linear-gradient(180deg, rgba(124,92,255,0.4), rgba(124,92,255,0.1))', margin: '4px 0' }} />
                     )}
                   </div>
 

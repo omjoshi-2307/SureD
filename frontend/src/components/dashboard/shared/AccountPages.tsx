@@ -13,17 +13,17 @@ type Props = {
 };
 
 const C = {
-  orange: '#E8734A',
-  orangeLight: '#F0956B',
-  bg: '#F4F6FA',
+  orange: '#A78BFA',
+  orangeLight: '#8B5CF6',
+  bg: '#0B0A10',
   white: '#FFFFFF',
-  border: '#EEEEEE',
-  textDark: '#1A1A1A',
-  textMid: '#6B6B6B',
-  textLight: '#AAAAAA',
+  border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF',
+  textMid: 'rgba(255,255,255,0.64)',
+  textLight: 'rgba(255,255,255,0.4)',
 };
 
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -74,7 +74,7 @@ const fadeIn = (delay = 0): React.CSSProperties => ({
 });
 
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-  <div style={{ background: C.white, borderRadius: 18, border: `1px solid ${C.border}`, boxShadow: '0 10px 30px rgba(17,24,39,0.04)', padding: 24, ...style }}>
+  <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 18, border: `1px solid ${C.border}`, boxShadow: '0 10px 30px rgba(17,24,39,0.04)', padding: 24, ...style }}>
     {children}
   </div>
 );
@@ -85,11 +85,11 @@ const SectionTitle = ({ label }: { label: string }) => (
 
 const StatusBadge = ({ label, tone }: { label: string; tone: 'info' | 'success' | 'warning' | 'danger' | 'neutral' }) => {
   const map = {
-    info: { bg: 'rgba(74,144,226,0.1)', color: '#2B6CB0' },
-    success: { bg: 'rgba(74,207,122,0.1)', color: '#2AAF5C' },
-    warning: { bg: 'rgba(240,163,74,0.1)', color: '#C07A12' },
-    danger: { bg: 'rgba(234,67,53,0.1)', color: '#C53030' },
-    neutral: { bg: 'rgba(107,114,128,0.1)', color: '#4B5563' },
+    info: { bg: 'rgba(151,160,181,0.1)', color: '#97A0B5' },
+    success: { bg: 'rgba(16,185,129,0.1)', color: '#10B981' },
+    warning: { bg: 'rgba(46,107,255,0.1)', color: '#6E9BFF' },
+    danger: { bg: 'rgba(239,68,68,0.1)', color: '#F87171' },
+    neutral: { bg: 'rgba(107,114,128,0.1)', color: '#9CA3AF' },
   }[tone];
 
   return (
@@ -170,7 +170,7 @@ const TxModal = ({ tx, onClose }: { tx: TxRecord; onClose: () => void }) => (
   >
     <div
       onClick={(e) => e.stopPropagation()}
-      style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 520, width: '92%', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflowY: 'auto' }}
+      style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 520, width: '92%', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflowY: 'auto' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, margin: 0 }}>Transaction Detail</h2>
@@ -212,13 +212,13 @@ const TxModal = ({ tx, onClose }: { tx: TxRecord; onClose: () => void }) => (
           href={`${STELLAR_EXPLORER}${tx.txHash}`}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 999, padding: '12px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}
+          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 999, padding: '12px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)' }}
         >
           View on Stellar Expert ↗
         </a>
         <button
           onClick={onClose}
-          style={{ flex: 1, border: `1.5px solid ${C.border}`, borderRadius: 999, padding: '12px', background: C.white, color: C.textMid, fontFamily: font, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+          style={{ flex: 1, border: `1.5px solid ${C.border}`, borderRadius: 999, padding: '12px', background: 'rgba(255,255,255,0.04)', color: C.textMid, fontFamily: font, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
         >
           Close
         </button>
@@ -339,7 +339,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
   };
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role={role}
       userName={displayName}
       navItems={buildNavItems(role)}
@@ -373,7 +373,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
             <button
               onClick={handleExportCSV}
               disabled={filtered.length === 0}
-              style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: filtered.length === 0 ? '#eee' : `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: filtered.length === 0 ? C.textLight : '#fff', fontFamily: font, fontWeight: 700, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer', boxShadow: filtered.length === 0 ? 'none' : '0 8px 20px rgba(232,115,74,0.25)', transition: 'all 0.2s' }}
+              style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: filtered.length === 0 ? '#eee' : `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: filtered.length === 0 ? C.textLight : '#fff', fontFamily: font, fontWeight: 700, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer', boxShadow: filtered.length === 0 ? 'none' : '0 8px 20px rgba(124,92,255,0.25)', transition: 'all 0.2s' }}
             >
               Export CSV
             </button>
@@ -404,13 +404,13 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search ID, property, hash, wallet…"
-                  style={{ minWidth: 220, borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark, outline: 'none' }}
+                  style={{ minWidth: 220, borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: '#fff', background: 'rgba(255,255,255,0.04)', caretColor: '#A78BFA', outline: 'none' }}
                 />
                 {/* Type filter */}
                 <select
                   value={typeFilter}
                   onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark }}
+                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: '#fff', background: '#16141F' }}
                 >
                   {TYPE_FILTERS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                 </select>
@@ -418,7 +418,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                 <select
                   value={sortOrder}
                   onChange={(e) => { setSortOrder(e.target.value as 'newest' | 'oldest'); setCurrentPage(1); }}
-                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: C.textDark }}
+                  style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '10px 14px', fontFamily: font, fontSize: '0.83rem', color: '#fff', background: '#16141F' }}
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
@@ -428,7 +428,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
 
             {/* Error */}
             {error && (
-              <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(234,67,53,0.08)', border: '1px solid rgba(234,67,53,0.25)', fontFamily: font, fontSize: '0.85rem', color: '#C53030', marginBottom: 16 }}>
+              <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', fontFamily: font, fontSize: '0.85rem', color: '#F87171', marginBottom: 16 }}>
                 ⚠️ {error}
               </div>
             )}
@@ -468,7 +468,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                         key={tx._id}
                         onClick={() => setSelectedTx(tx)}
                         style={{ borderBottom: `1px solid ${C.border}`, cursor: 'pointer', transition: 'background 0.15s' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFAFA')}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(124,92,255,0.07)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
                         <td style={{ padding: '13px 10px', color: C.textMid, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{fmtDate(tx.createdAt)}</td>
@@ -481,7 +481,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                           {tx.amount !== undefined ? `${tx.amount} ${tx.currency || 'XLM'}` : '—'}
                         </td>
                         <td style={{ padding: '13px 10px', color: C.textMid, fontSize: '0.78rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{shortWallet(tx.actorWallet)}</td>
-                        <td style={{ padding: '13px 10px', fontSize: '0.82rem', textTransform: 'capitalize', fontWeight: 600, color: tx.role === 'landlord' ? '#2AAF5C' : tx.role === 'student' ? '#E8734A' : C.textMid, whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '13px 10px', fontSize: '0.82rem', textTransform: 'capitalize', fontWeight: 600, color: tx.role === 'landlord' ? '#10B981' : tx.role === 'student' ? '#A78BFA' : C.textMid, whiteSpace: 'nowrap' }}>
                           {tx.role || '—'}
                         </td>
                         <td style={{ padding: '13px 10px', fontSize: '0.78rem', color: C.textMid, whiteSpace: 'nowrap' }}>{tx.statusAfter || '—'}</td>
@@ -489,7 +489,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button
                               onClick={(e) => { e.stopPropagation(); setSelectedTx(tx); }}
-                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: '#fff', color: C.textDark, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600 }}
+                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', color: C.textDark, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600 }}
                             >
                               View
                             </button>
@@ -498,7 +498,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: '#fff', color: C.orange, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', color: C.orange, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                             >
                               Stellar ↗
                             </a>
@@ -521,7 +521,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: '#fff', color: currentPage === 1 ? C.textLight : C.textDark, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: currentPage === 1 ? C.textLight : C.textDark, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
                   >
                     ← Prev
                   </button>
@@ -549,7 +549,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(pageCount, p + 1))}
                     disabled={currentPage === pageCount}
-                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: '#fff', color: currentPage === pageCount ? C.textLight : C.textDark, cursor: currentPage === pageCount ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                    style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: currentPage === pageCount ? C.textLight : C.textDark, cursor: currentPage === pageCount ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
                   >
                     Next →
                   </button>
@@ -784,7 +784,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
   const walletLabel = profile?.walletAddress ? `${profile.walletAddress.slice(0, 6)}...${profile.walletAddress.slice(-4)}` : 'Not connected';
 
   return (
-    <DashboardLayout role={role} userName={displayName} navItems={buildNavItems(role)} activeId="profile" onNavChange={(id) => {
+    <DashboardLayout dark role={role} userName={displayName} navItems={buildNavItems(role)} activeId="profile" onNavChange={(id) => {
       if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
       if (id === 'deposits') navigate('/student/my-deposits');
       if (id === 'escrow') navigate('/student/create-escrow');
@@ -800,13 +800,13 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
               <p style={{ fontFamily: font, fontSize: '0.92rem', color: C.textMid, margin: '6px 0 0' }}>Manage your personal information and wallet details.</p>
             </div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button onClick={() => void loadProfile()} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 16px', background: '#fff', color: C.textDark, fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
-              <button onClick={handleSave} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.8 : 1, boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>{saving ? 'Saving…' : 'Save Changes'}</button>
+              <button onClick={() => void loadProfile()} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 16px', background: 'rgba(255,255,255,0.06)', color: C.textDark, fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
+              <button onClick={handleSave} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.8 : 1, boxShadow: '0 8px 20px rgba(124,92,255,0.25)' }}>{saving ? 'Saving…' : 'Save Changes'}</button>
             </div>
           </div>
 
           {error ? (
-            <div style={{ border: `1px solid rgba(234,67,53,0.2)`, borderRadius: 14, padding: '12px 14px', background: 'rgba(234,67,53,0.06)', color: '#C53030', fontFamily: font, fontWeight: 600 }}>{error}</div>
+            <div style={{ border: `1px solid rgba(239,68,68,0.2)`, borderRadius: 14, padding: '12px 14px', background: 'rgba(239,68,68,0.06)', color: '#F87171', fontFamily: font, fontWeight: 600 }}>{error}</div>
           ) : null}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, alignItems: 'start' }}>
@@ -839,7 +839,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     {[{ label: 'Email', value: profile?.email || 'Not provided' }, { label: 'Username', value: profile?.username || 'Not set' }, { label: 'Phone', value: profile?.phone || 'Not set' }, { label: 'Member Since', value: formatDate(profile?.createdAt) }].map((item) => (
-                      <div key={item.label} style={{ padding: 12, borderRadius: 12, background: '#FAFAFA', border: `1px solid ${C.border}` }}>
+                      <div key={item.label} style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}` }}>
                         <div style={{ fontFamily: font, fontSize: '0.72rem', color: C.textLight }}>{item.label}</div>
                         <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark, fontSize: '0.87rem', marginTop: 4 }}>{item.value}</div>
                       </div>
@@ -867,27 +867,27 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Full Name</span>
-                  <input value={formState.fullName} onChange={(e) => handleChange('fullName', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                  <input value={formState.fullName} onChange={(e) => handleChange('fullName', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Username</span>
-                  <input value={formState.username} onChange={(e) => handleChange('username', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                  <input value={formState.username} onChange={(e) => handleChange('username', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Profile Picture URL</span>
-                  <input value={formState.profilePicture} onChange={(e) => handleChange('profilePicture', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                  <input value={formState.profilePicture} onChange={(e) => handleChange('profilePicture', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Phone Number</span>
-                  <input value={formState.phone} onChange={(e) => handleChange('phone', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                  <input value={formState.phone} onChange={(e) => handleChange('phone', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: '1 / -1' }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Bio</span>
-                  <textarea value={formState.bio} onChange={(e) => handleChange('bio', e.target.value)} rows={3} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, resize: 'vertical' }} />
+                  <textarea value={formState.bio} onChange={(e) => handleChange('bio', e.target.value)} rows={3} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none', resize: 'vertical' }} />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6, gridColumn: '1 / -1' }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Location</span>
-                  <input value={formState.location} onChange={(e) => handleChange('location', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font }} />
+                  <input value={formState.location} onChange={(e) => handleChange('location', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
                 </label>
               </div>
             </Card>
@@ -902,9 +902,9 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                   </div>
                 ))}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                  <button onClick={handleCopyAddress} disabled={!profile?.walletAddress} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: C.textDark, cursor: profile?.walletAddress ? 'pointer' : 'not-allowed', fontSize: '0.82rem' }}>Copy Address</button>
-                  <button onClick={handleConnectWallet} disabled={walletLoading} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: C.orange, cursor: walletLoading ? 'wait' : 'pointer', fontSize: '0.82rem' }}>{walletLoading ? 'Working…' : profile?.isWalletConnected ? 'Reconnect Wallet' : 'Connect Wallet'}</button>
-                  <button onClick={handleDisconnectWallet} disabled={walletLoading || !profile?.isWalletConnected} style={{ border: `1px solid rgba(234,67,53,0.2)`, borderRadius: 999, padding: '8px 12px', background: '#fff', color: '#C53030', cursor: walletLoading || !profile?.isWalletConnected ? 'not-allowed' : 'pointer', fontSize: '0.82rem' }}>Disconnect</button>
+                  <button onClick={handleCopyAddress} disabled={!profile?.walletAddress} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: 'rgba(255,255,255,0.06)', color: C.textDark, cursor: profile?.walletAddress ? 'pointer' : 'not-allowed', fontSize: '0.82rem' }}>Copy Address</button>
+                  <button onClick={handleConnectWallet} disabled={walletLoading} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 12px', background: 'rgba(255,255,255,0.06)', color: C.orange, cursor: walletLoading ? 'wait' : 'pointer', fontSize: '0.82rem' }}>{walletLoading ? 'Working…' : profile?.isWalletConnected ? 'Reconnect Wallet' : 'Connect Wallet'}</button>
+                  <button onClick={handleDisconnectWallet} disabled={walletLoading || !profile?.isWalletConnected} style={{ border: `1px solid rgba(239,68,68,0.2)`, borderRadius: 999, padding: '8px 12px', background: 'rgba(255,255,255,0.06)', color: '#F87171', cursor: walletLoading || !profile?.isWalletConnected ? 'not-allowed' : 'pointer', fontSize: '0.82rem' }}>Disconnect</button>
                 </div>
                 {profile?.walletAddress ? (
                   <a href={`https://stellar.expert/explorer/testnet/account/${profile.walletAddress}`} target="_blank" rel="noreferrer" style={{ fontFamily: font, fontSize: '0.82rem', color: C.orange, fontWeight: 700, textDecoration: 'none' }}>View on explorer</a>
@@ -922,7 +922,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                 ) : activity.map((item) => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(232,115,74,0.12)', color: C.orange }}>{item.icon || '🔗'}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(124,92,255,0.12)', color: C.orange }}>{item.icon || '🔗'}</div>
                       <div>
                         <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{item.title}</div>
                         <div style={{ fontFamily: font, fontSize: '0.78rem', color: C.textMid }}>{formatDateTime(item.timestamp)}</div>
@@ -1013,7 +1013,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
   };
 
   return (
-    <DashboardLayout role={role} userName={authUser?.name || 'User'} navItems={buildNavItems(role)} activeId="settings" onNavChange={(id) => {
+    <DashboardLayout dark role={role} userName={authUser?.name || 'User'} navItems={buildNavItems(role)} activeId="settings" onNavChange={(id) => {
       if (id === 'dashboard') navigate(role === 'student' ? '/student/dashboard' : '/landlord/dashboard');
       if (id === 'deposits') navigate('/student/my-deposits');
       if (id === 'escrow') navigate('/student/create-escrow');
@@ -1028,7 +1028,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
               <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.45rem', color: C.textDark, margin: 0 }}>Settings</h1>
               <p style={{ fontFamily: font, fontSize: '0.92rem', color: C.textMid, margin: '6px 0 0' }}>Manage your account preferences and wallet connectivity.</p>
             </div>
-            <button onClick={() => void handleSave()} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', boxShadow: '0 8px 20px rgba(232,115,74,0.25)' }}>{saving ? 'Saving…' : 'Save Settings'}</button>
+            <button onClick={() => void handleSave()} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', boxShadow: '0 8px 20px rgba(124,92,255,0.25)' }}>{saving ? 'Saving…' : 'Save Settings'}</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -1043,7 +1043,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
                   <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Theme</span>
-                  <select value={settings.theme} onChange={(e) => setSettings((prev) => ({ ...prev, theme: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                  <select value={settings.theme} onChange={(e) => setSettings((prev) => ({ ...prev, theme: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: '#fff', background: '#16141F' }}>
                     <option value="system">System</option>
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
@@ -1051,7 +1051,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
                   <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Language</span>
-                  <select value={settings.language} onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                  <select value={settings.language} onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: '#fff', background: '#16141F' }}>
                     <option value="English">English</option>
                     <option value="Spanish">Spanish</option>
                     <option value="French">French</option>
@@ -1059,7 +1059,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
                   <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Privacy</span>
-                  <select value={settings.privacyPreferences} onChange={(e) => setSettings((prev) => ({ ...prev, privacyPreferences: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: C.textDark }}>
+                  <select value={settings.privacyPreferences} onChange={(e) => setSettings((prev) => ({ ...prev, privacyPreferences: e.target.value }))} style={{ borderRadius: 999, border: `1px solid ${C.border}`, padding: '8px 12px', fontFamily: font, color: '#fff', background: '#16141F' }}>
                     <option value="Standard">Standard</option>
                     <option value="Private">Private</option>
                     <option value="High">High</option>
@@ -1082,19 +1082,19 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
           <Card style={{ padding: 24 }}>
             <SectionTitle label="Danger Zone" />
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(234,67,53,0.2)', borderRadius: 999, padding: '10px 16px', background: '#fff', color: '#C53030', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Reset Preferences</button>
-              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(234,67,53,0.2)', borderRadius: 999, padding: '10px 16px', background: '#fff', color: '#C53030', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Disconnect Wallet</button>
-              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(234,67,53,0.2)', borderRadius: 999, padding: '10px 16px', background: '#fff', color: '#C53030', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Logout</button>
+              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: 999, padding: '10px 16px', background: 'rgba(255,255,255,0.06)', color: '#F87171', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Reset Preferences</button>
+              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: 999, padding: '10px 16px', background: 'rgba(255,255,255,0.06)', color: '#F87171', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Disconnect Wallet</button>
+              <button onClick={() => setShowConfirm(true)} style={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: 999, padding: '10px 16px', background: 'rgba(255,255,255,0.06)', color: '#F87171', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Logout</button>
             </div>
           </Card>
         </div>
         {showConfirm && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.24)', display: 'grid', placeItems: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 'min(92vw, 420px)', boxShadow: '0 16px 48px rgba(0,0,0,0.2)' }}>
+            <div style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 24, width: 'min(92vw, 420px)', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}>
               <h3 style={{ fontFamily: font, marginTop: 0, color: C.textDark }}>Confirm action</h3>
               <p style={{ fontFamily: font, color: C.textMid, lineHeight: 1.6 }}>This action cannot be undone. Continue?</p>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
-                <button onClick={() => setShowConfirm(false)} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 14px', background: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={() => setShowConfirm(false)} style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '10px 14px', background: 'rgba(255,255,255,0.06)', color: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
                 <button onClick={() => { setShowConfirm(false); showToast('Action confirmed', 'success'); }} style={{ border: 'none', borderRadius: 999, padding: '10px 14px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: 'pointer' }}>Confirm</button>
               </div>
             </div>

@@ -11,11 +11,11 @@ import { releaseEscrow, confirmEscrow } from "@/services/sorobanService";
 
 /* ─── Design tokens ─────────────────────────────────────────────── */
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  bg: '#F4F6FA', white: '#FFFFFF', border: '#EEEEEE',
-  textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  bg: '#0B0A10', white: '#FFFFFF', border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 /* ─── Nav ───────────────────────────────────────────────────────── */
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
@@ -46,12 +46,12 @@ const NAV_ITEMS: NavItem[] = [
 
 /* ─── Status config — identical to student pages ─────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  CREATED:              { label: 'Created',              color: '#2B6CB0', bg: 'rgba(74,144,226,0.1)',  border: 'rgba(74,144,226,0.3)' },
-  FUNDED:               { label: 'Funded',               color: '#C07A12', bg: 'rgba(240,163,74,0.1)',  border: 'rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#8E44AD', bg: 'rgba(155,89,182,0.1)',  border: 'rgba(155,89,182,0.3)' },
-  RELEASED:             { label: 'Released',             color: '#2AAF5C', bg: 'rgba(74,207,122,0.1)',  border: 'rgba(74,207,122,0.3)' },
-  DISPUTED:             { label: 'Disputed',             color: '#C53030', bg: 'rgba(234,67,53,0.1)',   border: 'rgba(234,67,53,0.3)' },
-  CANCELLED:            { label: 'Cancelled',            color: '#4B5563', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
+  CREATED:              { label: 'Created',              color: '#97A0B5', bg: 'rgba(151,160,181,0.1)',  border: 'rgba(151,160,181,0.3)' },
+  FUNDED:               { label: 'Funded',               color: '#6E9BFF', bg: 'rgba(46,107,255,0.1)',  border: 'rgba(46,107,255,0.3)' },
+  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.3)' },
+  RELEASED:             { label: 'Released',             color: '#10B981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.3)' },
+  DISPUTED:             { label: 'Disputed',             color: '#F87171', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)' },
+  CANCELLED:            { label: 'Cancelled',            color: '#9CA3AF', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
 };
 
 /* ─── Action button rules per status ────────────────────────────── */
@@ -67,7 +67,7 @@ const ACTION_RULES: Record<string, { depositReceived: boolean; confirmMoveIn: bo
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-  <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px', ...style }}>
+  <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px', ...style }}>
     {children}
   </div>
 );
@@ -84,13 +84,13 @@ const InfoRow = ({ label, value, bold, accent }: { label: string; value: React.R
 );
 
 const MonoBlock = ({ value }: { value: string }) => (
-  <div style={{ font, fontWeight: 600, fontSize: '0.77rem', color: C.textMid, background: '#FAFAFA', padding: '7px 11px', borderRadius: 8, border: `1px solid ${C.border}`, overflowX: 'auto', whiteSpace: 'nowrap', fontFamily: 'monospace', marginBottom: 10 }}>
+  <div style={{ font, fontWeight: 600, fontSize: '0.77rem', color: C.textMid, background: 'rgba(255,255,255,0.03)', padding: '7px 11px', borderRadius: 8, border: `1px solid ${C.border}`, overflowX: 'auto', whiteSpace: 'nowrap', fontFamily: 'monospace', marginBottom: 10 }}>
     {value}
   </div>
 );
 
 const SkeletonBlock = ({ w = '100%', h = 14, mb = 10 }: { w?: string | number; h?: number; mb?: number }) => (
-  <div style={{ height: h, width: w, background: '#F0F0F0', borderRadius: 6, marginBottom: mb, animation: 'ledPulse 1.4s infinite ease-in-out' }} />
+  <div style={{ height: h, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 6, marginBottom: mb, animation: 'ledPulse 1.4s infinite ease-in-out' }} />
 );
 
 const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message: string; type?: 'info' | 'warning' | 'error' | 'success' }) => {
@@ -257,7 +257,7 @@ const LandlordEscrowDetails: React.FC = () => {
   );
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="landlord"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -265,6 +265,7 @@ const LandlordEscrowDetails: React.FC = () => {
       onNavChange={navId => {
         if (navId === 'dashboard') navigate('/landlord/dashboard');
         if (navId === 'incoming') navigate('/landlord/incoming-escrows');
+        if (navId === 'transactions') navigate('/landlord/transactions');
         if (navId === 'profile') navigate('/landlord/profile');
         if (navId === 'settings') navigate('/landlord/settings');
       }}
@@ -275,7 +276,7 @@ const LandlordEscrowDetails: React.FC = () => {
       {/* ── Confirm Action Modal ── */}
       {confirmAction && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 420, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 420, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>
               {{ depositReceived: '💰', confirmMoveIn: '✅', releaseDeposit: '🔓', refundDeposit: '↩️' }[confirmAction] || '❓'}
             </div>
@@ -290,8 +291,8 @@ const LandlordEscrowDetails: React.FC = () => {
                 : "This action will update the escrow status."}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => handleAction(confirmAction)} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}>Confirm</button>
+              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => handleAction(confirmAction)} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)' }}>Confirm</button>
             </div>
           </div>
         </div>
@@ -309,14 +310,14 @@ const LandlordEscrowDetails: React.FC = () => {
       {/* ── Loading state ── */}
       {loading && (
         <div style={fadeIn(50)}>
-          <div style={{ background: C.white, borderRadius: 20, padding: '28px 32px', marginBottom: 24, border: `1px solid ${C.border}` }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: '28px 32px', marginBottom: 24, border: `1px solid ${C.border}` }}>
             <SkeletonBlock h={28} w="40%" mb={12} />
             <SkeletonBlock h={16} w="25%" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[1,2,3].map(k => (
-                <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
+                <div key={k} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="50%" mb={16} />
                   {[1,2,3,4].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
@@ -324,7 +325,7 @@ const LandlordEscrowDetails: React.FC = () => {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[1,2].map(k => (
-                <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
+                <div key={k} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="60%" mb={16} />
                   {[1,2,3].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
@@ -380,7 +381,7 @@ const LandlordEscrowDetails: React.FC = () => {
               {/* Property card */}
               <div style={fadeIn(100)}>
                 <Card style={{ padding: 0, overflow: 'hidden' }}>
-                  <div style={{ height: 130, background: 'linear-gradient(135deg, rgba(232,115,74,0.12) 0%, rgba(240,149,107,0.06) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
+                  <div style={{ height: 130, background: 'linear-gradient(135deg, rgba(124,92,255,0.12) 0%, rgba(233,97,245,0.06) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
                     🏠
                   </div>
                   <div style={{ padding: 24 }}>
@@ -408,7 +409,7 @@ const LandlordEscrowDetails: React.FC = () => {
                 <Card>
                   <SectionTitle label="🎓 Student" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, #4A90E2, #50E3C2)', display: 'flex', alignItems: 'center', justifyContent: 'center', font, fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>S</div>
+                    <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, #2E6BFF, #60A5FA)', display: 'flex', alignItems: 'center', justifyContent: 'center', font, fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>S</div>
                     <div>
                       <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark }}>Student Tenant</div>
                       <div style={{ font, fontSize: '0.73rem', color: C.textLight }}>Deposit originator</div>
@@ -470,7 +471,7 @@ const LandlordEscrowDetails: React.FC = () => {
                   {escrow.updatedAt && <InfoRow label="Updated" value={fmtDate(escrow.updatedAt)} />}
                   {stellarUrl && (
                     <a href={stellarUrl} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 50, padding: '10px 16px', textDecoration: 'none', boxShadow: '0 4px 12px rgba(232,115,74,0.25)', marginTop: 8 }}>
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 50, padding: '10px 16px', textDecoration: 'none', boxShadow: '0 4px 12px rgba(124,92,255,0.25)', marginTop: 8 }}>
                       🔍 View on Stellar Expert
                     </a>
                   )}
@@ -483,9 +484,9 @@ const LandlordEscrowDetails: React.FC = () => {
               <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Progress card */}
-                <Card style={{ border: `1.5px solid rgba(232,115,74,0.22)` }}>
+                <Card style={{ border: `1.5px solid rgba(124,92,255,0.22)` }}>
                   <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 12 }}>⚙️ Escrow Progress</div>
-                  <div style={{ background: '#EEEEEE', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 8 }}>
                     <div style={{ width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 10, transition: 'width 1s ease' }} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', font, fontSize: '0.72rem', color: C.textLight, marginBottom: 14 }}>
@@ -513,11 +514,11 @@ const LandlordEscrowDetails: React.FC = () => {
                     return (
                       <div key={step.key} style={{ display: 'flex', gap: 10 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: isCompleted ? '#4ACF7A' : isCurrent ? C.orange : '#E0E0E0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 700, transition: 'background 0.4s' }}>
+                          <div style={{ width: 26, height: 26, borderRadius: '50%', background: isCompleted ? '#10B981' : isCurrent ? C.orange : 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 700, transition: 'background 0.4s' }}>
                             {isCompleted ? '✓' : step.icon}
                           </div>
                           {i < arr.length - 1 && (
-                            <div style={{ width: 2, flex: 1, minHeight: 22, background: isCompleted ? '#4ACF7A' : '#E0E0E0', margin: '4px 0', transition: 'background 0.4s' }} />
+                            <div style={{ width: 2, flex: 1, minHeight: 22, background: isCompleted ? '#10B981' : 'rgba(255,255,255,0.12)', margin: '4px 0', transition: 'background 0.4s' }} />
                           )}
                         </div>
                         <div style={{ paddingBottom: i < arr.length - 1 ? 16 : 0 }}>
@@ -553,7 +554,7 @@ const LandlordEscrowDetails: React.FC = () => {
                           <button disabled
                             style={{
                               width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
-                              color: C.textMid, background: '#F5F5F5',
+                              color: C.textMid, background: 'rgba(255,255,255,0.06)',
                               border: `1.5px solid ${C.border}`,
                               borderRadius: 50, padding: '12px', cursor: 'not-allowed',
                               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -575,8 +576,8 @@ const LandlordEscrowDetails: React.FC = () => {
                         <button disabled
                           style={{
                             width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
-                            color: '#2AAF5C', background: 'rgba(74,207,122,0.1)',
-                            border: '1.5px solid rgba(74,207,122,0.4)',
+                            color: '#10B981', background: 'rgba(16,185,129,0.1)',
+                            border: '1.5px solid rgba(16,185,129,0.4)',
                             borderRadius: 50, padding: '12px', cursor: 'not-allowed',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           }}
@@ -588,8 +589,8 @@ const LandlordEscrowDetails: React.FC = () => {
                         <button disabled
                           style={{
                             width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
-                            color: '#2AAF5C', background: 'rgba(74,207,122,0.1)',
-                            border: '1.5px solid rgba(74,207,122,0.4)',
+                            color: '#10B981', background: 'rgba(16,185,129,0.1)',
+                            border: '1.5px solid rgba(16,185,129,0.4)',
                             borderRadius: 50, padding: '12px', cursor: 'not-allowed',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           }}
@@ -607,7 +608,7 @@ const LandlordEscrowDetails: React.FC = () => {
                     <ActionButton
                       label="Refund Deposit"
                       icon="↩️"
-                      color="linear-gradient(135deg, #ea4335, #f06b6b)"
+                      color="linear-gradient(135deg, #EF4444, #F87171)"
                       actionKey="refundDeposit"
                       enabled={rules.refundDeposit}
                     />
@@ -625,7 +626,7 @@ const LandlordEscrowDetails: React.FC = () => {
                 {/* Back button */}
                 <button
                   onClick={() => navigate('/landlord/incoming-escrows')}
-                  style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer', transition: 'all 0.2s' }}
+                  style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer', transition: 'all 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = C.orange}
                   onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
                 >

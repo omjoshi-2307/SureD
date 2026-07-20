@@ -4,11 +4,12 @@ import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout
 import { getEscrowsByStudentDb } from '@/services/escrowService';
 
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  bg: '#F4F6FA', white: '#FFFFFF', border: '#EEEEEE',
-  textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  bg: '#0B0A10', white: '#FFFFFF', border: 'rgba(255,255,255,0.08)',
+  surface: 'rgba(255,255,255,0.04)',
+  textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -50,8 +51,9 @@ interface DbEscrow {
 
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
   <div style={{
-    background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px',
+    background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`,
+    backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+    padding: '24px 26px',
     ...style,
   }}>
     {children}
@@ -59,12 +61,12 @@ const Card = ({ children, style }: { children: React.ReactNode; style?: React.CS
 );
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  'CREATED':              { bg: 'rgba(74,144,226,0.12)', color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
-  'FUNDED':               { bg: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  'PENDING_CONFIRMATION': { bg: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
-  'RELEASED':             { bg: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  'DISPUTED':             { bg: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
-  'CANCELLED':            { bg: 'rgba(107,114,128,0.12)', color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
+  'CREATED':              { bg: 'rgba(151,160,181,0.12)', color: '#97A0B5', border: '1px solid rgba(151,160,181,0.35)' },
+  'FUNDED':               { bg: 'rgba(46,107,255,0.12)',  color: '#6E9BFF', border: '1px solid rgba(46,107,255,0.4)' },
+  'PENDING_CONFIRMATION': { bg: 'rgba(245,158,11,0.12)',  color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)' },
+  'RELEASED':             { bg: 'rgba(16,185,129,0.12)',  color: '#10B981', border: '1px solid rgba(16,185,129,0.35)' },
+  'DISPUTED':             { bg: 'rgba(239,68,68,0.12)',   color: '#F87171', border: '1px solid rgba(239,68,68,0.35)' },
+  'CANCELLED':            { bg: 'rgba(107,114,128,0.12)', color: '#9CA3AF', border: '1px solid rgba(107,114,128,0.35)' },
 };
 
 const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
@@ -90,7 +92,7 @@ const SkeletonTableRow = () => (
   <tr style={{ borderTop: `1px solid ${C.border}`, animation: 'depositPulse 1.5s infinite ease-in-out' }}>
     {[60, 160, 120, 80, 110, 90, 70, 80].map((w, i) => (
       <td key={i} style={{ padding: '14px 20px' }}>
-        <div style={{ height: 15, width: w, background: '#F0F0F0', borderRadius: 4 }} />
+        <div style={{ height: 15, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 4 }} />
       </td>
     ))}
   </tr>
@@ -98,12 +100,12 @@ const SkeletonTableRow = () => (
 
 const SkeletonCard = () => (
   <div style={{
-    background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 12,
+    background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12,
     padding: 16, animation: 'depositPulse 1.5s infinite ease-in-out',
   }}>
-    <div style={{ height: 14, width: 80, background: '#F0F0F0', borderRadius: 4, marginBottom: 12 }} />
-    <div style={{ height: 16, width: 200, background: '#F0F0F0', borderRadius: 4, marginBottom: 8 }} />
-    <div style={{ height: 14, width: 140, background: '#F0F0F0', borderRadius: 4 }} />
+    <div style={{ height: 14, width: 80, background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 12 }} />
+    <div style={{ height: 16, width: 200, background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 8 }} />
+    <div style={{ height: 14, width: 140, background: 'rgba(255,255,255,0.08)', borderRadius: 4 }} />
   </div>
 );
 
@@ -227,6 +229,7 @@ const MyDeposits: React.FC = () => {
       userName={displayName}
       navItems={NAV_ITEMS}
       activeId="deposits"
+      dark
       onNavChange={(id) => {
         if (id === 'dashboard') navigate('/student/dashboard');
         if (id === 'escrow') navigate('/student/create-escrow');
@@ -264,11 +267,11 @@ const MyDeposits: React.FC = () => {
           {[
             { label: 'Total Deposits',    value: loading ? '…' : totalCount,    color: C.textMid },
             { label: 'Active Deposits',   value: loading ? '…' : lockedCount,   color: C.orange },
-            { label: 'Released',          value: loading ? '…' : releasedCount, color: '#4ACF7A' },
-            { label: 'Disputed',          value: loading ? '…' : disputedCount, color: '#ea4335' },
+            { label: 'Released',          value: loading ? '…' : releasedCount, color: '#10B981' },
+            { label: 'Disputed',          value: loading ? '…' : disputedCount, color: '#F87171' },
           ].map(s => (
             <div key={s.label} style={{
-              background: C.white, border: `1px solid ${C.border}`, borderRadius: 12,
+              background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12,
               padding: '10px 16px', minWidth: 120, boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             }}>
               <div style={{ font, fontSize: '0.68rem', color: C.textLight, fontWeight: 500 }}>{s.label}</div>
@@ -305,7 +308,8 @@ const MyDeposits: React.FC = () => {
                       style={{
                         font, fontSize: '0.82rem', padding: '10px 12px 10px 34px',
                         border: `1.5px solid ${C.border}`, borderRadius: 10, width: '100%',
-                        outline: 'none', background: '#FAFAFA', boxSizing: 'border-box',
+                        outline: 'none', background: 'rgba(255,255,255,0.03)', boxSizing: 'border-box',
+                        color: '#fff', caretColor: '#A78BFA',
                       }}
                       onFocus={e => e.currentTarget.style.borderColor = C.orange}
                       onBlur={e => e.currentTarget.style.borderColor = C.border}
@@ -319,7 +323,7 @@ const MyDeposits: React.FC = () => {
                     style={{
                       font, fontSize: '0.82rem', padding: '10px 14px',
                       border: `1.5px solid ${C.border}`, borderRadius: 10,
-                      outline: 'none', background: '#FAFAFA', cursor: 'pointer',
+                      outline: 'none', background: '#16141F', color: '#fff', cursor: 'pointer',
                     }}
                   >
                     <option value="All">All Statuses</option>
@@ -338,7 +342,7 @@ const MyDeposits: React.FC = () => {
                     style={{
                       font, fontSize: '0.82rem', padding: '10px 14px',
                       border: `1.5px solid ${C.border}`, borderRadius: 10,
-                      outline: 'none', background: '#FAFAFA', cursor: 'pointer',
+                      outline: 'none', background: '#16141F', color: '#fff', cursor: 'pointer',
                     }}
                   >
                     <option value="Newest First">Newest First</option>
@@ -355,7 +359,7 @@ const MyDeposits: React.FC = () => {
                     onClick={handleReset}
                     style={{
                       font, fontWeight: 600, fontSize: '0.8rem', color: C.textMid,
-                      border: `1.5px solid ${C.border}`, background: C.white,
+                      border: `1.5px solid ${C.border}`, background: C.surface,
                       borderRadius: 10, padding: '9px 16px', cursor: 'pointer',
                       transition: 'all 0.2s',
                     }}
@@ -371,7 +375,7 @@ const MyDeposits: React.FC = () => {
                       font, fontWeight: 700, fontSize: '0.8rem', color: C.white,
                       background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
                       border: 'none', borderRadius: 10, padding: '10px 18px',
-                      cursor: 'pointer', boxShadow: '0 4px 12px rgba(232,115,74,0.25)',
+                      cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,92,255,0.25)',
                       transition: 'transform 0.2s',
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -387,7 +391,7 @@ const MyDeposits: React.FC = () => {
           {/* Deposits Table / List Card */}
           <div style={fadeIn(140)}>
             <div style={{
-              background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
+              background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`,
               boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden',
             }}>
               
@@ -396,7 +400,7 @@ const MyDeposits: React.FC = () => {
                 {loading ? (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: '#FAFAFA' }}>
+                      <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
                         {['Escrow ID', 'Property', 'Landlord', 'Amount', 'Address', 'Created Date', 'Status', 'Action'].map(h => (
                           <th key={h} style={{ font, fontWeight: 700, fontSize: '0.72rem', color: C.textLight, textAlign: 'left', padding: '12px 20px', letterSpacing: '0.4px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{h}</th>
                         ))}
@@ -405,11 +409,11 @@ const MyDeposits: React.FC = () => {
                     <tbody><SkeletonTableRow /><SkeletonTableRow /><SkeletonTableRow /></tbody>
                   </table>
                 ) : error ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#ea4335', font, fontWeight: 600 }}>⚠️ {error}</div>
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#F87171', font, fontWeight: 600 }}>⚠️ {error}</div>
                 ) : sortedDeposits.length > 0 ? (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ background: '#FAFAFA' }}>
+                      <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
                         {['Escrow ID', 'Property', 'Landlord', 'Amount', 'Address', 'Created Date', 'Status', 'Action'].map(h => (
                           <th key={h} style={{
                             font, fontWeight: 700, fontSize: '0.72rem', color: C.textLight, textAlign: 'left',
@@ -430,11 +434,11 @@ const MyDeposits: React.FC = () => {
                             onClick={() => navigate(`/student/escrow/${targetId}`)}
                             style={{
                               borderTop: `1px solid ${C.border}`,
-                              background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC',
+                              background: 'transparent',
                               transition: 'background 0.15s', cursor: 'pointer',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,115,74,0.04)'}
-                            onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC'}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,92,255,0.04)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
                             <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                               <span style={{ font, fontWeight: 700, fontSize: '0.8rem', color: C.orange }}>{escrowLabel}</span>
@@ -505,7 +509,7 @@ const MyDeposits: React.FC = () => {
                         key={row._id}
                         onClick={() => navigate(`/student/escrow/${targetId}`)}
                         style={{
-                          background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 12,
+                          background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12,
                           padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
                           cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                         }}
@@ -549,7 +553,7 @@ const MyDeposits: React.FC = () => {
                             onClick={handleDownloadReceipt}
                             style={{
                               flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid,
-                              background: C.white, border: `1.5px solid ${C.border}`,
+                              background: C.surface, border: `1.5px solid ${C.border}`,
                               borderRadius: 50, padding: '8px 0', cursor: 'pointer',
                             }}
                           >
@@ -577,12 +581,12 @@ const MyDeposits: React.FC = () => {
             {[
               { label: 'Total Escrows', value: loading ? '…' : `${totalCount}`, icon: '📋', color: '#E8734A' },
               { label: 'Locked/Funded', value: loading ? '…' : `${lockedFunds} XLM`, icon: '🔒', color: '#F0956B' },
-              { label: 'Released Funds', value: loading ? '…' : `${releasedFunds} XLM`, icon: '🔓', color: '#4ACF7A' },
+              { label: 'Released Funds', value: loading ? '…' : `${releasedFunds} XLM`, icon: '🔓', color: '#10B981' },
               { label: 'Average Deposit', value: loading ? '…' : `${avgDeposit} XLM`, icon: '📊', color: '#4ACFE8' },
-              { label: 'Largest Deposit', value: loading ? '…' : `${maxDeposit} XLM`, icon: '🏆', color: '#F0A34A' },
+              { label: 'Largest Deposit', value: loading ? '…' : `${maxDeposit} XLM`, icon: '🏆', color: '#F59E0B' },
             ].map(item => (
               <div key={item.label} style={{
-                background: C.white, border: `1px solid ${C.border}`, borderRadius: 16,
+                background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16,
                 padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 12,
                 boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
               }}>
@@ -616,8 +620,8 @@ const MyDeposits: React.FC = () => {
                 {/* Simulated Segment Circular rings */}
                 <div style={{
                   width: 110, height: 110, borderRadius: '50%',
-                  border: '12px solid #E0E0E0', borderTopColor: C.orange,
-                  borderRightColor: '#4ACF7A', borderBottomColor: '#4A90E2',
+                  border: '12px solid rgba(255,255,255,0.1)', borderTopColor: C.orange,
+                  borderRightColor: '#10B981', borderBottomColor: '#2E6BFF',
                   transform: 'rotate(-45deg)',
                 }} />
                 <div style={{ position: 'absolute', textAlign: 'center' }}>
@@ -630,9 +634,9 @@ const MyDeposits: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
                 {[
                   { label: 'Active', color: C.orange, value: lockedCount },
-                  { label: 'Released', color: '#4ACF7A', value: releasedCount },
-                  { label: 'Pending', color: '#4A90E2', value: pendingCount },
-                  { label: 'Disputed', color: '#ea4335', value: disputedCount },
+                  { label: 'Released', color: '#10B981', value: releasedCount },
+                  { label: 'Pending', color: '#2E6BFF', value: pendingCount },
+                  { label: 'Disputed', color: '#F87171', value: disputedCount },
                 ].map(leg => (
                   <div key={leg.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: leg.color, flexShrink: 0 }} />
@@ -645,7 +649,7 @@ const MyDeposits: React.FC = () => {
             </Card>
 
             {/* Quick Tips */}
-            <Card style={{ background: 'rgba(232,115,74,0.03)', border: `1px solid rgba(232,115,74,0.14)` }}>
+            <Card style={{ background: 'rgba(124,92,255,0.03)', border: `1px solid rgba(124,92,255,0.14)` }}>
               <div style={{ font, fontWeight: 800, fontSize: '0.85rem', color: C.textDark, marginBottom: 10 }}>
                 💡 Quick Tips
               </div>
@@ -677,10 +681,10 @@ const MyDeposits: React.FC = () => {
                   }[esc.status] || '📋';
                   const activityColor = {
                     CREATED: C.orange,
-                    FUNDED: '#F0A34A',
-                    PENDING_CONFIRMATION: '#4A90E2',
-                    RELEASED: '#4ACF7A',
-                    DISPUTED: '#ea4335',
+                    FUNDED: '#F59E0B',
+                    PENDING_CONFIRMATION: '#2E6BFF',
+                    RELEASED: '#10B981',
+                    DISPUTED: '#F87171',
                     CANCELLED: '#6B7280',
                   }[esc.status] || C.textLight;
                   const statusLabel = {
@@ -701,7 +705,7 @@ const MyDeposits: React.FC = () => {
                           {activityIcon}
                         </span>
                         {i < arr.length - 1 && (
-                          <div style={{ width: 2, flex: 1, minHeight: 18, background: '#EEEEEE', margin: '4px 0' }} />
+                          <div style={{ width: 2, flex: 1, minHeight: 18, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
                         )}
                       </div>
                       <div style={{ paddingBottom: i < arr.length - 1 ? 14 : 0 }}>
@@ -737,7 +741,7 @@ const EmptyState = ({ navigate }: { navigate: any }) => (
         font, fontWeight: 700, fontSize: '0.82rem', color: C.white,
         background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
         border: 'none', borderRadius: 50, padding: '11px 24px', cursor: 'pointer',
-        boxShadow: '0 4px 14px rgba(232,115,74,0.3)',
+        boxShadow: '0 4px 14px rgba(124,92,255,0.3)',
       }}
     >
       + Create Escrow

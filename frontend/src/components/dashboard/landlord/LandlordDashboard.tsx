@@ -36,19 +36,19 @@ const NAV_ITEMS: NavItem[] = [
 
 /* ── Status config — matches student pages exactly ── */
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  CREATED:              { background: 'rgba(74,144,226,0.12)',  color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
-  FUNDED:               { background: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { background: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
-  RELEASED:             { background: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  DISPUTED:             { background: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
-  CANCELLED:            { background: 'rgba(107,114,128,0.12)',color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
+  CREATED:              { background: 'rgba(151,160,181,0.12)',  color: '#97A0B5', border: '1px solid rgba(151,160,181,0.3)' },
+  FUNDED:               { background: 'rgba(46,107,255,0.12)', color: '#6E9BFF', border: '1px solid rgba(46,107,255,0.3)' },
+  PENDING_CONFIRMATION: { background: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' },
+  RELEASED:             { background: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)' },
+  DISPUTED:             { background: 'rgba(239,68,68,0.12)',  color: '#F87171', border: '1px solid rgba(239,68,68,0.3)' },
+  CANCELLED:            { background: 'rgba(107,114,128,0.12)',color: '#9CA3AF', border: '1px solid rgba(107,114,128,0.3)' },
 };
 
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  border: '#EEEEEE', textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  border: 'rgba(255,255,255,0.08)', textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 /* ── Quick action button ── */
 const QuickBtn = ({
@@ -62,16 +62,16 @@ const QuickBtn = ({
       fontFamily: font, fontWeight: 600, fontSize: '0.83rem',
       cursor: 'pointer', transition: 'all 0.25s ease',
       ...(primary
-        ? { background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`, color: '#fff', boxShadow: '0 6px 20px rgba(232,115,74,0.35)' }
-        : { background: '#FFFFFF', color: C.textDark, border: `1.5px solid ${C.border}` }),
+        ? { background: `linear-gradient(135deg, ${C.orange} 0%, ${C.orangeLight} 100%)`, color: '#fff', boxShadow: '0 6px 20px rgba(124,92,255,0.35)' }
+        : { background: 'rgba(255,255,255,0.04)', color: C.textDark, border: `1.5px solid ${C.border}` }),
     }}
     onMouseEnter={e => {
       e.currentTarget.style.transform = 'translateY(-2px)';
-      e.currentTarget.style.boxShadow = primary ? '0 10px 28px rgba(232,115,74,0.45)' : '0 4px 14px rgba(0,0,0,0.08)';
+      e.currentTarget.style.boxShadow = primary ? '0 10px 28px rgba(124,92,255,0.45)' : '0 4px 14px rgba(0,0,0,0.08)';
     }}
     onMouseLeave={e => {
       e.currentTarget.style.transform = 'none';
-      e.currentTarget.style.boxShadow = primary ? '0 6px 20px rgba(232,115,74,0.35)' : 'none';
+      e.currentTarget.style.boxShadow = primary ? '0 6px 20px rgba(124,92,255,0.35)' : 'none';
     }}
   >
     <span>{icon}</span> {label}
@@ -83,7 +83,7 @@ const SkeletonRow = () => (
   <tr style={{ borderTop: `1px solid ${C.border}`, animation: 'ldPulse 1.5s infinite ease-in-out' }}>
     {[60, 80, 160, 80, 70, 80].map((w, i) => (
       <td key={i} style={{ padding: '14px 20px' }}>
-        <div style={{ height: 15, width: w, background: '#F0F0F0', borderRadius: 4 }} />
+        <div style={{ height: 15, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 4 }} />
       </td>
     ))}
   </tr>
@@ -133,6 +133,7 @@ const LandlordDashboard: React.FC = () => {
 
   const handleNavChange = (id: string) => {
     if (id === 'incoming') navigate('/landlord/incoming-escrows');
+    else if (id === 'transactions') navigate('/landlord/transactions');
     else if (id === 'profile') navigate('/landlord/profile');
     else if (id === 'settings') navigate('/landlord/settings');
     else if (id === 'dashboard') navigate('/landlord/dashboard');
@@ -147,7 +148,7 @@ const LandlordDashboard: React.FC = () => {
       setWalletAddress(address);
       await loadData(address);
     } catch (err: any) {
-      alert(err.message || 'Failed to connect wallet.');
+      setError(err.message || 'Failed to connect wallet.');
     } finally {
       setConnecting(false);
     }
@@ -161,14 +162,14 @@ const LandlordDashboard: React.FC = () => {
   const totalValue    = escrows.reduce((s, e) => s + (e.depositAmount || 0), 0);
 
   const dynamicStats = [
-    { label: 'Total Escrows',      value: loading ? '…' : String(totalCount),    sub: 'All assigned escrows',        icon: '🏠', color: '#E8734A' },
-    { label: 'Active / Pending',   value: loading ? '…' : String(pendingCount),  sub: 'Created or Funded',           icon: '⏳', color: '#F0A34A' },
-    { label: 'Released Deposits',  value: loading ? '…' : String(releasedCount), sub: 'Successfully completed',      icon: '✅', color: '#4ACF7A' },
-    { label: 'Total Deposit Value',value: loading ? '…' : `${totalValue} XLM`,   sub: 'Across all properties',       icon: '💷', color: '#4ACFE8' },
+    { label: 'Total Escrows',      value: loading ? '…' : String(totalCount),    sub: 'All assigned escrows',        icon: '🏠', color: '#A78BFA' },
+    { label: 'Active / Pending',   value: loading ? '…' : String(pendingCount),  sub: 'Created or Funded',           icon: '⏳', color: '#F59E0B' },
+    { label: 'Released Deposits',  value: loading ? '…' : String(releasedCount), sub: 'Successfully completed',      icon: '✅', color: '#10B981' },
+    { label: 'Total Deposit Value',value: loading ? '…' : `${totalValue} XLM`,   sub: 'Across all properties',       icon: '💷', color: '#60A5FA' },
   ];
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="landlord"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -181,20 +182,23 @@ const LandlordDashboard: React.FC = () => {
 
       {/* ── Welcome Banner ── */}
       <div style={{
-        background: 'linear-gradient(135deg, #1A1A2E 0%, #2E2E4E 100%)',
+        background: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderTop: '1px solid rgba(224,215,255,0.25)',
+        backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
         borderRadius: 20, padding: '28px 32px', marginBottom: 28,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: 16,
-        boxShadow: '0 8px 32px rgba(26,26,46,0.25)',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Decorative glows */}
-        <div style={{ position: 'absolute', right: -20, top: -20, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,115,74,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', left: '40%', bottom: -50, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(240,149,107,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', right: -20, top: -20, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,92,255,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: '40%', bottom: -50, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(233,97,245,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(232,115,74,0.2)', border: '1px solid rgba(232,115,74,0.35)', borderRadius: 50, padding: '4px 12px', fontFamily: font, fontSize: '0.7rem', fontWeight: 700, color: '#F0956B', marginBottom: 10 }}>
-            🏢 Property Manager
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(124,92,255,0.2)', border: '1px solid rgba(124,92,255,0.35)', borderRadius: 50, padding: '4px 12px', fontFamily: font, fontSize: '0.7rem', fontWeight: 600, color: '#C4B5FD', marginBottom: 10 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#A78BFA', boxShadow: '0 0 8px rgba(124,92,255,0.8)', display: 'inline-block' }} />
+            Property Manager
           </div>
           <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: 'clamp(1.25rem, 3vw, 1.7rem)', color: '#fff', marginBottom: 6, letterSpacing: '-0.5px' }}>
             Welcome back 👋
@@ -228,7 +232,7 @@ const LandlordDashboard: React.FC = () => {
 
       {/* ── Error Banner ── */}
       {error && (
-        <div style={{ background: '#FFF0F0', border: '1px solid #FFC0C0', borderRadius: 12, padding: '12px 18px', marginBottom: 16, fontFamily: font, fontSize: '0.85rem', color: '#C53030', fontWeight: 600 }}>
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 18px', marginBottom: 16, fontFamily: font, fontSize: '0.85rem', color: '#F87171', fontWeight: 600 }}>
           ⚠️ {error}
         </div>
       )}
@@ -237,7 +241,7 @@ const LandlordDashboard: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
         {dynamicStats.map(stat => (
           <div key={stat.label} style={{
-            background: '#FFFFFF', borderRadius: 16, padding: '20px 22px',
+            background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '20px 22px',
             border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
             transition: 'box-shadow 0.25s, transform 0.25s', cursor: 'default',
           }}
@@ -246,7 +250,7 @@ const LandlordDashboard: React.FC = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{ fontSize: '1.5rem', background: `${stat.color}18`, borderRadius: 10, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{stat.icon}</span>
-              <span style={{ fontFamily: font, fontSize: '0.68rem', fontWeight: 600, color: '#4ACF7A', background: 'rgba(74,207,122,0.1)', borderRadius: 50, padding: '3px 8px' }}>↑ Live</span>
+              <span style={{ fontFamily: font, fontSize: '0.68rem', fontWeight: 600, color: '#10B981', background: 'rgba(16,185,129,0.1)', borderRadius: 50, padding: '3px 8px' }}>↑ Live</span>
             </div>
             <div style={{ fontFamily: font, fontWeight: 800, fontSize: '1.65rem', color: C.textDark, letterSpacing: '-1px', lineHeight: 1 }}>{stat.value}</div>
             <div style={{ fontFamily: font, fontWeight: 500, fontSize: '0.8rem', color: C.textMid, marginTop: 4 }}>{stat.label}</div>
@@ -256,7 +260,7 @@ const LandlordDashboard: React.FC = () => {
       </div>
 
       {/* ── Quick Actions ── */}
-      <div style={{ background: '#FFFFFF', borderRadius: 16, padding: '20px 24px', border: `1px solid ${C.border}`, marginBottom: 28, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '20px 24px', border: `1px solid ${C.border}`, marginBottom: 28, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
         <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 16 }}>Quick Actions</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <QuickBtn label="Incoming Deposits" icon="📥" primary onClick={() => navigate('/landlord/incoming-escrows')} />
@@ -267,7 +271,7 @@ const LandlordDashboard: React.FC = () => {
       </div>
 
       {/* ── Recent Escrows Table ── */}
-      <div style={{ background: '#FFFFFF', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
         <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}` }}>
           <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark }}>
             Recent Escrow Assignments
@@ -283,7 +287,7 @@ const LandlordDashboard: React.FC = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#FAFAFA' }}>
+              <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
                 {['Escrow ID', 'Property', 'Student Wallet', 'Amount', 'Status', 'Date'].map(h => (
                   <th key={h} style={{ fontFamily: font, fontWeight: 700, fontSize: '0.72rem', color: C.textLight, textAlign: 'left', padding: '12px 20px', letterSpacing: '0.4px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{h}</th>
                 ))}
@@ -293,7 +297,7 @@ const LandlordDashboard: React.FC = () => {
               {loading ? (
                 <><SkeletonRow /><SkeletonRow /><SkeletonRow /></>
               ) : error ? (
-                <tr><td colSpan={6} style={{ padding: '28px 20px', textAlign: 'center', fontFamily: font, fontWeight: 600, color: '#ea4335' }}>⚠️ {error}</td></tr>
+                <tr><td colSpan={6} style={{ padding: '28px 20px', textAlign: 'center', fontFamily: font, fontWeight: 600, color: '#F87171' }}>⚠️ {error}</td></tr>
               ) : escrows.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ padding: '60px 20px', textAlign: 'center' }}>
@@ -305,7 +309,7 @@ const LandlordDashboard: React.FC = () => {
                     {!walletAddress && (
                       <button
                         onClick={handleConnectWallet}
-                        style={{ fontFamily: font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '8px 20px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(232,115,74,0.25)' }}
+                        style={{ fontFamily: font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '8px 20px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,92,255,0.25)' }}
                       >
                         Connect Wallet to Load Data
                       </button>
@@ -322,9 +326,9 @@ const LandlordDashboard: React.FC = () => {
                     <tr
                       key={row._id}
                       onClick={() => navigate(`/landlord/escrow/${targetId}`)}
-                      style={{ borderTop: `1px solid ${C.border}`, background: i % 2 === 0 ? '#FFFFFF' : '#FDFCFC', transition: 'background 0.15s', cursor: 'pointer' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(232,115,74,0.04)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : '#FDFCFC')}
+                      style={{ borderTop: `1px solid ${C.border}`, background: i % 2 === 0 ? '#FFFFFF' : 'transparent', transition: 'background 0.15s', cursor: 'pointer' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.04)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : 'transparent')}
                     >
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontFamily: font, fontWeight: 700, fontSize: '0.8rem', color: C.orange }}>{escrowLabel}</span>

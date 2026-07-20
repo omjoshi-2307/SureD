@@ -10,11 +10,11 @@ import { depositEscrow, confirmEscrow } from '@/services/sorobanService';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  bg: '#F4F6FA', white: '#FFFFFF', border: '#EEEEEE',
-  textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  bg: '#0B0A10', white: '#FFFFFF', border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 /* ─── Shared nav items ─────────────── */
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
@@ -44,18 +44,18 @@ const NAV_ITEMS: NavItem[] = [
 
 /* ─── Status config ─────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  CREATED: { label: 'Created', color: '#2B6CB0', bg: 'rgba(74,144,226,0.1)', border: 'rgba(74,144,226,0.3)' },
-  FUNDED: { label: 'Funded', color: '#C07A12', bg: 'rgba(240,163,74,0.1)', border: 'rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#8E44AD', bg: 'rgba(155,89,182,0.1)', border: 'rgba(155,89,182,0.3)' },
-  RELEASED: { label: 'Released', color: '#2AAF5C', bg: 'rgba(74,207,122,0.1)', border: 'rgba(74,207,122,0.3)' },
-  DISPUTED: { label: 'Disputed', color: '#C53030', bg: 'rgba(234,67,53,0.1)', border: 'rgba(234,67,53,0.3)' },
-  CANCELLED: { label: 'Cancelled', color: '#4B5563', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
+  CREATED: { label: 'Created', color: '#97A0B5', bg: 'rgba(151,160,181,0.1)', border: 'rgba(151,160,181,0.3)' },
+  FUNDED: { label: 'Funded', color: '#6E9BFF', bg: 'rgba(46,107,255,0.1)', border: 'rgba(46,107,255,0.3)' },
+  PENDING_CONFIRMATION: { label: 'Pending Confirmation', color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+  RELEASED: { label: 'Released', color: '#10B981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.3)' },
+  DISPUTED: { label: 'Disputed', color: '#F87171', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' },
+  CANCELLED: { label: 'Cancelled', color: '#9CA3AF', bg: 'rgba(107,114,128,0.1)', border: 'rgba(107,114,128,0.3)' },
 };
 
 /* ─── Helper components ─────────────────────────── */
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
   <div style={{
-    background: C.white, borderRadius: 16, border: `1px solid ${C.border}`,
+    background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`,
     boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px',
     ...style,
   }}>
@@ -81,7 +81,7 @@ const InfoRow = ({ label, value, bold, accent }: { label: string; value: React.R
 const MonoBlock = ({ value }: { value: string }) => (
   <div style={{
     font, fontWeight: 600, fontSize: '0.78rem', color: C.textMid,
-    background: '#FAFAFA', padding: '6px 10px', borderRadius: 8,
+    background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 8,
     border: `1px solid ${C.border}`, overflowX: 'auto', whiteSpace: 'nowrap',
     fontFamily: 'monospace',
   }}>
@@ -114,7 +114,7 @@ const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message:
 
 /* ─── Skeleton loader ─────── */
 const SkeletonBlock = ({ w = '100%', h = 14, mb = 10 }: { w?: string | number; h?: number; mb?: number }) => (
-  <div style={{ height: h, width: w, background: '#F0F0F0', borderRadius: 6, marginBottom: mb, animation: 'skPulse 1.4s infinite ease-in-out' }} />
+  <div style={{ height: h, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 6, marginBottom: mb, animation: 'skPulse 1.4s infinite ease-in-out' }} />
 );
 
 const EscrowDetailsPage: React.FC = () => {
@@ -282,7 +282,7 @@ const EscrowDetailsPage: React.FC = () => {
     : null;
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="student"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -319,14 +319,14 @@ const EscrowDetailsPage: React.FC = () => {
       {/* ── Loading / Error states ── */}
       {loading && (
         <div style={{ ...fadeIn(50) }}>
-          <div style={{ background: C.white, borderRadius: 20, padding: '28px 32px', marginBottom: 24, border: `1px solid ${C.border}` }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: '28px 32px', marginBottom: 24, border: `1px solid ${C.border}` }}>
             <SkeletonBlock h={28} w="40%" mb={12} />
             <SkeletonBlock h={16} w="25%" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[1, 2, 3].map(k => (
-                <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
+                <div key={k} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="50%" mb={16} />
                   {[1, 2, 3, 4].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
@@ -334,7 +334,7 @@ const EscrowDetailsPage: React.FC = () => {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[1, 2].map(k => (
-                <div key={k} style={{ background: C.white, borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
+                <div key={k} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
                   <SkeletonBlock h={18} w="60%" mb={16} />
                   {[1, 2, 3].map(j => <SkeletonBlock key={j} h={14} mb={12} />)}
                 </div>
@@ -402,7 +402,7 @@ const EscrowDetailsPage: React.FC = () => {
                 <Card style={{ padding: 0, overflow: 'hidden' }}>
                   <div style={{
                     height: 150,
-                    background: 'linear-gradient(135deg, rgba(232,115,74,0.15) 0%, rgba(240,149,107,0.08) 100%)',
+                    background: 'linear-gradient(135deg, rgba(124,92,255,0.15) 0%, rgba(233,97,245,0.08) 100%)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4.5rem',
                   }}>
                     🏠
@@ -436,7 +436,7 @@ const EscrowDetailsPage: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                     <div style={{
                       width: 48, height: 48, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #4A90E2, #50E3C2)',
+                      background: 'linear-gradient(135deg, #2E6BFF, #60A5FA)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       font, fontWeight: 700, color: '#fff', fontSize: '1.2rem',
                     }}>
@@ -531,7 +531,7 @@ const EscrowDetailsPage: React.FC = () => {
                           gap: 8, font, fontWeight: 700, fontSize: '0.8rem', color: C.white,
                           background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
                           borderRadius: 50, padding: '10px 16px', textDecoration: 'none',
-                          boxShadow: '0 4px 12px rgba(232,115,74,0.25)',
+                          boxShadow: '0 4px 12px rgba(124,92,255,0.25)',
                           marginTop: 8,
                         }}
                       >
@@ -563,7 +563,7 @@ const EscrowDetailsPage: React.FC = () => {
                         padding: "13px",
                         cursor: depositing ? "not-allowed" : "pointer",
                         opacity: depositing ? 0.7 : 1,
-                        boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
+                        boxShadow: "0 6px 18px rgba(124,92,255,0.30)",
                         transition: "all 0.2s",
                       }}
                     >
@@ -580,7 +580,7 @@ const EscrowDetailsPage: React.FC = () => {
                           fontWeight: 700,
                           fontSize: "0.88rem",
                           color: C.textMid,
-                          background: "#F5F5F5",
+                          background: "rgba(255,255,255,0.06)",
                           border: `1.5px solid ${C.border}`,
                           borderRadius: 50,
                           padding: "13px",
@@ -603,7 +603,7 @@ const EscrowDetailsPage: React.FC = () => {
                           borderRadius: 50,
                           padding: "13px",
                           cursor: "pointer",
-                          boxShadow: "0 6px 18px rgba(232,115,74,0.30)",
+                          boxShadow: "0 6px 18px rgba(124,92,255,0.30)",
                           transition: "all 0.2s",
                         }}
                       >
@@ -620,9 +620,9 @@ const EscrowDetailsPage: React.FC = () => {
                           font,
                           fontWeight: 700,
                           fontSize: "0.88rem",
-                          color: "#2AAF5C",
-                          background: "rgba(74,207,122,0.1)",
-                          border: "1.5px solid rgba(74,207,122,0.4)",
+                          color: "#10B981",
+                          background: "rgba(16,185,129,0.1)",
+                          border: "1.5px solid rgba(16,185,129,0.4)",
                           borderRadius: 50,
                           padding: "13px",
                           cursor: "not-allowed",
@@ -643,9 +643,9 @@ const EscrowDetailsPage: React.FC = () => {
                         font,
                         fontWeight: 700,
                         fontSize: "0.88rem",
-                        color: "#2AAF5C",
-                        background: "rgba(74,207,122,0.1)",
-                        border: "1.5px solid rgba(74,207,122,0.4)",
+                        color: "#10B981",
+                        background: "rgba(16,185,129,0.1)",
+                        border: "1.5px solid rgba(16,185,129,0.4)",
                         borderRadius: 50,
                         padding: "13px",
                         cursor: "not-allowed",
@@ -658,18 +658,18 @@ const EscrowDetailsPage: React.FC = () => {
                     onClick={handleRaiseDispute}
                     style={{
                       width: '100%', font, fontWeight: 700, fontSize: '0.88rem', color: C.white,
-                      background: 'linear-gradient(135deg, #ea4335 0%, #f06b6b 100%)', border: 'none',
+                      background: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)', border: 'none',
                       borderRadius: 50, padding: '13px', cursor: 'pointer',
-                      boxShadow: '0 6px 18px rgba(234,67,53,0.3)', transition: 'all 0.2s',
+                      boxShadow: '0 6px 18px rgba(239,68,68,0.3)', transition: 'all 0.2s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 22px rgba(234,67,53,0.45)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(234,67,53,0.3)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 22px rgba(239,68,68,0.45)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(239,68,68,0.3)'; }}
                   >
                     🚨 Raise Dispute
                   </button>
                   <button style={{
                     width: '100%', font, fontWeight: 600, fontSize: '0.88rem', color: C.textDark,
-                    background: C.white, border: `1.5px solid ${C.border}`,
+                    background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`,
                     borderRadius: 50, padding: '13px', cursor: 'pointer', transition: 'all 0.2s',
                   }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = C.orange; e.currentTarget.style.color = C.orange; }}
@@ -689,16 +689,16 @@ const EscrowDetailsPage: React.FC = () => {
                 </Card>
 
                 {/* Need Assistance Card */}
-                <Card style={{ background: 'linear-gradient(135deg, rgba(232,115,74,0.06), rgba(240,149,107,0.03))', border: `1px solid rgba(232,115,74,0.15)` }}>
+                <Card style={{ background: 'linear-gradient(135deg, rgba(124,92,255,0.06), rgba(233,97,245,0.03))', border: `1px solid rgba(124,92,255,0.15)` }}>
                   <SectionTitle label="❓ Need Assistance?" />
                   <p style={{ font, fontSize: '0.8rem', color: C.textMid, lineHeight: 1.6, marginBottom: 18 }}>
                     DepositSafe keeps your rental deposit secure until move-in confirmation. If you face any issues, our dispute support is here 24/7.
                   </p>
                   <div style={{ display: 'flex', gap: 10 }}>
-                    <button style={{ flex: 1, font, fontWeight: 600, fontSize: '0.78rem', color: C.orange, border: `1.5px solid rgba(232,115,74,0.4)`, borderRadius: 50, padding: '8px 0', background: 'transparent', cursor: 'pointer' }}>
+                    <button style={{ flex: 1, font, fontWeight: 600, fontSize: '0.78rem', color: C.orange, border: `1.5px solid rgba(124,92,255,0.4)`, borderRadius: 50, padding: '8px 0', background: 'transparent', cursor: 'pointer' }}>
                       FAQ
                     </button>
-                    <button style={{ flex: 1, font, fontWeight: 600, fontSize: '0.78rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '8px 0', cursor: 'pointer', boxShadow: '0 4px 12px rgba(232,115,74,0.25)' }}>
+                    <button style={{ flex: 1, font, fontWeight: 600, fontSize: '0.78rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '8px 0', cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,92,255,0.25)' }}>
                       Support
                     </button>
                   </div>
@@ -711,14 +711,14 @@ const EscrowDetailsPage: React.FC = () => {
               <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Progress Card */}
-                <Card style={{ border: `1.5px solid rgba(232,115,74,0.22)` }}>
+                <Card style={{ border: `1.5px solid rgba(124,92,255,0.22)` }}>
                   <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 12 }}>
                     ⚙️ Escrow Progress
                   </div>
 
                   {/* Progress bar */}
-                  <div style={{ background: '#EEEEEE', borderRadius: 10, height: 8, width: '100%', overflow: 'hidden', marginBottom: 8 }}>
-                    <div style={{ width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 10, transition: 'width 1s ease' }} />
+                  <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 10, height: 8, width: '100%', overflow: 'hidden', marginBottom: 8 }}>
+                    <div style={{ width: `${progressPct}%`, height: '100%', background: 'linear-gradient(90deg, #7C5CFF, #A78BFA)', boxShadow: '0 0 12px rgba(124,92,255,0.7)', borderRadius: 10, transition: 'width 1s cubic-bezier(0.22, 1, 0.36, 1)' }} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: C.textLight, marginBottom: 16 }}>
                     <span>Created</span>
@@ -735,7 +735,7 @@ const EscrowDetailsPage: React.FC = () => {
 
                   <div style={{ paddingTop: 10 }}>
                     <div style={{ font, fontSize: '0.7rem', color: C.textLight }}>Deposit Amount</div>
-                    <div style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.orange, marginTop: 2 }}>
+                    <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: '#E0D7FF', letterSpacing: '-0.2px', marginTop: 2 }}>
                       {escrow.depositAmount} {escrow.currency}
                     </div>
                   </div>
@@ -755,7 +755,7 @@ const EscrowDetailsPage: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <div style={{
                             width: 26, height: 26, borderRadius: '50%',
-                            background: isCompleted ? '#4ACF7A' : isCurrent ? C.orange : '#E0E0E0',
+                            background: isCompleted ? '#10B981' : isCurrent ? C.orange : 'rgba(255,255,255,0.12)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: '#fff', fontSize: '0.7rem', fontWeight: 700,
                             transition: 'background 0.4s',
@@ -765,7 +765,7 @@ const EscrowDetailsPage: React.FC = () => {
                           {i < arr.length - 1 && (
                             <div style={{
                               width: 2, flex: 1, minHeight: 22,
-                              background: isCompleted ? '#4ACF7A' : '#E0E0E0',
+                              background: isCompleted ? '#10B981' : 'rgba(255,255,255,0.12)',
                               margin: '4px 0', transition: 'background 0.4s',
                             }} />
                           )}
@@ -791,7 +791,7 @@ const EscrowDetailsPage: React.FC = () => {
                 </Card>
 
                 {/* Tips Card */}
-                <Card style={{ background: 'rgba(74,207,122,0.04)', border: '1px solid rgba(74,207,122,0.2)' }}>
+                <Card style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.2)' }}>
                   <div style={{ display: 'flex', gap: 10 }}>
                     <span style={{ fontSize: '1.25rem' }}>💡</span>
                     <div>

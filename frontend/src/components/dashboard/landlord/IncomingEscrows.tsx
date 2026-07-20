@@ -5,11 +5,11 @@ import { getEscrowsByLandlordDb, confirmEscrowDb, cancelEscrowDb } from '@/servi
 import { confirmEscrow } from '@/services/sorobanService';
 
 const C = {
-  orange: '#E8734A', orangeLight: '#F0956B',
-  bg: '#F4F6FA', white: '#FFFFFF', border: '#EEEEEE',
-  textDark: '#1A1A1A', textMid: '#6B6B6B', textLight: '#AAAAAA',
+  orange: '#A78BFA', orangeLight: '#8B5CF6',
+  bg: '#0B0A10', white: '#FFFFFF', border: 'rgba(255,255,255,0.08)',
+  textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
-const font = "'Poppins', sans-serif";
+const font = "'Inter', sans-serif";
 
 const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -62,17 +62,17 @@ interface DbEscrow {
 
 /* ── Status config — identical to student pages ── */
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  CREATED:              { bg: 'rgba(74,144,226,0.12)',  color: '#2B6CB0', border: '1px solid rgba(74,144,226,0.3)' },
-  FUNDED:               { bg: 'rgba(240,163,74,0.12)', color: '#C07A12', border: '1px solid rgba(240,163,74,0.3)' },
-  PENDING_CONFIRMATION: { bg: 'rgba(155,89,182,0.12)', color: '#8E44AD', border: '1px solid rgba(155,89,182,0.3)' },
-  RELEASED:             { bg: 'rgba(74,207,122,0.12)', color: '#2AAF5C', border: '1px solid rgba(74,207,122,0.3)' },
-  DISPUTED:             { bg: 'rgba(234,67,53,0.12)',  color: '#C53030', border: '1px solid rgba(234,67,53,0.3)' },
-  CANCELLED:            { bg: 'rgba(107,114,128,0.12)',color: '#4B5563', border: '1px solid rgba(107,114,128,0.3)' },
+  CREATED:              { bg: 'rgba(151,160,181,0.12)',  color: '#97A0B5', border: '1px solid rgba(151,160,181,0.3)' },
+  FUNDED:               { bg: 'rgba(46,107,255,0.12)', color: '#6E9BFF', border: '1px solid rgba(46,107,255,0.3)' },
+  PENDING_CONFIRMATION: { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' },
+  RELEASED:             { bg: 'rgba(16,185,129,0.12)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)' },
+  DISPUTED:             { bg: 'rgba(239,68,68,0.12)',  color: '#F87171', border: '1px solid rgba(239,68,68,0.3)' },
+  CANCELLED:            { bg: 'rgba(107,114,128,0.12)',color: '#9CA3AF', border: '1px solid rgba(107,114,128,0.3)' },
 };
 
 /* ── Reusable UI helpers ── */
 const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-  <div style={{ background: C.white, borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px', ...style }}>
+  <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 26px', ...style }}>
     {children}
   </div>
 );
@@ -89,7 +89,7 @@ const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) =>
 );
 
 const MonoBlock = ({ value }: { value: string }) => (
-  <div style={{ font, fontWeight: 600, fontSize: '0.76rem', color: C.textMid, background: '#FAFAFA', padding: '6px 10px', borderRadius: 8, border: `1px solid ${C.border}`, overflowX: 'auto', whiteSpace: 'nowrap', fontFamily: 'monospace', marginBottom: 10 }}>
+  <div style={{ font, fontWeight: 600, fontSize: '0.76rem', color: C.textMid, background: 'rgba(255,255,255,0.03)', padding: '6px 10px', borderRadius: 8, border: `1px solid ${C.border}`, overflowX: 'auto', whiteSpace: 'nowrap', fontFamily: 'monospace', marginBottom: 10 }}>
     {value}
   </div>
 );
@@ -102,10 +102,10 @@ const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
 
 /* ── Skeleton card ── */
 const SkeletonCard = () => (
-  <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, animation: 'iePulse 1.5s infinite ease-in-out' }}>
-    <div style={{ height: 14, width: 80, background: '#F0F0F0', borderRadius: 4, marginBottom: 10 }} />
-    <div style={{ height: 16, width: 200, background: '#F0F0F0', borderRadius: 4, marginBottom: 8 }} />
-    <div style={{ height: 14, width: 140, background: '#F0F0F0', borderRadius: 4 }} />
+  <div style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, animation: 'iePulse 1.5s infinite ease-in-out' }}>
+    <div style={{ height: 14, width: 80, background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 10 }} />
+    <div style={{ height: 16, width: 200, background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 8 }} />
+    <div style={{ height: 14, width: 140, background: 'rgba(255,255,255,0.08)', borderRadius: 4 }} />
   </div>
 );
 
@@ -265,7 +265,7 @@ const IncomingEscrows: React.FC = () => {
   const ss = (status: string) => STATUS_STYLE[status] || STATUS_STYLE['CREATED'];
 
   return (
-    <DashboardLayout
+    <DashboardLayout dark
       role="landlord"
       userName={displayName}
       navItems={NAV_ITEMS}
@@ -273,6 +273,7 @@ const IncomingEscrows: React.FC = () => {
       onNavChange={(id) => {
         if (id === 'dashboard') navigate('/landlord/dashboard');
         if (id === 'incoming') navigate('/landlord/incoming-escrows');
+        if (id === 'transactions') navigate('/landlord/transactions');
         if (id === 'profile') navigate('/landlord/profile');
         if (id === 'settings') navigate('/landlord/settings');
       }}
@@ -283,15 +284,15 @@ const IncomingEscrows: React.FC = () => {
       {/* ── Confirm Move-In Modal ── */}
       {confirmMoveInItem && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>✅</div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Confirm Move-In</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 20 }}>
               You are confirming move-in for <strong>{confirmMoveInItem.propertyName}</strong>. This will update the escrow status to Pending Confirmation.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmMoveInItem(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleConfirmMoveIn} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(74,207,122,0.3)' }}>Confirm</button>
+              <button onClick={() => setConfirmMoveInItem(null)} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleConfirmMoveIn} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>Confirm</button>
             </div>
           </div>
         </div>
@@ -300,7 +301,7 @@ const IncomingEscrows: React.FC = () => {
       {/* ── Reject Modal ── */}
       {rejectItem && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>⚠️</div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Reject Escrow</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 16 }}>
@@ -316,8 +317,8 @@ const IncomingEscrows: React.FC = () => {
               onBlur={e => e.currentTarget.style.borderColor = C.border}
             />
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => { setRejectItem(null); setRejectReason(''); }} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleReject} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: 'linear-gradient(135deg, #ea4335, #f06b6b)', border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(234,67,53,0.3)' }}>Reject</button>
+              <button onClick={() => { setRejectItem(null); setRejectReason(''); }} style={{ flex: 1, font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '11px 0', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleReject} style={{ flex: 1, font, fontWeight: 700, fontSize: '0.85rem', color: '#fff', background: 'linear-gradient(135deg, #EF4444, #F87171)', border: 'none', borderRadius: 50, padding: '11px 0', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>Reject</button>
             </div>
           </div>
         </div>
@@ -326,7 +327,7 @@ const IncomingEscrows: React.FC = () => {
       {/* ── Chat Modal ── */}
       {chatItem && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: C.white, borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>💬</div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Contact Student</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 16 }}>
@@ -357,11 +358,11 @@ const IncomingEscrows: React.FC = () => {
           {[
             { label: 'Total', value: loading ? '…' : totalCount, color: C.textMid },
             { label: 'Active', value: loading ? '…' : activeCount, color: C.orange },
-            { label: 'Pending', value: loading ? '…' : pendingCount, color: '#8E44AD' },
-            { label: 'Released', value: loading ? '…' : releasedCount, color: '#2AAF5C' },
-            { label: 'Disputed', value: loading ? '…' : disputedCount, color: '#C53030' },
+            { label: 'Pending', value: loading ? '…' : pendingCount, color: '#F59E0B' },
+            { label: 'Released', value: loading ? '…' : releasedCount, color: '#10B981' },
+            { label: 'Disputed', value: loading ? '…' : disputedCount, color: '#F87171' },
           ].map(s => (
-            <div key={s.label} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 16px', minWidth: 80, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+            <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: 12, padding: '10px 16px', minWidth: 80, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
               <div style={{ font, fontSize: '0.68rem', color: C.textLight, fontWeight: 500 }}>{s.label}</div>
               <div style={{ font, fontWeight: 800, fontSize: '1.2rem', color: s.color, marginTop: 2 }}>{s.value}</div>
             </div>
@@ -388,7 +389,7 @@ const IncomingEscrows: React.FC = () => {
                     <input
                       value={search} onChange={e => setSearch(e.target.value)}
                       placeholder="Search by Escrow ID, Property or Wallet"
-                      style={{ font, fontSize: '0.82rem', padding: '10px 12px 10px 34px', border: `1.5px solid ${C.border}`, borderRadius: 10, width: '100%', outline: 'none', background: '#FAFAFA', boxSizing: 'border-box' }}
+                      style={{ font, fontSize: '0.82rem', padding: '10px 12px 10px 34px', border: `1.5px solid ${C.border}`, borderRadius: 10, width: '100%', outline: 'none', background: 'rgba(255,255,255,0.03)', color: '#fff', caretColor: '#A78BFA', boxSizing: 'border-box' }}
                       onFocus={e => e.currentTarget.style.borderColor = C.orange}
                       onBlur={e => e.currentTarget.style.borderColor = C.border}
                     />
@@ -396,7 +397,7 @@ const IncomingEscrows: React.FC = () => {
 
                   {/* Status filter */}
                   <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                    style={{ font, fontSize: '0.82rem', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', background: '#FAFAFA', cursor: 'pointer' }}>
+                    style={{ font, fontSize: '0.82rem', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', background: '#16141F', color: '#fff', cursor: 'pointer' }}>
                     <option value="All">All Statuses</option>
                     <option value="CREATED">Created</option>
                     <option value="FUNDED">Funded</option>
@@ -408,7 +409,7 @@ const IncomingEscrows: React.FC = () => {
 
                   {/* Sort */}
                   <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                    style={{ font, fontSize: '0.82rem', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', background: '#FAFAFA', cursor: 'pointer' }}>
+                    style={{ font, fontSize: '0.82rem', padding: '10px 14px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', background: '#16141F', color: '#fff', cursor: 'pointer' }}>
                     <option value="Newest First">Newest First</option>
                     <option value="Oldest First">Oldest First</option>
                     <option value="Highest Deposit">Highest Deposit</option>
@@ -419,7 +420,7 @@ const IncomingEscrows: React.FC = () => {
 
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => { setSearch(''); setStatusFilter('All'); setSortBy('Newest First'); }}
-                    style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textMid, border: `1.5px solid ${C.border}`, background: C.white, borderRadius: 10, padding: '9px 16px', cursor: 'pointer', transition: 'all 0.2s' }}
+                    style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textMid, border: `1.5px solid ${C.border}`, background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '9px 16px', cursor: 'pointer', transition: 'all 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.borderColor = C.orange}
                     onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
                   >Reset</button>
@@ -438,7 +439,7 @@ const IncomingEscrows: React.FC = () => {
               <Card>
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
                   <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚠️</div>
-                  <p style={{ font, fontWeight: 600, color: '#ea4335' }}>{fetchError}</p>
+                  <p style={{ font, fontWeight: 600, color: '#F87171' }}>{fetchError}</p>
                 </div>
               </Card>
             ) : sorted.length === 0 ? (
@@ -453,7 +454,7 @@ const IncomingEscrows: React.FC = () => {
                   </p>
                   {(search || statusFilter !== 'All') && (
                     <button onClick={() => { setSearch(''); setStatusFilter('All'); }}
-                      style={{ marginTop: 16, font, fontWeight: 700, fontSize: '0.8rem', color: C.orange, background: 'none', border: `1.5px solid rgba(232,115,74,0.4)`, borderRadius: 50, padding: '8px 20px', cursor: 'pointer' }}>
+                      style={{ marginTop: 16, font, fontWeight: 700, fontSize: '0.8rem', color: C.orange, background: 'none', border: `1.5px solid rgba(124,92,255,0.4)`, borderRadius: 50, padding: '8px 20px', cursor: 'pointer' }}>
                       Clear Filters
                     </button>
                   )}
@@ -470,10 +471,10 @@ const IncomingEscrows: React.FC = () => {
                       key={item._id}
                       onClick={() => setSelectedEscrow(item)}
                       style={{
-                        background: isSelected ? 'rgba(232,115,74,0.04)' : C.white,
+                        background: isSelected ? 'rgba(124,92,255,0.04)' : C.white,
                         border: isSelected ? `1.5px solid ${C.orange}` : `1px solid ${C.border}`,
                         borderRadius: 14, padding: '16px 20px', cursor: 'pointer',
-                        boxShadow: isSelected ? '0 4px 18px rgba(232,115,74,0.15)' : '0 2px 8px rgba(0,0,0,0.03)',
+                        boxShadow: isSelected ? '0 4px 18px rgba(124,92,255,0.15)' : '0 2px 8px rgba(0,0,0,0.03)',
                         transition: 'all 0.2s',
                       }}
                     >
@@ -514,35 +515,35 @@ const IncomingEscrows: React.FC = () => {
                         {item.status === 'FUNDED' ? (
                           item.landlordConfirmed ? (
                             <button disabled
-                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
                               ✅ Waiting for student
                             </button>
                           ) : (
                             <button onClick={e => { e.stopPropagation(); setConfirmMoveInItem(item); }}
-                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'pointer', transition: 'all 0.2s' }}
-                              onMouseEnter={e => e.currentTarget.style.borderColor = '#4ACF7A'}
+                              style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'pointer', transition: 'all 0.2s' }}
+                              onMouseEnter={e => e.currentTarget.style.borderColor = '#10B981'}
                               onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
                               Confirm Move-In
                             </button>
                           )
                         ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
                           <button disabled
-                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: '#2AAF5C', background: 'rgba(74,207,122,0.1)', border: '1.5px solid rgba(74,207,122,0.4)', borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: '#10B981', background: 'rgba(16,185,129,0.1)', border: '1.5px solid rgba(16,185,129,0.4)', borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
                             ✅ Both confirmed
                           </button>
                         ) : item.status === 'RELEASED' ? (
                           <button disabled
-                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
                             Completed
                           </button>
                         ) : (
                           <button disabled
-                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
+                            style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textLight, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
                             Unavailable
                           </button>
                         )}
                         <button onClick={e => { e.stopPropagation(); setChatItem(item); }}
-                          style={{ font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 14px', cursor: 'pointer' }}>
+                          style={{ font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 14px', cursor: 'pointer' }}>
                           💬
                         </button>
                       </div>
@@ -571,7 +572,7 @@ const IncomingEscrows: React.FC = () => {
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Header card */}
-                <Card style={{ border: `1.5px solid rgba(232,115,74,0.25)` }}>
+                <Card style={{ border: `1.5px solid rgba(124,92,255,0.25)` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                     <div>
                       <div style={{ font, fontWeight: 800, fontSize: '1rem', color: C.textDark }}>{item.propertyName}</div>
@@ -617,48 +618,48 @@ const IncomingEscrows: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <button
                       onClick={() => navigate(`/landlord/escrow/${targetId(item)}`)}
-                      style={{ width: '100%', font, fontWeight: 700, fontSize: '0.85rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(232,115,74,0.3)' }}>
+                      style={{ width: '100%', font, fontWeight: 700, fontSize: '0.85rem', color: C.white, background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)' }}>
                       View Full Details
                     </button>
                     {item.status === 'FUNDED' ? (
                       item.landlordConfirmed ? (
                         <button disabled
-                          style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                          style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
                           ✅ Waiting for student confirmation
                         </button>
                       ) : (
                         <>
                           <button
                             onClick={() => setConfirmMoveInItem(item)}
-                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(74,207,122,0.3)' }}>
+                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
                             ✅ Confirm Move-In
                           </button>
                           <button
                             onClick={() => setRejectItem(item)}
-                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #ea4335, #f06b6b)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(234,67,53,0.3)' }}>
+                            style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #EF4444, #F87171)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
                             ❌ Reject Escrow
                           </button>
                         </>
                       )
                     ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
                       <button disabled
-                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: '#2AAF5C', background: 'rgba(74,207,122,0.1)', border: '1.5px solid rgba(74,207,122,0.4)', borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: '#10B981', background: 'rgba(16,185,129,0.1)', border: '1.5px solid rgba(16,185,129,0.4)', borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
                         ✅ Both parties confirmed
                       </button>
                     ) : item.status === 'RELEASED' ? (
                       <button disabled
-                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
                         Completed
                       </button>
                     ) : (
                       <button disabled
-                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: '#F5F5F5', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
+                        style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textLight, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
                         {item.status === 'CANCELLED' ? 'Cancelled' : 'Unavailable'}
                       </button>
                     )}
                     <button
                       onClick={() => setChatItem(item)}
-                      style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: C.white, border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+                      style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = C.orange}
                       onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
                       💬 Contact Student
