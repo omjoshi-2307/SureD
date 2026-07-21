@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Env};
+use soroban_sdk::{contracttype, Address, Env};
 
 use crate::types::Escrow;
 
@@ -7,6 +7,7 @@ use crate::types::Escrow;
 pub enum DataKey {
     Escrow(u64),
     NextEscrowId,
+    Token,
 }
 
 pub fn save_escrow(env: &Env, escrow_id: u64, escrow: &Escrow) {
@@ -35,4 +36,15 @@ pub fn increment_next_escrow_id(env: &Env) -> u64 {
         .persistent()
         .set(&DataKey::NextEscrowId, &next);
     current
+}
+
+pub fn set_token(env: &Env, token: &Address) {
+    env.storage().instance().set(&DataKey::Token, token);
+}
+
+pub fn get_token(env: &Env) -> Address {
+    env.storage()
+        .instance()
+        .get(&DataKey::Token)
+        .unwrap()
 }
