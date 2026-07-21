@@ -16,20 +16,11 @@ const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [isLg, setIsLg] = useState<boolean>(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 24);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
-  }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const update = () => setIsLg(mq.matches);
-    update();
-    mq.addEventListener?.('change', update);
-    return () => mq.removeEventListener?.('change', update);
   }, []);
 
   useEffect(() => {
@@ -41,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
 
   return (
     <header
-      className="dl-stagger"
+      className="dl-fade"
       style={{
         position: 'sticky',
         top: 0,
@@ -150,35 +141,38 @@ const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
           ))}
         </ul>
 
-        {/* RIGHT: login + CTA (desktop) - hamburger moved inside this column so it never wraps */}
-        <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 18, justifySelf: 'end', display: isLg ? 'flex' : 'none' }}>
+        {/* RIGHT: login + CTA (desktop) / hamburger (mobile) */}
+        <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div className="hidden lg:flex" style={{ alignItems: 'center', gap: 18 }}>
+            <button
+              onClick={onSignIn}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                color: 'rgba(255,255,255,0.7)',
+                transition: 'color 0.2s ease',
+                padding: '8px 4px',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+            >
+              Login
+            </button>
+            <button
+              onClick={onSignIn}
+              className="btn-glow"
+              style={{ fontSize: '0.875rem', padding: '10px 22px' }}
+            >
+              Get started
+            </button>
+          </div>
+          {/* Hamburger (mobile only) */}
           <button
-            onClick={onSignIn}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 500,
-              fontSize: '0.875rem',
-              color: 'rgba(255,255,255,0.7)',
-              transition: 'color 0.2s ease',
-              padding: '8px 4px',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-          >
-            Login
-          </button>
-          <button
-            onClick={onSignIn}
-            className="btn-glow"
-            style={{ fontSize: '0.875rem', padding: '10px 22px' }}
-          >
-            Get started
-          </button>
-          {/* Hamburger (mobile) - shows only when not lg */}
-          <button
+            className="flex lg:hidden"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -187,10 +181,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSignIn }) => {
               border: 'none',
               cursor: 'pointer',
               padding: 8,
-              display: isLg ? 'none' : 'flex',
               flexDirection: 'column',
               gap: 5,
               zIndex: 210,
+              position: 'relative',
             }}
           >
             {[0, 1, 2].map((i) => (

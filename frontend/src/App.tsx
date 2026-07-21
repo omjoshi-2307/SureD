@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import WelcomePage from '@/components/ui/WelcomePage';
 import Navbar from '@/components/ui/Navbar';

@@ -1,55 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { STUDENT_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  ArrowRight, Check, CircleCheckBig, CircleDollarSign, Clock, Download,
+  Layers, Lock, MessageCircle, Plus, Shield, ShieldPlus, Wallet, X,
+} from 'lucide-react';
 import { connectWallet } from "@/services/walletService";
 import { updateWallet } from "@/services/authService";
 import { getEscrowsByStudentDb } from "@/services/escrowService";
-
-/* ── Icons (inline SVG, no extra deps) ── */
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-
-const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'dashboard', label: 'Dashboard',
-    icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
-  },
-  {
-    id: 'deposits', label: 'My Deposits',
-    icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />,
-  },
-  {
-    id: 'escrow', label: 'Create Escrow',
-    icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
-  },
-  {
-    id: 'history', label: 'Transaction History',
-    icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />,
-  },
-  {
-    id: 'profile', label: 'Profile',
-    icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />,
-  },
-  {
-    id: 'settings', label: 'Settings',
-    icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />,
-  },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" />
-        <line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 /* ── Escrow lifecycle status palette (matches the landing design system) ── */
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
@@ -87,19 +46,11 @@ const cardBase: React.CSSProperties = {
 const QuickBtn = ({ label, icon, primary, onClick }: { label: string; icon: React.ReactNode; primary?: boolean; onClick?: () => void }) => (
   <button
     onClick={onClick}
-    className={primary ? 'btn-glow' : 'btn-glass'}
+    className={`${primary ? 'btn-glow' : 'btn-glass'} icon-anim`}
     style={{ padding: '11px 20px', fontSize: '0.83rem', fontWeight: 600 }}
   >
     <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span> {label}
   </button>
-);
-
-/* ── Small inline SVG helpers for quick actions ── */
-const MiniIcon = ({ children }: { children: React.ReactNode }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {children}
-  </svg>
 );
 
 /* ── Skeleton loading row ── */
@@ -206,19 +157,19 @@ const StudentDashboard: React.FC = () => {
   const dynamicStats = [
     {
       label: 'Active Escrows', value: String(activeEscrowsCount), sub: 'Currently locked or created', color: '#6E9BFF',
-      icon: <MiniIcon><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></MiniIcon>,
+      icon: <Lock size={15} strokeWidth={2} aria-hidden="true" />,
     },
     {
       label: 'Pending Deposits', value: String(pendingDepositsCount), sub: 'Awaiting action', color: '#F59E0B',
-      icon: <MiniIcon><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></MiniIcon>,
+      icon: <Clock size={15} strokeWidth={2} aria-hidden="true" />,
     },
     {
       label: 'Completed Deposits', value: String(completedDepositsCount), sub: 'Released to landlord', color: '#10B981',
-      icon: <MiniIcon><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></MiniIcon>,
+      icon: <CircleCheckBig size={15} strokeWidth={2} aria-hidden="true" />,
     },
     {
       label: 'Total Deposit Value', value: `${totalDepositValue} XLM`, sub: 'Across all properties', color: '#A78BFA',
-      icon: <MiniIcon><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></MiniIcon>,
+      icon: <CircleDollarSign size={15} strokeWidth={2} aria-hidden="true" />,
     },
   ];
 
@@ -283,14 +234,14 @@ const StudentDashboard: React.FC = () => {
               label="Create Escrow"
               primary
               onClick={() => navigate('/student/create-escrow')}
-              icon={<MiniIcon><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></MiniIcon>}
+              icon={<Plus size={14} strokeWidth={2.2} aria-hidden="true" />}
             />
             <QuickBtn
               label={connecting ? 'Connecting…' : walletAddress ? 'Wallet Connected' : 'Connect Wallet'}
               onClick={walletAddress ? undefined : handleConnectWallet}
               icon={walletAddress
-                ? <MiniIcon><polyline points="20 6 9 17 4 12" /></MiniIcon>
-                : <MiniIcon><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4z" /></MiniIcon>}
+                ? <Check size={14} strokeWidth={2.2} aria-hidden="true" />
+                : <Wallet size={14} strokeWidth={2} aria-hidden="true" />}
             />
           </div>
           {walletAddress && (
@@ -340,7 +291,7 @@ const StudentDashboard: React.FC = () => {
             aria-label="Dismiss notification"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 2, display: 'flex' }}
           >
-            <MiniIcon><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></MiniIcon>
+            <X size={14} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -417,20 +368,20 @@ const StudentDashboard: React.FC = () => {
           <QuickBtn
             label="Create New Escrow" primary
             onClick={() => navigate('/student/create-escrow')}
-            icon={<MiniIcon><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></MiniIcon>}
+            icon={<ShieldPlus size={14} strokeWidth={2} aria-hidden="true" />}
           />
           <QuickBtn
             label="View All Deposits"
             onClick={() => navigate('/student/my-deposits')}
-            icon={<MiniIcon><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></MiniIcon>}
+            icon={<Layers size={14} strokeWidth={2} aria-hidden="true" />}
           />
           <QuickBtn
             label="Download Statement"
-            icon={<MiniIcon><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></MiniIcon>}
+            icon={<Download size={14} strokeWidth={2} aria-hidden="true" />}
           />
           <QuickBtn
             label="Contact Support"
-            icon={<MiniIcon><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></MiniIcon>}
+            icon={<MessageCircle size={14} strokeWidth={2} aria-hidden="true" />}
           />
         </div>
       </div>
@@ -456,7 +407,7 @@ const StudentDashboard: React.FC = () => {
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
             View all
-            <MiniIcon><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></MiniIcon>
+            <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
@@ -498,10 +449,7 @@ const StudentDashboard: React.FC = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: C.violetSoft,
                     }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
+                      <Shield size={24} strokeWidth={1.8} aria-hidden="true" />
                     </div>
                     <div style={{ fontFamily: C.font, fontWeight: 600, fontSize: '1rem', color: C.textDark }}>No escrows yet</div>
                     <p style={{ fontFamily: C.font, fontSize: '0.8rem', color: C.textMid, marginTop: 4, marginBottom: 16, lineHeight: 1.6 }}>

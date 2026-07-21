@@ -2,33 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { googleLogin } from '../../services/authService';
 import LogoMark from './LogoMark';
+import { AlertTriangle, Building2, Check, GraduationCap } from 'lucide-react';
 
 const font = "'Inter', sans-serif";
 
 const CheckIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A78BFA"
-    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
+  <Check size={size} strokeWidth={2.5} aria-hidden="true" style={{ color: '#A78BFA' }} />
 );
 
 const StudentIcon: React.FC<{ active: boolean }> = ({ active }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-    stroke={active ? '#fff' : 'rgba(255,255,255,0.6)'}
-    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M22 10 12 5 2 10l10 5 10-5z" />
-    <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
-  </svg>
+  <GraduationCap size={20} strokeWidth={1.8} aria-hidden="true"
+    style={{ color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} />
 );
 
 const LandlordIcon: React.FC<{ active: boolean }> = ({ active }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-    stroke={active ? '#fff' : 'rgba(255,255,255,0.6)'}
-    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="4" y="2" width="16" height="20" rx="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
-  </svg>
+  <Building2 size={20} strokeWidth={1.8} aria-hidden="true"
+    style={{ color: active ? '#fff' : 'rgba(255,255,255,0.6)' }} />
 );
 
 const GoogleRoleSelect: React.FC = () => {
@@ -50,12 +39,7 @@ const GoogleRoleSelect: React.FC = () => {
             background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
+            <AlertTriangle size={22} strokeWidth={2} aria-hidden="true" style={{ color: '#F59E0B' }} />
           </div>
           <h2 style={{ fontFamily: font, fontWeight: 600, fontSize: '1.1rem', color: '#fff', marginBottom: 8 }}>Session expired</h2>
           <p style={{ fontFamily: font, fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: 20, lineHeight: 1.5 }}>

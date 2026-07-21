@@ -2,6 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getTransactionsByWallet, type TxRecord, ACTION_LABELS, ACTION_TONE } from '@/services/historyService';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import { LANDLORD_NAV_ITEMS, STUDENT_NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  AlertTriangle, ArrowLeft, ArrowRight, CircleCheckBig, ExternalLink,
+  Inbox, Info, Link2, X, XCircle,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { connectWallet } from '@/services/walletService';
 import { fetchUserProfile, syncWallet, updateUserProfile, type ActivityItem, type ProfileStats, type ProfileUpdatePayload, type UserProfile, type WalletUpdatePayload } from '@/services/authService';
@@ -25,49 +30,8 @@ const C = {
 
 const font = "'Inter', sans-serif";
 
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-
-const buildNavItems = (role: PageRole): NavItem[] => {
-  if (role === 'student') {
-    return [
-      { id: 'dashboard', label: 'Dashboard', icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-      { id: 'deposits', label: 'My Deposits', icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-      { id: 'escrow', label: 'Create Escrow', icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-      { id: 'history', label: 'Transaction History', icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-      { id: 'profile', label: 'Profile', icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-      { id: 'settings', label: 'Settings', icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-      { id: 'logout', label: 'Logout', icon: (
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-      ), isLogout: true },
-    ].map((item) => ({ ...item }));
-  }
-
-  return [
-    { id: 'dashboard', label: 'Dashboard', icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-    { id: 'properties', label: 'My Properties', icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-    { id: 'incoming', label: 'Incoming Deposits', icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-    { id: 'movein', label: 'Confirm Move-in', icon: <Icon d="M9 11l3 3L22 4" /> },
-    { id: 'transactions', label: 'Transactions', icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-    { id: 'profile', label: 'Profile', icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-    { id: 'settings', label: 'Settings', icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-    { id: 'logout', label: 'Logout', icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" />
-        <line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ), isLogout: true },
-  ].map((item) => ({ ...item }));
-};
+const buildNavItems = (role: PageRole): NavItem[] =>
+  role === 'student' ? STUDENT_NAV_ITEMS : LANDLORD_NAV_ITEMS;
 
 const fadeIn = (delay = 0): React.CSSProperties => ({
   animation: `fadeInUp 0.5s ease ${delay}ms both`,
@@ -101,10 +65,13 @@ const StatusBadge = ({ label, tone }: { label: string; tone: 'info' | 'success' 
 
 const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message: string; type?: 'info' | 'warning' | 'error' | 'success' }) => {
   const bg = type === 'error' ? 'linear-gradient(135deg,#2E1A1A,#4E2E2E)' : type === 'warning' ? 'linear-gradient(135deg,#2E2210,#4E3A10)' : type === 'success' ? 'linear-gradient(135deg,#1D3C2A,#2C5A3B)' : 'linear-gradient(135deg,#1A1A2E,#2E2E4E)';
-  const icon = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
+  const icon = type === 'error' ? <XCircle size={16} strokeWidth={2} aria-hidden="true" />
+    : type === 'warning' ? <AlertTriangle size={16} strokeWidth={2} aria-hidden="true" />
+      : type === 'success' ? <CircleCheckBig size={16} strokeWidth={2} aria-hidden="true" />
+        : <Info size={16} strokeWidth={2} aria-hidden="true" />;
   return (
-    <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 9999, background: bg, color: '#fff', padding: '14px 18px', borderRadius: 14, boxShadow: '0 10px 30px rgba(0,0,0,0.18)', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(12px)', transition: 'all 0.25s ease', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 10, fontFamily: font, fontWeight: 600 }}>
-      <span>{icon}</span>
+    <div role="status" aria-live="polite" style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 9999, background: bg, color: '#fff', padding: '14px 18px', borderRadius: 14, boxShadow: '0 10px 30px rgba(0,0,0,0.18)', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(12px)', transition: 'all 0.25s ease', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 10, fontFamily: font, fontWeight: 600 }}>
+      <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>
       {message}
     </div>
   );
@@ -115,10 +82,6 @@ const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message:
 /** Abbreviated wallet address for display */
 const shortWallet = (w: string) =>
   w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w;
-
-/** Abbreviated tx hash for display */
-const shortHash = (h: string) =>
-  h && h.length > 16 ? `${h.slice(0, 8)}…${h.slice(-6)}` : h;
 
 /** Format ISO date string to readable date + time */
 const fmtDatetime = (iso: string) => {
@@ -156,7 +119,7 @@ const SkeletonRow = () => (
   <tr>
     {Array.from({ length: 9 }).map((_, i) => (
       <td key={i} style={{ padding: '14px 8px' }}>
-        <div style={{ height: 14, borderRadius: 6, background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
+        <div style={{ height: 14, borderRadius: 6, background: 'linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
       </td>
     ))}
   </tr>
@@ -166,15 +129,18 @@ const SkeletonRow = () => (
 const TxModal = ({ tx, onClose }: { tx: TxRecord; onClose: () => void }) => (
   <div
     onClick={onClose}
+    role="dialog"
+    aria-modal="true"
+    aria-label="Transaction detail"
     style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}
   >
     <div
       onClick={(e) => e.stopPropagation()}
-      style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 520, width: '92%', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', maxHeight: '90vh', overflowY: 'auto' }}
+      style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 32, maxWidth: 520, width: '92%', boxShadow: '0 24px 70px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, margin: 0 }}>Transaction Detail</h2>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: C.textMid, lineHeight: 1 }}>×</button>
+        <button onClick={onClose} aria-label="Close dialog" className="icon-anim" style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.textMid, lineHeight: 1, display: 'flex', padding: 4 }}><X size={18} strokeWidth={2.2} aria-hidden="true" /></button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {[
@@ -214,7 +180,7 @@ const TxModal = ({ tx, onClose }: { tx: TxRecord; onClose: () => void }) => (
           rel="noopener noreferrer"
           style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 999, padding: '12px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)' }}
         >
-          View on Stellar Expert ↗
+          View on Stellar Expert <ExternalLink size={13} strokeWidth={2.2} aria-hidden="true" />
         </a>
         <button
           onClick={onClose}
@@ -361,7 +327,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
 
       {selectedTx && <TxModal tx={selectedTx} onClose={() => setSelectedTx(null)} />}
 
-      <div style={{ padding: '24px 24px 40px', background: C.bg, minHeight: '100vh' }}>
+      <div>
         <div style={{ ...fadeIn(), display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* ── Header ── */}
@@ -373,7 +339,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
             <button
               onClick={handleExportCSV}
               disabled={filtered.length === 0}
-              style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: filtered.length === 0 ? '#eee' : `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: filtered.length === 0 ? C.textLight : '#fff', fontFamily: font, fontWeight: 700, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer', boxShadow: filtered.length === 0 ? 'none' : '0 8px 20px rgba(124,92,255,0.25)', transition: 'all 0.2s' }}
+              style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: filtered.length === 0 ? 'rgba(255,255,255,0.08)' : `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: filtered.length === 0 ? C.textLight : '#fff', fontFamily: font, fontWeight: 700, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer', boxShadow: filtered.length === 0 ? 'none' : '0 8px 20px rgba(124,92,255,0.25)', transition: 'all 0.2s' }}
             >
               Export CSV
             </button>
@@ -428,8 +394,8 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
 
             {/* Error */}
             {error && (
-              <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', fontFamily: font, fontSize: '0.85rem', color: '#F87171', marginBottom: 16 }}>
-                ⚠️ {error}
+              <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', fontFamily: font, fontSize: '0.85rem', color: '#F87171', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertTriangle size={15} strokeWidth={2} aria-hidden="true" /> {error}
               </div>
             )}
 
@@ -455,7 +421,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                     ? (
                       <tr>
                         <td colSpan={9} style={{ padding: '48px 0', textAlign: 'center' }}>
-                          <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📭</div>
+                          <div style={{ width: 52, height: 52, margin: '0 auto 12px', borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}><Inbox size={24} strokeWidth={1.8} aria-hidden="true" /></div>
                           <div style={{ fontFamily: font, fontWeight: 700, color: C.textMid, fontSize: '0.95rem' }}>No transactions found</div>
                           <div style={{ fontFamily: font, color: C.textLight, fontSize: '0.82rem', marginTop: 6 }}>
                             {search || typeFilter !== 'All' ? 'Try adjusting your search or filters.' : 'Transactions will appear here after escrow operations.'}
@@ -498,9 +464,9 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', color: C.orange, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                              style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', color: C.orange, cursor: 'pointer', fontSize: '0.72rem', fontFamily: font, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                             >
-                              Stellar ↗
+                              Stellar <ExternalLink size={10} strokeWidth={2.2} aria-hidden="true" />
                             </a>
                           </div>
                         </td>
@@ -523,7 +489,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                     disabled={currentPage === 1}
                     style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: currentPage === 1 ? C.textLight : C.textDark, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
                   >
-                    ← Prev
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} strokeWidth={2} aria-hidden="true" /> Prev</span>
                   </button>
                   {Array.from({ length: pageCount }, (_, i) => i + 1)
                     .filter((p) => p === 1 || p === pageCount || Math.abs(p - currentPage) <= 1)
@@ -539,7 +505,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                         <button
                           key={p}
                           onClick={() => setCurrentPage(p as number)}
-                          style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 13px', background: currentPage === p ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#fff', color: currentPage === p ? '#fff' : C.textDark, cursor: 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
+                          style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 13px', background: currentPage === p ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : 'rgba(255,255,255,0.06)', color: currentPage === p ? '#fff' : C.textDark, cursor: 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
                         >
                           {p}
                         </button>
@@ -551,7 +517,7 @@ export const TransactionHistoryPage: React.FC<Props> = ({ role }) => {
                     disabled={currentPage === pageCount}
                     style={{ border: `1px solid ${C.border}`, borderRadius: 999, padding: '8px 14px', background: 'rgba(255,255,255,0.06)', color: currentPage === pageCount ? C.textLight : C.textDark, cursor: currentPage === pageCount ? 'not-allowed' : 'pointer', fontFamily: font, fontWeight: 700, fontSize: '0.82rem' }}
                   >
-                    Next →
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>Next <ArrowRight size={13} strokeWidth={2} aria-hidden="true" /></span>
                   </button>
                 </div>
               </div>
@@ -568,8 +534,6 @@ const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
   return 'Something went wrong';
 };
-
-const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 
 const formatDate = (value?: string) => {
   if (!value) return 'Not available';
@@ -792,7 +756,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
       if (id === 'profile') navigate(role === 'student' ? '/student/profile' : '/landlord/profile');
       if (id === 'settings') navigate(role === 'student' ? '/student/settings' : '/landlord/settings');
     }}>
-      <div style={{ padding: '24px 24px 40px', background: C.bg, minHeight: '100vh' }}>
+      <div>
         <div style={{ ...fadeIn(), display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -809,22 +773,22 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
             <div style={{ border: `1px solid rgba(239,68,68,0.2)`, borderRadius: 14, padding: '12px 14px', background: 'rgba(239,68,68,0.06)', color: '#F87171', fontFamily: font, fontWeight: 600 }}>{error}</div>
           ) : null}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20, alignItems: 'start' }}>
+          <div className="grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]" style={{ display: 'grid', gap: 20, alignItems: 'start' }}>
             {loading ? (
               <>
                 <Card style={{ padding: 24 }}>
-                  <div style={{ height: 18, width: '40%', background: '#f3f4f6', borderRadius: 999, marginBottom: 16 }} />
-                  <div style={{ height: 64, width: 64, borderRadius: '50%', background: '#f3f4f6', marginBottom: 16 }} />
-                  <div style={{ height: 14, width: '70%', background: '#f3f4f6', borderRadius: 999, marginBottom: 10 }} />
-                  <div style={{ height: 14, width: '50%', background: '#f3f4f6', borderRadius: 999, marginBottom: 18 }} />
+                  <div style={{ height: 18, width: '40%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 16 }} />
+                  <div style={{ height: 64, width: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', marginBottom: 16 }} />
+                  <div style={{ height: 14, width: '70%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 10 }} />
+                  <div style={{ height: 14, width: '50%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 18 }} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    {[1, 2, 3, 4].map((item) => <div key={item} style={{ height: 64, borderRadius: 12, background: '#f3f4f6' }} />)}
+                    {[1, 2, 3, 4].map((item) => <div key={item} style={{ height: 64, borderRadius: 12, background: 'rgba(255,255,255,0.08)' }} />)}
                   </div>
                 </Card>
                 <Card style={{ padding: 24 }}>
-                  <div style={{ height: 18, width: '40%', background: '#f3f4f6', borderRadius: 999, marginBottom: 16 }} />
-                  <div style={{ height: 84, width: 84, borderRadius: '50%', background: '#f3f4f6', marginBottom: 12 }} />
-                  <div style={{ height: 14, width: '70%', background: '#f3f4f6', borderRadius: 999, marginBottom: 10 }} />
+                  <div style={{ height: 18, width: '40%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 16 }} />
+                  <div style={{ height: 84, width: 84, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', marginBottom: 12 }} />
+                  <div style={{ height: 14, width: '70%', background: 'rgba(255,255,255,0.08)', borderRadius: 999, marginBottom: 10 }} />
                 </Card>
               </>
             ) : (
@@ -837,7 +801,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                       <p style={{ margin: '4px 0 0', fontFamily: font, fontSize: '0.86rem', color: C.textMid }}>{profile?.role === 'student' ? 'Student' : 'Landlord'} • {walletStatus}</p>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="grid-cols-1 sm:grid-cols-2" style={{ display: 'grid', gap: 14 }}>
                     {[{ label: 'Email', value: profile?.email || 'Not provided' }, { label: 'Username', value: profile?.username || 'Not set' }, { label: 'Phone', value: profile?.phone || 'Not set' }, { label: 'Member Since', value: formatDate(profile?.createdAt) }].map((item) => (
                       <div key={item.label} style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.border}` }}>
                         <div style={{ fontFamily: font, fontSize: '0.72rem', color: C.textLight }}>{item.label}</div>
@@ -850,7 +814,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                 <Card style={{ padding: 24 }}>
                   <SectionTitle label="Profile Completion" />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                    <div style={{ width: 84, height: 84, borderRadius: '50%', display: 'grid', placeItems: 'center', background: `conic-gradient(${C.orange} ${profileCompletion}%, #F2F2F2 0)`, color: C.textDark, fontWeight: 800 }}>{profileCompletion}%</div>
+                    <div style={{ width: 84, height: 84, borderRadius: '50%', display: 'grid', placeItems: 'center', background: `conic-gradient(${C.orange} ${profileCompletion}%, rgba(255,255,255,0.12) 0)`, color: C.textDark, fontWeight: 800 }}>{profileCompletion}%</div>
                     <div>
                       <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{profileCompletion >= 80 ? 'Excellent profile' : 'Complete more details'}</div>
                       <p style={{ fontFamily: font, fontSize: '0.84rem', color: C.textMid, margin: '6px 0 0' }}>Your profile is synced from your authenticated account and updates automatically.</p>
@@ -861,10 +825,10 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20 }}>
+          <div className="grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]" style={{ display: 'grid', gap: 20 }}>
             <Card style={{ padding: 24 }}>
               <SectionTitle label="Personal Information" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="grid-cols-1 sm:grid-cols-2" style={{ display: 'grid', gap: 14 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontFamily: font, fontSize: '0.76rem', color: C.textLight }}>Full Name</span>
                   <input value={formState.fullName} onChange={(e) => handleChange('fullName', e.target.value)} style={{ borderRadius: 12, border: `1px solid ${C.border}`, padding: '10px 12px', fontFamily: font, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA', outline: 'none' }} />
@@ -913,7 +877,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
             </Card>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 20 }}>
+          <div className="grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]" style={{ display: 'grid', gap: 20 }}>
             <Card style={{ padding: 24 }}>
               <SectionTitle label="Recent Activity" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -922,7 +886,7 @@ export const ProfilePage: React.FC<Props> = ({ role }) => {
                 ) : activity.map((item) => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(124,92,255,0.12)', color: C.orange }}>{item.icon || '🔗'}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(124,92,255,0.12)', color: C.orange }}>{item.icon || <Link2 size={15} strokeWidth={2} aria-hidden="true" />}</div>
                       <div>
                         <div style={{ fontFamily: font, fontWeight: 700, color: C.textDark }}>{item.title}</div>
                         <div style={{ fontFamily: font, fontSize: '0.78rem', color: C.textMid }}>{formatDateTime(item.timestamp)}</div>
@@ -1021,7 +985,7 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
       if (id === 'profile') navigate(role === 'student' ? '/student/profile' : '/landlord/profile');
       if (id === 'settings') navigate(role === 'student' ? '/student/settings' : '/landlord/settings');
     }}>
-      <div style={{ padding: '24px 24px 40px', background: C.bg, minHeight: '100vh' }}>
+      <div>
         <div style={{ ...fadeIn(), display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
@@ -1031,13 +995,13 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
             <button onClick={() => void handleSave()} disabled={saving} style={{ border: 'none', borderRadius: 999, padding: '10px 16px', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, color: '#fff', fontFamily: font, fontWeight: 700, cursor: saving ? 'wait' : 'pointer', boxShadow: '0 8px 20px rgba(124,92,255,0.25)' }}>{saving ? 'Saving…' : 'Save Settings'}</button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="grid-cols-1 md:grid-cols-2" style={{ display: 'grid', gap: 20 }}>
             <Card style={{ padding: 24 }}>
               <SectionTitle label="Preferences" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}` }}>
                   <span style={{ fontFamily: font, fontSize: '0.87rem', color: C.textDark }}>Notifications</span>
-                  <button onClick={() => toggle('notifications')} style={{ width: 44, height: 24, borderRadius: 999, border: 'none', background: settings.notifications ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : '#D9D9D9', cursor: 'pointer', position: 'relative' }}>
+                  <button onClick={() => toggle('notifications')} style={{ width: 44, height: 24, borderRadius: 999, border: 'none', background: settings.notifications ? `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})` : 'rgba(255,255,255,0.2)', cursor: 'pointer', position: 'relative' }}>
                     <span style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', position: 'absolute', top: 3, left: settings.notifications ? 23 : 3, transition: 'left 0.2s' }} />
                   </button>
                 </div>
@@ -1089,8 +1053,8 @@ export const SettingsPage: React.FC<Props> = ({ role }) => {
           </Card>
         </div>
         {showConfirm && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.24)', display: 'grid', placeItems: 'center', zIndex: 10000 }}>
-            <div style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 24, width: 'min(92vw, 420px)', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}>
+          <div role="dialog" aria-modal="true" aria-label="Confirm action" onClick={() => setShowConfirm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'grid', placeItems: 'center', zIndex: 10000 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 24, width: 'min(92vw, 420px)', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}>
               <h3 style={{ fontFamily: font, marginTop: 0, color: C.textDark }}>Confirm action</h3>
               <p style={{ fontFamily: font, color: C.textMid, lineHeight: 1.6 }}>This action cannot be undone. Continue?</p>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>

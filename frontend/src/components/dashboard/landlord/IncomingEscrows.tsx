@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { LANDLORD_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  AlertTriangle, Check, ChevronRight, CircleCheckBig, ExternalLink, Home,
+  Inbox, Info, KeyRound, Link2, MapPin, MessageCircle, MessagesSquare,
+  MousePointerClick, Search, XCircle, Zap,
+} from 'lucide-react';
 import { getEscrowsByLandlordDb, confirmEscrowDb, cancelEscrowDb } from '@/services/escrowService';
 import { confirmEscrow } from '@/services/sorobanService';
 
@@ -10,33 +16,6 @@ const C = {
   textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
 const font = "'Inter', sans-serif";
-
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',    label: 'Dashboard',         icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'properties',  label: 'My Properties',     icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'incoming',    label: 'Incoming Deposits',  icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'movein',      label: 'Confirm Move-in',   icon: <Icon d="M9 11l3 3L22 4" /> },
-  { id: 'transactions',label: 'Transactions',       icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',            icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',           icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 /* ── DB escrow shape ── */
 interface DbEscrow {
@@ -52,6 +31,7 @@ interface DbEscrow {
   updatedAt?: string;
   status: 'CREATED' | 'FUNDED' | 'PENDING_CONFIRMATION' | 'RELEASED' | 'DISPUTED' | 'CANCELLED';
   transactionHash?: string;
+  network?: string;
   rentalStartDate?: string;
   rentalEndDate?: string;
   purpose?: string;
@@ -77,8 +57,8 @@ const Card = ({ children, style }: { children: React.ReactNode; style?: React.CS
   </div>
 );
 
-const SectionTitle = ({ label }: { label: string }) => (
-  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18 }}>{label}</h3>
+const SectionTitle = ({ label }: { label: React.ReactNode }) => (
+  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>{label}</h3>
 );
 
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -95,8 +75,8 @@ const MonoBlock = ({ value }: { value: string }) => (
 );
 
 const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
-  <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 9999, background: 'linear-gradient(135deg, #1A1A2E, #2E2E4E)', color: '#fff', borderRadius: 14, padding: '14px 22px', font, fontWeight: 600, fontSize: '0.88rem', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.4s, transform 0.4s', pointerEvents: 'none' }}>
-    <span style={{ fontSize: '1.1rem' }}>ℹ️</span> {message}
+  <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 9999, background: 'linear-gradient(135deg, #1A1A2E, #2E2E4E)', color: '#fff', borderRadius: 14, padding: '14px 22px', font, fontWeight: 600, fontSize: '0.88rem', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.4s, transform 0.4s', pointerEvents: 'none' }}>
+    <span style={{ display: 'flex', flexShrink: 0 }}><Info size={16} strokeWidth={2} aria-hidden="true" /></span> {message}
   </div>
 );
 
@@ -246,7 +226,7 @@ const IncomingEscrows: React.FC = () => {
 
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
-    transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+    transform: mounted ? undefined : 'translateY(20px)',
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
@@ -283,9 +263,9 @@ const IncomingEscrows: React.FC = () => {
 
       {/* ── Confirm Move-In Modal ── */}
       {confirmMoveInItem && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>✅</div>
+        <div role="dialog" aria-modal="true" aria-label="Confirm move-in" onClick={() => setConfirmMoveInItem(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(0,0,0,0.6)' }}>
+            <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981' }}><CircleCheckBig size={26} strokeWidth={2} aria-hidden="true" /></div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Confirm Move-In</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 20 }}>
               You are confirming move-in for <strong>{confirmMoveInItem.propertyName}</strong>. This will update the escrow status to Pending Confirmation.
@@ -300,9 +280,9 @@ const IncomingEscrows: React.FC = () => {
 
       {/* ── Reject Modal ── */}
       {rejectItem && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>⚠️</div>
+        <div role="dialog" aria-modal="true" aria-label="Reject escrow" onClick={() => { setRejectItem(null); setRejectReason(''); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(0,0,0,0.6)' }}>
+            <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B' }}><AlertTriangle size={26} strokeWidth={2} aria-hidden="true" /></div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Reject Escrow</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 16 }}>
               Rejecting <strong>{rejectItem.propertyName}</strong>. Please provide a reason:
@@ -312,7 +292,7 @@ const IncomingEscrows: React.FC = () => {
               onChange={e => setRejectReason(e.target.value)}
               placeholder="Reason for rejection..."
               rows={3}
-              style={{ width: '100%', font, fontSize: '0.85rem', padding: '10px 12px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', resize: 'vertical', boxSizing: 'border-box', marginBottom: 16 }}
+              style={{ width: '100%', font, fontSize: '0.85rem', padding: '10px 12px', border: `1.5px solid ${C.border}`, borderRadius: 10, outline: 'none', resize: 'vertical', boxSizing: 'border-box', marginBottom: 16, background: 'rgba(255,255,255,0.04)', color: '#fff', caretColor: '#A78BFA' }}
               onFocus={e => e.currentTarget.style.borderColor = C.orange}
               onBlur={e => e.currentTarget.style.borderColor = C.border}
             />
@@ -326,9 +306,9 @@ const IncomingEscrows: React.FC = () => {
 
       {/* ── Chat Modal ── */}
       {chatItem && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>💬</div>
+        <div role="dialog" aria-modal="true" aria-label="Contact student" onClick={() => setChatItem(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 32, maxWidth: 440, width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(0,0,0,0.6)' }}>
+            <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}><MessagesSquare size={26} strokeWidth={2} aria-hidden="true" /></div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>Contact Student</h2>
             <p style={{ font, fontSize: '0.85rem', color: C.textMid, textAlign: 'center', marginBottom: 16 }}>
               Student wallet: <span style={{ fontFamily: 'monospace', color: C.orange }}>{chatItem.studentWallet.slice(0,10)}…</span>
@@ -344,7 +324,7 @@ const IncomingEscrows: React.FC = () => {
       {/* ── Breadcrumb ── */}
       <div style={{ ...fadeIn(0), display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <button onClick={() => navigate('/landlord/dashboard')} style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Dashboard</button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <span style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textDark }}>Incoming Deposits</span>
       </div>
 
@@ -371,7 +351,7 @@ const IncomingEscrows: React.FC = () => {
       </div>
 
       {/* ══ 2-column layout ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24, alignItems: 'start' }}>
+      <div className="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ display: 'grid', gap: 24, alignItems: 'start' }}>
 
         {/* ════ LEFT — list + toolbar ════ */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -384,7 +364,7 @@ const IncomingEscrows: React.FC = () => {
                   {/* Search */}
                   <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
                     <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.textLight, display: 'flex' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                      <Search size={14} strokeWidth={2.2} aria-hidden="true" />
                     </span>
                     <input
                       value={search} onChange={e => setSearch(e.target.value)}
@@ -438,14 +418,14 @@ const IncomingEscrows: React.FC = () => {
             ) : fetchError ? (
               <Card>
                 <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: 12 }}>⚠️</div>
+                  <div style={{ width: 56, height: 56, margin: '0 auto 12px', borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F87171' }}><AlertTriangle size={26} strokeWidth={2} aria-hidden="true" /></div>
                   <p style={{ font, fontWeight: 600, color: '#F87171' }}>{fetchError}</p>
                 </div>
               </Card>
             ) : sorted.length === 0 ? (
               <Card>
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                  <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>📭</div>
+                  <div style={{ width: 60, height: 60, margin: '0 auto 12px', borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}><Inbox size={28} strokeWidth={1.8} aria-hidden="true" /></div>
                   <div style={{ font, fontWeight: 700, fontSize: '1rem', color: C.textDark }}>No escrows assigned yet.</div>
                   <p style={{ font, fontSize: '0.8rem', color: C.textMid, marginTop: 6, maxWidth: 320, margin: '8px auto 0' }}>
                     {search || statusFilter !== 'All'
@@ -471,7 +451,7 @@ const IncomingEscrows: React.FC = () => {
                       key={item._id}
                       onClick={() => setSelectedEscrow(item)}
                       style={{
-                        background: isSelected ? 'rgba(124,92,255,0.04)' : C.white,
+                        background: isSelected ? 'rgba(124,92,255,0.08)' : 'rgba(255,255,255,0.04)',
                         border: isSelected ? `1.5px solid ${C.orange}` : `1px solid ${C.border}`,
                         borderRadius: 14, padding: '16px 20px', cursor: 'pointer',
                         boxShadow: isSelected ? '0 4px 18px rgba(124,92,255,0.15)' : '0 2px 8px rgba(0,0,0,0.03)',
@@ -479,7 +459,7 @@ const IncomingEscrows: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <div style={{ display: 'flex', align: 'center', gap: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ font, fontWeight: 800, fontSize: '0.85rem', color: C.orange }}>{escrowLabel(item)}</span>
                           <span style={{ font, fontSize: '0.75rem', color: C.textLight, marginLeft: 8 }}>{date}</span>
                         </div>
@@ -487,10 +467,10 @@ const IncomingEscrows: React.FC = () => {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                        <span style={{ fontSize: '1.4rem' }}>🏠</span>
+                        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.25)', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Home size={16} strokeWidth={2} aria-hidden="true" /></span>
                         <div>
                           <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark }}>{item.propertyName}</div>
-                          {item.propertyAddress && <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>📍 {item.propertyAddress}</div>}
+                          {item.propertyAddress && <div style={{ font, fontSize: '0.75rem', color: C.textMid, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} strokeWidth={2} aria-hidden="true" /> {item.propertyAddress}</div>}
                         </div>
                       </div>
 
@@ -516,7 +496,7 @@ const IncomingEscrows: React.FC = () => {
                           item.landlordConfirmed ? (
                             <button disabled
                               style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
-                              ✅ Waiting for student
+                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}><Check size={12} strokeWidth={2.2} aria-hidden="true" /> Waiting for student</span>
                             </button>
                           ) : (
                             <button onClick={e => { e.stopPropagation(); setConfirmMoveInItem(item); }}
@@ -529,7 +509,7 @@ const IncomingEscrows: React.FC = () => {
                         ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
                           <button disabled
                             style={{ flex: 1, font, fontWeight: 600, fontSize: '0.75rem', color: '#10B981', background: 'rgba(16,185,129,0.1)', border: '1.5px solid rgba(16,185,129,0.4)', borderRadius: 50, padding: '8px 0', cursor: 'not-allowed' }}>
-                            ✅ Both confirmed
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}><Check size={12} strokeWidth={2.2} aria-hidden="true" /> Both confirmed</span>
                           </button>
                         ) : item.status === 'RELEASED' ? (
                           <button disabled
@@ -543,8 +523,10 @@ const IncomingEscrows: React.FC = () => {
                           </button>
                         )}
                         <button onClick={e => { e.stopPropagation(); setChatItem(item); }}
-                          style={{ font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 14px', cursor: 'pointer' }}>
-                          💬
+                          aria-label="Contact student"
+                          className="icon-anim"
+                          style={{ font, fontWeight: 600, fontSize: '0.75rem', color: C.textMid, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '8px 14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                          <MessageCircle size={14} strokeWidth={2} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -556,11 +538,11 @@ const IncomingEscrows: React.FC = () => {
         </div>
 
         {/* ════ RIGHT — detail panel ════ */}
-        <div style={{ ...fadeIn(120), position: 'sticky', top: 88 }}>
+        <div style={{ ...fadeIn(120), position: 'sticky', top: 24 }}>
           {!selectedEscrow ? (
             <Card>
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ fontSize: '3rem', marginBottom: 12 }}>👈</div>
+                <div style={{ width: 56, height: 56, margin: '0 auto 12px', borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}><MousePointerClick size={26} strokeWidth={1.8} aria-hidden="true" /></div>
                 <div style={{ font, fontWeight: 700, fontSize: '0.92rem', color: C.textDark }}>Select an escrow</div>
                 <p style={{ font, fontSize: '0.78rem', color: C.textMid, marginTop: 6 }}>Click any card on the left to view its details here.</p>
               </div>
@@ -576,7 +558,7 @@ const IncomingEscrows: React.FC = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                     <div>
                       <div style={{ font, fontWeight: 800, fontSize: '1rem', color: C.textDark }}>{item.propertyName}</div>
-                      {item.propertyAddress && <div style={{ font, fontSize: '0.75rem', color: C.textMid, marginTop: 2 }}>📍 {item.propertyAddress}</div>}
+                      {item.propertyAddress && <div style={{ font, fontSize: '0.75rem', color: C.textMid, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} strokeWidth={2} aria-hidden="true" /> {item.propertyAddress}</div>}
                     </div>
                     <span style={{ background: sty.bg, color: sty.color, border: sty.border, font, fontWeight: 700, fontSize: '0.7rem', borderRadius: 50, padding: '4px 10px', flexShrink: 0 }}>{item.status}</span>
                   </div>
@@ -590,7 +572,7 @@ const IncomingEscrows: React.FC = () => {
 
                 {/* Wallets card */}
                 <Card>
-                  <SectionTitle label="🔑 Wallet Addresses" />
+                  <SectionTitle label={<><KeyRound size={15} strokeWidth={2} aria-hidden="true" /> Wallet Addresses</>} />
                   <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Student</div>
                   <MonoBlock value={item.studentWallet} />
                   <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Landlord (You)</div>
@@ -600,13 +582,13 @@ const IncomingEscrows: React.FC = () => {
                 {/* Transaction card */}
                 {item.transactionHash && (
                   <Card>
-                    <SectionTitle label="🔗 Transaction" />
+                    <SectionTitle label={<><Link2 size={15} strokeWidth={2} aria-hidden="true" /> Transaction</>} />
                     <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Hash</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <MonoBlock value={`${item.transactionHash.slice(0,14)}…${item.transactionHash.slice(-6)}`} />
                       <a href={`https://stellar.expert/explorer/testnet/tx/${item.transactionHash}`} target="_blank" rel="noopener noreferrer"
                         style={{ font, fontWeight: 700, fontSize: '0.72rem', color: C.orange, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                        View ↗
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>View <ExternalLink size={11} strokeWidth={2.2} aria-hidden="true" /></span>
                       </a>
                     </div>
                   </Card>
@@ -614,7 +596,7 @@ const IncomingEscrows: React.FC = () => {
 
                 {/* Actions card */}
                 <Card>
-                  <SectionTitle label="⚡ Actions" />
+                  <SectionTitle label={<><Zap size={15} strokeWidth={2} aria-hidden="true" /> Actions</>} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <button
                       onClick={() => navigate(`/landlord/escrow/${targetId(item)}`)}
@@ -625,26 +607,26 @@ const IncomingEscrows: React.FC = () => {
                       item.landlordConfirmed ? (
                         <button disabled
                           style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textMid, background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
-                          ✅ Waiting for student confirmation
+                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Check size={13} strokeWidth={2.2} aria-hidden="true" /> Waiting for student confirmation</span>
                         </button>
                       ) : (
                         <>
                           <button
                             onClick={() => setConfirmMoveInItem(item)}
                             style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #4ACF7A, #2AAF5C)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
-                            ✅ Confirm Move-In
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Check size={13} strokeWidth={2.2} aria-hidden="true" /> Confirm Move-In</span>
                           </button>
                           <button
                             onClick={() => setRejectItem(item)}
                             style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.white, background: 'linear-gradient(135deg, #EF4444, #F87171)', border: 'none', borderRadius: 50, padding: '12px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(239,68,68,0.3)' }}>
-                            ❌ Reject Escrow
+                            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><XCircle size={13} strokeWidth={2.2} aria-hidden="true" /> Reject Escrow</span>
                           </button>
                         </>
                       )
                     ) : (item.status === 'PENDING_CONFIRMATION' && item.studentConfirmed && item.landlordConfirmed) ? (
                       <button disabled
                         style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: '#10B981', background: 'rgba(16,185,129,0.1)', border: '1.5px solid rgba(16,185,129,0.4)', borderRadius: 50, padding: '12px', cursor: 'not-allowed' }}>
-                        ✅ Both parties confirmed
+                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Check size={13} strokeWidth={2.2} aria-hidden="true" /> Both parties confirmed</span>
                       </button>
                     ) : item.status === 'RELEASED' ? (
                       <button disabled
@@ -662,7 +644,7 @@ const IncomingEscrows: React.FC = () => {
                       style={{ width: '100%', font, fontWeight: 600, fontSize: '0.85rem', color: C.textDark, background: 'rgba(255,255,255,0.04)', border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = C.orange}
                       onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                      💬 Contact Student
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><MessageCircle size={13} strokeWidth={2} aria-hidden="true" /> Contact Student</span>
                     </button>
                   </div>
                 </Card>

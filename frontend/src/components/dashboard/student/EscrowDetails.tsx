@@ -1,35 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { STUDENT_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import { ChevronRight, CircleCheckBig, FileText, Home, Lock, Plus, Wallet } from 'lucide-react';
 import { getEscrowDb } from '@/services/escrowService';
 
 const C = { orange: '#A78BFA', orangeLight: '#8B5CF6', border: 'rgba(255,255,255,0.08)', textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)', white: '#FFFFFF' };
 const font = "'Inter', sans-serif";
-
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard',          icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'deposits',  label: 'My Deposits',         icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'escrow',    label: 'Create Escrow',       icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-  { id: 'history',   label: 'Transaction History', icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',   label: 'Profile',             icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',  label: 'Settings',            icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 const SkeletonBlock = ({ w = '100%', h = 14, mb = 10 }: { w?: string | number; h?: number; mb?: number }) => (
   <div style={{ height: h, width: w, background: 'rgba(255,255,255,0.08)', borderRadius: 6, marginBottom: mb, animation: 'edPulse 1.4s infinite ease-in-out' }} />
@@ -58,7 +35,7 @@ const EscrowDetails: React.FC = () => {
 
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
-    transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+    transform: mounted ? undefined : 'translateY(20px)',
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
@@ -93,12 +70,12 @@ const EscrowDetails: React.FC = () => {
           style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           Dashboard
         </button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <button onClick={() => navigate('/student/create-escrow')}
           style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           Create Escrow
         </button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <span style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textDark }}>Escrow Details</span>
       </div>
 
@@ -126,7 +103,9 @@ const EscrowDetails: React.FC = () => {
             position: 'absolute', right: -20, top: -20, width: 180, height: 180, borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)', pointerEvents: 'none',
           }} />
-          <div style={{ fontSize: '3.5rem' }}>✅</div>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981', flexShrink: 0 }}>
+            <CircleCheckBig size={30} strokeWidth={2} aria-hidden="true" />
+          </div>
           <div>
             <h1 style={{ font, fontWeight: 800, fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)', color: '#fff', marginBottom: 6, letterSpacing: '-0.4px' }}>
               Escrow Created Successfully!
@@ -140,7 +119,7 @@ const EscrowDetails: React.FC = () => {
               background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)',
               borderRadius: 50, padding: '5px 14px',
               font, fontWeight: 700, fontSize: '0.75rem', color: '#10B981',
-            }}>● Active &amp; Locked</span>
+            }}><Lock size={11} strokeWidth={2.5} aria-hidden="true" /> Active &amp; Locked</span>
           </div>
         </div>
       )}
@@ -150,7 +129,7 @@ const EscrowDetails: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, ...fadeIn(120) }}>
           {/* Escrow Info */}
           <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
-            <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18 }}>📋 Escrow Information</div>
+            <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Escrow Information</div>
             {[
               { label: 'Escrow ID', value: escrowLabel, bold: true, accent: true },
               { label: 'Property', value: escrow.propertyName, bold: true },
@@ -168,7 +147,7 @@ const EscrowDetails: React.FC = () => {
 
           {/* Financial Info */}
           <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '22px 24px' }}>
-            <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18 }}>💰 Financial Summary</div>
+            <div style={{ font, fontWeight: 700, fontSize: '0.88rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}><Wallet size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Financial Summary</div>
             {[
               { label: 'Deposit Amount', value: `${escrow.depositAmount} ${escrow.currency}`, highlight: true },
               { label: 'Currency', value: escrow.currency },
@@ -196,6 +175,7 @@ const EscrowDetails: React.FC = () => {
           style={{
             font, fontWeight: 700, fontSize: '0.88rem', color: '#fff', border: 'none',
             borderRadius: 50, padding: '13px 28px', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
             background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
             boxShadow: '0 6px 20px rgba(124,92,255,0.35)',
             transition: 'transform 0.2s, box-shadow 0.2s',
@@ -203,7 +183,7 @@ const EscrowDetails: React.FC = () => {
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(124,92,255,0.45)'; }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,92,255,0.35)'; }}
         >
-          🏠 Back to Dashboard
+          <Home size={14} strokeWidth={2} aria-hidden="true" /> Back to Dashboard
         </button>
         <button
           onClick={() => navigate('/student/create-escrow')}
@@ -211,11 +191,12 @@ const EscrowDetails: React.FC = () => {
             font, fontWeight: 600, fontSize: '0.88rem', color: C.textMid, background: 'rgba(255,255,255,0.04)',
             border: `1.5px solid ${C.border}`, borderRadius: 50, padding: '13px 28px',
             cursor: 'pointer', transition: 'all 0.25s',
+            display: 'inline-flex', alignItems: 'center', gap: 8,
           }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = C.orange; e.currentTarget.style.color = C.orange; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textMid; }}
         >
-          + Create Another Escrow
+          <Plus size={14} strokeWidth={2.2} aria-hidden="true" /> Create Another Escrow
         </button>
       </div>
     </DashboardLayout>

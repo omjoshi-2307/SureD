@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Sparkle from './Sparkle';
 import LogoMark from './LogoMark';
+import { Check } from 'lucide-react';
 
 /* Deterministic star field — fixed positions so render is stable */
 const STARS: Array<{ top: string; left: string; size: number; delay: number }> = [
@@ -170,9 +171,7 @@ const DashboardMock: React.FC = () => (
                   }}
                 >
                   {step.state === 'done' && (
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0A10" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <Check size={8} strokeWidth={4} aria-hidden="true" style={{ color: '#0B0A10' }} />
                   )}
                 </span>
                 <span
@@ -313,7 +312,7 @@ const Hero: React.FC = () => {
           className="text-hero-gradient dl-stagger"
           style={{
             ...rise(1),
-            fontSize: 'clamp(48px, 8vw, 88px)',
+            fontSize: 'clamp(40px, 8vw, 88px)',
             lineHeight: 1.02,
             letterSpacing: '-3px',
             marginBottom: 24,
@@ -488,9 +487,7 @@ const Hero: React.FC = () => {
                 animation: 'float 4s ease-in-out 1.8s infinite',
               }}
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <Check size={11} strokeWidth={3} aria-hidden="true" style={{ color: '#10B981', flexShrink: 0 }} />
               <span className="mono-addr" style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.8)' }}>Released</span>
             </div>
           </div>

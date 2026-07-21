@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser, googleLogin } from '../../services/authService';
 import { initGoogleSignIn, setGoogleCallback, renderHiddenGoogleButton, clickGoogleSignIn, destroyHiddenGoogleButton } from '../../services/googleSignInService';
 import Sparkle from './Sparkle';
+import { ArrowLeft, ArrowRight, Building2, Check, Eye, EyeOff, GraduationCap, LoaderCircle, Lock, Mail } from 'lucide-react';
 import LogoMark from './LogoMark';
 
 interface LoginProps {
@@ -174,8 +175,6 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
     }
   };
 
-  const upfrontSaved = Math.round(((1500 * 12) / 52) * 4);
-  void upfrontSaved;
   void onLogin;
 
   return (
@@ -241,11 +240,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
           className="btn-glass"
           style={{ padding: '9px 18px', fontSize: '0.82rem' }}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
+          <ArrowLeft size={13} strokeWidth={2.5} aria-hidden="true" />
           Back to home
         </button>
       </div>
@@ -341,18 +336,9 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
                 }}
               >
                 {r === 'student' ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M22 10 12 5 2 10l10 5 10-5z" />
-                    <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
-                  </svg>
+                  <GraduationCap size={14} strokeWidth={2} aria-hidden="true" />
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="4" y="2" width="16" height="20" rx="2" />
-                    <path d="M9 22v-4h6v4" />
-                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
-                  </svg>
+                  <Building2 size={14} strokeWidth={2} aria-hidden="true" />
                 )}
                 {r}
               </button>
@@ -374,11 +360,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
                 position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
                 color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', pointerEvents: 'none',
               }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
+                <Mail size={15} strokeWidth={2} aria-hidden="true" />
               </span>
               <input
                 id="login-email"
@@ -405,11 +387,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
                 position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
                 color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', pointerEvents: 'none',
               }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
+                <Lock size={15} strokeWidth={2} aria-hidden="true" />
               </span>
               <input
                 id="login-password"
@@ -426,7 +404,6 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
               <button
                 type="button"
                 onClick={() => setShowPassword(v => !v)}
-                tabIndex={-1}
                 style={{
                   position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer',
@@ -437,21 +414,9 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
                 onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.35)')}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? (
-                  /* Eye-off */
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                    <line x1="1" y1="1" x2="23" y2="23" />
-                  </svg>
-                ) : (
-                  /* Eye */
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                )}
+                {showPassword
+                  ? <EyeOff size={16} strokeWidth={2} aria-hidden="true" />
+                  : <Eye size={16} strokeWidth={2} aria-hidden="true" />}
               </button>
             </div>
           </div>
@@ -470,10 +435,14 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
               color: 'rgba(255,255,255,0.6)', fontWeight: 500, userSelect: 'none',
             }}
           >
-            <div
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={remember}
+              aria-label="Remember me"
               onClick={() => setRemember(v => !v)}
               style={{
-                width: 18, height: 18, borderRadius: 5,
+                width: 18, height: 18, borderRadius: 5, padding: 0, cursor: 'pointer',
                 border: `1.5px solid ${remember ? '#7C5CFF' : 'rgba(255,255,255,0.25)'}`,
                 background: remember ? '#7C5CFF' : 'transparent',
                 boxShadow: remember ? '0 0 10px rgba(124,92,255,0.5)' : 'none',
@@ -482,12 +451,9 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
               }}
             >
               {remember && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <Check size={10} strokeWidth={3.5} aria-hidden="true" style={{ color: '#fff' }} />
               )}
-            </div>
+            </button>
             Remember me
           </label>
 
@@ -539,10 +505,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
         >
           {loading ? 'Signing in…' : 'Sign in'}
           {!loading && (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <ArrowRight size={14} strokeWidth={2.5} aria-hidden="true" />
           )}
         </button>
 
@@ -573,19 +536,12 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
         >
           {/* Google icon or spinner */}
           {googleLoading ? (
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#A78BFA"
-              strokeWidth="2.5"
-              strokeLinecap="round"
+            <LoaderCircle
+              size={16}
+              strokeWidth={2.5}
               aria-hidden="true"
-              style={{ animation: 'ringSpin 1s linear infinite' }}
-            >
-              <path d="M21 12a9 9 0 1 1-6.2-8.56" />
-            </svg>
+              style={{ color: '#A78BFA', animation: 'ringSpin 1s linear infinite' }}
+            />
           ) : (
             <svg width="16" height="16" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z" fill="#4285f4"/>

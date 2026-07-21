@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { STUDENT_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  AlertTriangle, Ban, BarChart3, ChevronRight, Clock, Coins, FileDown,
+  Home, Hourglass, Inbox, Info, Layers, Lightbulb, Lock, PieChart, Plus,
+  Rocket, Search, Trophy, Unlock,
+} from 'lucide-react';
 import { getEscrowsByStudentDb } from '@/services/escrowService';
 
 const C = {
@@ -10,31 +16,6 @@ const C = {
   textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
 const font = "'Inter', sans-serif";
-
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',   label: 'Dashboard',           icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'deposits',    label: 'My Deposits',          icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'escrow',      label: 'Create Escrow',        icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-  { id: 'history',     label: 'Transaction History',  icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',              icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',             icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 interface DbEscrow {
   _id: string;
@@ -70,7 +51,7 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }
 };
 
 const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
-  <div style={{
+  <div role="status" aria-live="polite" style={{
     position: 'fixed', bottom: 28, right: 28, zIndex: 9999,
     background: 'linear-gradient(135deg, #1A1A2E, #2E2E4E)',
     color: '#fff', borderRadius: 14, padding: '14px 22px',
@@ -82,7 +63,7 @@ const Toast = ({ visible, message }: { visible: boolean; message: string }) => (
     transition: 'opacity 0.4s, transform 0.4s',
     pointerEvents: 'none',
   }}>
-    <span style={{ fontSize: '1.1rem' }}>ℹ️</span> {message}
+    <span style={{ display: 'flex', flexShrink: 0 }}><Info size={16} strokeWidth={2} aria-hidden="true" /></span> {message}
   </div>
 );
 
@@ -198,7 +179,7 @@ const MyDeposits: React.FC = () => {
 
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
-    transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+    transform: mounted ? undefined : 'translateY(20px)',
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
@@ -247,7 +228,7 @@ const MyDeposits: React.FC = () => {
           style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           Dashboard
         </button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <span style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textDark }}>My Deposits</span>
       </div>
 
@@ -282,8 +263,8 @@ const MyDeposits: React.FC = () => {
       </div>
 
       {/* ══ 2-column layout ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}
-        className="lg:grid-cols-[1fr_300px]">
+      <div style={{ display: 'grid', gap: 24, alignItems: 'start' }}
+        className="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]">
 
         {/* ════════════ LEFT COLUMN ════════════ */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -297,9 +278,7 @@ const MyDeposits: React.FC = () => {
                   {/* Search Bar */}
                   <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
                     <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: C.textLight, display: 'flex' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      </svg>
+                      <Search size={14} strokeWidth={2.2} aria-hidden="true" />
                     </span>
                     <input
                       value={search}
@@ -377,11 +356,12 @@ const MyDeposits: React.FC = () => {
                       border: 'none', borderRadius: 10, padding: '10px 18px',
                       cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,92,255,0.25)',
                       transition: 'transform 0.2s',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'none'}
                   >
-                    📥 Export History
+                    <FileDown size={13} strokeWidth={2} aria-hidden="true" /> Export History
                   </button>
                 </div>
               </div>
@@ -409,7 +389,7 @@ const MyDeposits: React.FC = () => {
                     <tbody><SkeletonTableRow /><SkeletonTableRow /><SkeletonTableRow /></tbody>
                   </table>
                 ) : error ? (
-                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#F87171', font, fontWeight: 600 }}>⚠️ {error}</div>
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: '#F87171', font, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><AlertTriangle size={15} strokeWidth={2} aria-hidden="true" /> {error}</div>
                 ) : sortedDeposits.length > 0 ? (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
@@ -423,7 +403,7 @@ const MyDeposits: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedDeposits.map((row, i) => {
+                      {sortedDeposits.map((row) => {
                         const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
                         const escrowLabel = row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3,'0')}` : 'Pending';
                         const formattedDate = new Date(row.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
@@ -445,7 +425,7 @@ const MyDeposits: React.FC = () => {
                             </td>
                             <td style={{ padding: '14px 20px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <span style={{ fontSize: '1.25rem' }}>🏠</span>
+                                <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.25)', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Home size={14} strokeWidth={2} aria-hidden="true" /></span>
                                 <span style={{ font, fontWeight: 600, fontSize: '0.82rem', color: C.textDark }}>{row.propertyName}</span>
                               </div>
                             </td>
@@ -520,7 +500,7 @@ const MyDeposits: React.FC = () => {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: '1.4rem' }}>🏠</span>
+                          <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.25)', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Home size={16} strokeWidth={2} aria-hidden="true" /></span>
                           <div>
                             <div style={{ font, fontWeight: 700, fontSize: '0.85rem', color: C.textDark }}>{row.propertyName}</div>
                             <div style={{ font, fontSize: '0.75rem', color: C.textMid }}>Landlord: {row.landlordWallet.slice(0,6)}…{row.landlordWallet.slice(-4)}</div>
@@ -579,11 +559,11 @@ const MyDeposits: React.FC = () => {
             gap: 16,
           }}>
             {[
-              { label: 'Total Escrows', value: loading ? '…' : `${totalCount}`, icon: '📋', color: '#E8734A' },
-              { label: 'Locked/Funded', value: loading ? '…' : `${lockedFunds} XLM`, icon: '🔒', color: '#F0956B' },
-              { label: 'Released Funds', value: loading ? '…' : `${releasedFunds} XLM`, icon: '🔓', color: '#10B981' },
-              { label: 'Average Deposit', value: loading ? '…' : `${avgDeposit} XLM`, icon: '📊', color: '#4ACFE8' },
-              { label: 'Largest Deposit', value: loading ? '…' : `${maxDeposit} XLM`, icon: '🏆', color: '#F59E0B' },
+              { label: 'Total Escrows', value: loading ? '…' : `${totalCount}`, icon: <Layers size={16} strokeWidth={2} aria-hidden="true" />, color: '#A78BFA' },
+              { label: 'Locked/Funded', value: loading ? '…' : `${lockedFunds} XLM`, icon: <Lock size={16} strokeWidth={2} aria-hidden="true" />, color: '#8B5CF6' },
+              { label: 'Released Funds', value: loading ? '…' : `${releasedFunds} XLM`, icon: <Unlock size={16} strokeWidth={2} aria-hidden="true" />, color: '#10B981' },
+              { label: 'Average Deposit', value: loading ? '…' : `${avgDeposit} XLM`, icon: <BarChart3 size={16} strokeWidth={2} aria-hidden="true" />, color: '#4ACFE8' },
+              { label: 'Largest Deposit', value: loading ? '…' : `${maxDeposit} XLM`, icon: <Trophy size={16} strokeWidth={2} aria-hidden="true" />, color: '#F59E0B' },
             ].map(item => (
               <div key={item.label} style={{
                 background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16,
@@ -591,8 +571,9 @@ const MyDeposits: React.FC = () => {
                 boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
               }}>
                 <span style={{
-                  fontSize: '1.25rem', width: 38, height: 38, borderRadius: 10,
-                  background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 38, height: 38, borderRadius: 10, color: item.color,
+                  background: `${item.color}15`, border: `1px solid ${item.color}35`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>{item.icon}</span>
                 <div>
@@ -609,10 +590,10 @@ const MyDeposits: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, ...fadeIn(120) }}>
 
           {/* Deposit Statistics Pie Chart Placeholder */}
-          <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Card>
-              <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 16 }}>
-                📊 Deposit Allocation
+              <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <PieChart size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Deposit Allocation
               </div>
 
               {/* Chart Placeholder Graphic */}
@@ -650,8 +631,8 @@ const MyDeposits: React.FC = () => {
 
             {/* Quick Tips */}
             <Card style={{ background: 'rgba(124,92,255,0.03)', border: `1px solid rgba(124,92,255,0.14)` }}>
-              <div style={{ font, fontWeight: 800, fontSize: '0.85rem', color: C.textDark, marginBottom: 10 }}>
-                💡 Quick Tips
+              <div style={{ font, fontWeight: 800, fontSize: '0.85rem', color: C.textDark, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Lightbulb size={14} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Quick Tips
               </div>
               <ul style={{ font, fontSize: '0.76rem', color: C.textMid, paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <li>Track and manage every created tenancy escrow easily from one central place.</li>
@@ -662,8 +643,8 @@ const MyDeposits: React.FC = () => {
 
             {/* Recent Activity Timeline */}
             <Card>
-              <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 18 }}>
-                🕒 Activity Timeline
+              <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Activity Timeline
               </div>
               {escrows.length === 0 ? (
                 <div style={{ font, fontSize: '0.78rem', color: C.textLight, textAlign: 'center', padding: '20px 0' }}>
@@ -671,14 +652,14 @@ const MyDeposits: React.FC = () => {
                 </div>
               ) : (
                 escrows.slice(0, 5).map((esc, i, arr) => {
-                  const activityIcon = {
-                    CREATED: '🚀',
-                    FUNDED: '💰',
-                    PENDING_CONFIRMATION: '⏳',
-                    RELEASED: '🔓',
-                    DISPUTED: '⚠️',
-                    CANCELLED: '🚫',
-                  }[esc.status] || '📋';
+                  const activityIcon = ({
+                    CREATED: <Rocket size={12} strokeWidth={2} aria-hidden="true" />,
+                    FUNDED: <Coins size={12} strokeWidth={2} aria-hidden="true" />,
+                    PENDING_CONFIRMATION: <Hourglass size={12} strokeWidth={2} aria-hidden="true" />,
+                    RELEASED: <Unlock size={12} strokeWidth={2} aria-hidden="true" />,
+                    DISPUTED: <AlertTriangle size={12} strokeWidth={2} aria-hidden="true" />,
+                    CANCELLED: <Ban size={12} strokeWidth={2} aria-hidden="true" />,
+                  } as Record<string, React.ReactNode>)[esc.status] || <Layers size={12} strokeWidth={2} aria-hidden="true" />;
                   const activityColor = {
                     CREATED: C.orange,
                     FUNDED: '#F59E0B',
@@ -701,7 +682,7 @@ const MyDeposits: React.FC = () => {
                   return (
                     <div key={esc._id} style={{ display: 'flex', gap: 10 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <span style={{ fontSize: '1rem', width: 24, height: 24, borderRadius: '50%', background: `${activityColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ width: 24, height: 24, borderRadius: '50%', color: activityColor, background: `${activityColor}15`, border: `1px solid ${activityColor}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {activityIcon}
                         </span>
                         {i < arr.length - 1 && (
@@ -730,7 +711,9 @@ const MyDeposits: React.FC = () => {
 /* Empty State component */
 const EmptyState = ({ navigate }: { navigate: any }) => (
   <div style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-    <div style={{ fontSize: '4.5rem' }}>📭</div>
+    <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}>
+      <Inbox size={30} strokeWidth={1.8} aria-hidden="true" />
+    </div>
     <div style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark }}>No Deposits Found</div>
     <p style={{ font, fontSize: '0.83rem', color: C.textMid, maxWidth: 360, margin: '0 auto', lineHeight: 1.6 }}>
       Create your first rental escrow to securely protect your deposit using blockchain smart contracts.
@@ -742,9 +725,10 @@ const EmptyState = ({ navigate }: { navigate: any }) => (
         background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`,
         border: 'none', borderRadius: 50, padding: '11px 24px', cursor: 'pointer',
         boxShadow: '0 4px 14px rgba(124,92,255,0.3)',
+        display: 'inline-flex', alignItems: 'center', gap: 6,
       }}
     >
-      + Create Escrow
+      <Plus size={14} strokeWidth={2.2} aria-hidden="true" /> Create Escrow
     </button>
   </div>
 );

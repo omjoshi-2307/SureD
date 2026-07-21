@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { LANDLORD_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  Activity, AlertTriangle, ArrowLeft, Building2, CalendarDays, Check,
+  ChevronRight, CircleCheckBig, Coins, ExternalLink, FileQuestion, FileText,
+  GraduationCap, HandCoins, Home, Hourglass, Info, Link2, MapPin, Rocket,
+  Undo2, Unlock, XCircle, Zap,
+} from 'lucide-react';
 import {
   getEscrowDb,
   releaseEscrowDb,
@@ -16,33 +23,6 @@ const C = {
   textDark: '#FFFFFF', textMid: 'rgba(255,255,255,0.64)', textLight: 'rgba(255,255,255,0.4)',
 };
 const font = "'Inter', sans-serif";
-
-/* ─── Nav ───────────────────────────────────────────────────────── */
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',    label: 'Dashboard',         icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'properties',  label: 'My Properties',     icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'incoming',    label: 'Incoming Deposits',  icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'movein',      label: 'Confirm Move-in',   icon: <Icon d="M9 11l3 3L22 4" /> },
-  { id: 'transactions',label: 'Transactions',       icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',            icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',           icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 /* ─── Status config — identical to student pages ─────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -72,8 +52,8 @@ const Card = ({ children, style }: { children: React.ReactNode; style?: React.CS
   </div>
 );
 
-const SectionTitle = ({ label }: { label: string }) => (
-  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18 }}>{label}</h3>
+const SectionTitle = ({ label }: { label: React.ReactNode }) => (
+  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>{label}</h3>
 );
 
 const InfoRow = ({ label, value, bold, accent }: { label: string; value: React.ReactNode; bold?: boolean; accent?: boolean }) => (
@@ -98,20 +78,23 @@ const Toast = ({ visible, message, type = 'info' }: { visible: boolean; message:
     : type === 'warning' ? 'linear-gradient(135deg,#2E2210,#4E3A10)'
     : type === 'success' ? 'linear-gradient(135deg,#0E2E1A,#1A4E2E)'
     : 'linear-gradient(135deg,#1A1A2E,#2E2E4E)';
-  const icon = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
+  const icon = type === 'error' ? <XCircle size={16} strokeWidth={2} aria-hidden="true" />
+    : type === 'warning' ? <AlertTriangle size={16} strokeWidth={2} aria-hidden="true" />
+      : type === 'success' ? <CircleCheckBig size={16} strokeWidth={2} aria-hidden="true" />
+        : <Info size={16} strokeWidth={2} aria-hidden="true" />;
   return (
-    <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 9999, background: bg, color: '#fff', borderRadius: 14, padding: '14px 22px', font, fontWeight: 600, fontSize: '0.88rem', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.4s, transform 0.4s', pointerEvents: 'none', maxWidth: 400 }}>
-      <span style={{ fontSize: '1.1rem' }}>{icon}</span> {message}
+    <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 9999, background: bg, color: '#fff', borderRadius: 14, padding: '14px 22px', font, fontWeight: 600, fontSize: '0.88rem', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: 10, opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.4s, transform 0.4s', pointerEvents: 'none', maxWidth: 400 }}>
+      <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span> {message}
     </div>
   );
 };
 
 /* ── Timeline config ─────────────────────────────────────────────── */
 const TIMELINE = [
-  { key: 'CREATED',              label: 'Escrow Created',       icon: '🚀' },
-  { key: 'FUNDED',               label: 'Deposit Funded',       icon: '💰' },
-  { key: 'PENDING_CONFIRMATION', label: 'Awaiting Confirmation', icon: '⏳' },
-  { key: 'RELEASED',             label: 'Deposit Released',     icon: '🔓' },
+  { key: 'CREATED',              label: 'Escrow Created',        icon: <Rocket size={13} strokeWidth={2} aria-hidden="true" /> },
+  { key: 'FUNDED',               label: 'Deposit Funded',        icon: <Coins size={13} strokeWidth={2} aria-hidden="true" /> },
+  { key: 'PENDING_CONFIRMATION', label: 'Awaiting Confirmation', icon: <Hourglass size={13} strokeWidth={2} aria-hidden="true" /> },
+  { key: 'RELEASED',             label: 'Deposit Released',      icon: <Unlock size={13} strokeWidth={2} aria-hidden="true" /> },
 ];
 const STATUS_ORDER = ['CREATED', 'FUNDED', 'PENDING_CONFIRMATION', 'RELEASED'];
 const PROGRESS_BY_STATUS: Record<string, number> = {
@@ -158,7 +141,7 @@ const LandlordEscrowDetails: React.FC = () => {
 
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
-    transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+    transform: mounted ? undefined : 'translateY(20px)',
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
@@ -236,13 +219,13 @@ const LandlordEscrowDetails: React.FC = () => {
   };
   const ActionButton = ({
     label, color, icon, actionKey, enabled,
-  }: { label: string; color: string; icon: string; actionKey: string; enabled: boolean }) => (
+  }: { label: string; color: string; icon: React.ReactNode; actionKey: string; enabled: boolean }) => (
     <button
       onClick={() => enabled ? setConfirmAction(actionKey) : showToast(`This action is not available for status: ${escrow?.status}`, 'warning')}
       style={{
         width: '100%', font, fontWeight: 700, fontSize: '0.85rem',
         color: enabled ? '#fff' : C.textLight,
-        background: enabled ? color : '#F5F5F5',
+        background: enabled ? color : 'rgba(255,255,255,0.06)',
         border: enabled ? 'none' : `1.5px solid ${C.border}`,
         borderRadius: 50, padding: '12px', cursor: enabled ? 'pointer' : 'not-allowed',
         boxShadow: enabled ? `0 4px 14px ${color}55` : 'none',
@@ -252,7 +235,7 @@ const LandlordEscrowDetails: React.FC = () => {
       onMouseEnter={e => { if (enabled) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 8px 22px ${color}77`; } }}
       onMouseLeave={e => { if (enabled) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 14px ${color}55`; } }}
     >
-      <span>{icon}</span> {label}
+      <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span> {label}
     </button>
   );
 
@@ -275,10 +258,15 @@ const LandlordEscrowDetails: React.FC = () => {
 
       {/* ── Confirm Action Modal ── */}
       {confirmAction && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 32, maxWidth: 420, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: 12 }}>
-              {{ depositReceived: '💰', confirmMoveIn: '✅', releaseDeposit: '🔓', refundDeposit: '↩️' }[confirmAction] || '❓'}
+        <div role="dialog" aria-modal="true" aria-label="Confirm action" onClick={() => setConfirmAction(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#16141F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 32, maxWidth: 420, width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 70px rgba(0,0,0,0.6)' }}>
+            <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}>
+              {({
+                depositReceived: <HandCoins size={26} strokeWidth={2} aria-hidden="true" />,
+                confirmMoveIn: <CircleCheckBig size={26} strokeWidth={2} aria-hidden="true" />,
+                releaseDeposit: <Unlock size={26} strokeWidth={2} aria-hidden="true" />,
+                refundDeposit: <Undo2 size={26} strokeWidth={2} aria-hidden="true" />,
+              } as Record<string, React.ReactNode>)[confirmAction] || <AlertTriangle size={26} strokeWidth={2} aria-hidden="true" />}
             </div>
             <h2 style={{ font, fontWeight: 800, fontSize: '1.05rem', color: C.textDark, textAlign: 'center', marginBottom: 8 }}>
               {{ depositReceived: 'Mark Deposit as Received', confirmMoveIn: 'Confirm Move-In', releaseDeposit: 'Release Deposit', refundDeposit: 'Refund Deposit' }[confirmAction] || 'Confirm Action'}
@@ -301,9 +289,9 @@ const LandlordEscrowDetails: React.FC = () => {
       {/* ── Breadcrumb ── */}
       <div style={{ ...fadeIn(0), display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <button onClick={() => navigate('/landlord/dashboard')} style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Dashboard</button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <button onClick={() => navigate('/landlord/incoming-escrows')} style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Incoming Deposits</button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <span style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textDark }}>Escrow Details</span>
       </div>
 
@@ -314,7 +302,7 @@ const LandlordEscrowDetails: React.FC = () => {
             <SkeletonBlock h={28} w="40%" mb={12} />
             <SkeletonBlock h={16} w="25%" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24 }}>
+          <div className="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ display: 'grid', gap: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {[1,2,3].map(k => (
                 <div key={k} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 24, border: `1px solid ${C.border}` }}>
@@ -338,14 +326,16 @@ const LandlordEscrowDetails: React.FC = () => {
       {/* ── Error state ── */}
       {!loading && fetchError && (
         <div style={{ ...fadeIn(50), textAlign: 'center', padding: '80px 20px' }}>
-          <div style={{ fontSize: '4rem', marginBottom: 16 }}>😕</div>
+          <div style={{ width: 72, height: 72, margin: '0 auto 16px', borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}>
+            <FileQuestion size={32} strokeWidth={1.8} aria-hidden="true" />
+          </div>
           <h2 style={{ font, fontWeight: 800, fontSize: '1.3rem', color: C.textDark, marginBottom: 8 }}>
             {fetchError === 'Escrow not found.' ? 'Escrow Not Found' : 'Failed to Load'}
           </h2>
           <p style={{ font, fontSize: '0.88rem', color: C.textMid, marginBottom: 24 }}>{fetchError}</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
             <button onClick={() => navigate('/landlord/incoming-escrows')} style={{ font, fontWeight: 700, fontSize: '0.85rem', color: C.white, background: `linear-gradient(135deg,${C.orange},${C.orangeLight})`, border: 'none', borderRadius: 50, padding: '11px 24px', cursor: 'pointer' }}>
-              ← Back to Incoming Deposits
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ArrowLeft size={13} strokeWidth={2} aria-hidden="true" /> Back to Incoming Deposits</span>
             </button>
           </div>
         </div>
@@ -373,7 +363,7 @@ const LandlordEscrowDetails: React.FC = () => {
           </div>
 
           {/* 2-column layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 320px', gap: 24, alignItems: 'start' }}>
+          <div className="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ display: 'grid', gap: 24, alignItems: 'start' }}>
 
             {/* ════ LEFT COLUMN ════ */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -381,13 +371,13 @@ const LandlordEscrowDetails: React.FC = () => {
               {/* Property card */}
               <div style={fadeIn(100)}>
                 <Card style={{ padding: 0, overflow: 'hidden' }}>
-                  <div style={{ height: 130, background: 'linear-gradient(135deg, rgba(124,92,255,0.12) 0%, rgba(233,97,245,0.06) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
-                    🏠
+                  <div style={{ height: 130, background: 'linear-gradient(135deg, rgba(124,92,255,0.12) 0%, rgba(233,97,245,0.06) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(224,215,255,0.85)' }}>
+                    <Home size={50} strokeWidth={1.4} aria-hidden="true" style={{ filter: 'drop-shadow(0 4px 12px rgba(124,92,255,0.45))' }} />
                   </div>
                   <div style={{ padding: 24 }}>
-                    <SectionTitle label="🏠 Property Information" />
+                    <SectionTitle label={<><Home size={15} strokeWidth={2} aria-hidden="true" /> Property Information</>} />
                     <div style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, marginBottom: 4 }}>{escrow.propertyName}</div>
-                    {escrow.propertyAddress && <div style={{ font, fontSize: '0.83rem', color: C.textMid, marginBottom: 16 }}>📍 {escrow.propertyAddress}</div>}
+                    {escrow.propertyAddress && <div style={{ font, fontSize: '0.83rem', color: C.textMid, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 5 }}><MapPin size={12} strokeWidth={2} aria-hidden="true" /> {escrow.propertyAddress}</div>}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
                       <InfoRow label="Deposit Amount" value={`${escrow.depositAmount} ${escrow.currency}`} />
                       <InfoRow label="Network" value={escrow.network || 'Stellar Testnet'} />
@@ -407,7 +397,7 @@ const LandlordEscrowDetails: React.FC = () => {
               {/* Wallet addresses */}
               <div style={{ ...fadeIn(140), display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
                 <Card>
-                  <SectionTitle label="🎓 Student" />
+                  <SectionTitle label={<><GraduationCap size={15} strokeWidth={2} aria-hidden="true" /> Student</>} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                     <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, #2E6BFF, #60A5FA)', display: 'flex', alignItems: 'center', justifyContent: 'center', font, fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>S</div>
                     <div>
@@ -420,7 +410,7 @@ const LandlordEscrowDetails: React.FC = () => {
                 </Card>
 
                 <Card>
-                  <SectionTitle label="🏢 Landlord (You)" />
+                  <SectionTitle label={<><Building2 size={15} strokeWidth={2} aria-hidden="true" /> Landlord (You)</>} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                     <div style={{ width: 46, height: 46, borderRadius: '50%', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, display: 'flex', alignItems: 'center', justifyContent: 'center', font, fontWeight: 700, color: '#fff', fontSize: '1.1rem' }}>L</div>
                     <div>
@@ -436,7 +426,7 @@ const LandlordEscrowDetails: React.FC = () => {
               {/* Blockchain info */}
               <div style={{ ...fadeIn(180), display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
                 <Card>
-                  <SectionTitle label="📝 Escrow Summary" />
+                  <SectionTitle label={<><FileText size={15} strokeWidth={2} aria-hidden="true" /> Escrow Summary</>} />
                   <InfoRow label="Escrow ID"   value={<span style={{ color: C.orange, fontWeight: 700 }}>{escrowLabel}</span>} />
                   <InfoRow label="MongoDB ID"   value={`${escrow._id?.slice(0,8)}…`} />
                   <InfoRow label="Deposit"      value={`${escrow.depositAmount} ${escrow.currency}`} bold />
@@ -450,7 +440,7 @@ const LandlordEscrowDetails: React.FC = () => {
                 </Card>
 
                 <Card>
-                  <SectionTitle label="🔗 Blockchain Info" />
+                  <SectionTitle label={<><Link2 size={15} strokeWidth={2} aria-hidden="true" /> Blockchain Info</>} />
                   <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Transaction Hash</div>
                   {escrow.transactionHash ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -458,7 +448,7 @@ const LandlordEscrowDetails: React.FC = () => {
                       {stellarUrl && (
                         <a href={stellarUrl} target="_blank" rel="noopener noreferrer"
                           style={{ font, fontWeight: 700, fontSize: '0.72rem', color: C.orange, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                          View ↗
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>View <ExternalLink size={11} strokeWidth={2.2} aria-hidden="true" /></span>
                         </a>
                       )}
                     </div>
@@ -472,7 +462,7 @@ const LandlordEscrowDetails: React.FC = () => {
                   {stellarUrl && (
                     <a href={stellarUrl} target="_blank" rel="noopener noreferrer"
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, font, fontWeight: 700, fontSize: '0.8rem', color: '#fff', background: `linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 50, padding: '10px 16px', textDecoration: 'none', boxShadow: '0 4px 12px rgba(124,92,255,0.25)', marginTop: 8 }}>
-                      🔍 View on Stellar Expert
+                      <ExternalLink size={14} strokeWidth={2} aria-hidden="true" /> View on Stellar Expert
                     </a>
                   )}
                 </Card>
@@ -481,11 +471,11 @@ const LandlordEscrowDetails: React.FC = () => {
 
             {/* ════ RIGHT COLUMN (sticky sidebar) ════ */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, ...fadeIn(120) }}>
-              <div style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* Progress card */}
                 <Card style={{ border: `1.5px solid rgba(124,92,255,0.22)` }}>
-                  <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 12 }}>⚙️ Escrow Progress</div>
+                  <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Activity size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Escrow Progress</div>
                   <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 8 }}>
                     <div style={{ width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${C.orange}, ${C.orangeLight})`, borderRadius: 10, transition: 'width 1s ease' }} />
                   </div>
@@ -506,7 +496,7 @@ const LandlordEscrowDetails: React.FC = () => {
 
                 {/* Timeline card */}
                 <Card>
-                  <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 18 }}>📅 Escrow Timeline</div>
+                  <div style={{ font, fontWeight: 800, fontSize: '0.92rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}><CalendarDays size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Escrow Timeline</div>
                   {TIMELINE.map((step, i, arr) => {
                     const stepIdx = STATUS_ORDER.indexOf(step.key);
                     const isCompleted = currentIdx >= stepIdx;
@@ -515,7 +505,7 @@ const LandlordEscrowDetails: React.FC = () => {
                       <div key={step.key} style={{ display: 'flex', gap: 10 }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                           <div style={{ width: 26, height: 26, borderRadius: '50%', background: isCompleted ? '#10B981' : isCurrent ? C.orange : 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.7rem', fontWeight: 700, transition: 'background 0.4s' }}>
-                            {isCompleted ? '✓' : step.icon}
+                            {isCompleted ? <Check size={13} strokeWidth={2.5} aria-hidden="true" /> : step.icon}
                           </div>
                           {i < arr.length - 1 && (
                             <div style={{ width: 2, flex: 1, minHeight: 22, background: isCompleted ? '#10B981' : 'rgba(255,255,255,0.12)', margin: '4px 0', transition: 'background 0.4s' }} />
@@ -537,14 +527,14 @@ const LandlordEscrowDetails: React.FC = () => {
 
                 {/* ─── ACTION BUTTONS ─── */}
                 <Card>
-                  <SectionTitle label="⚡ Landlord Actions" />
+                  <SectionTitle label={<><Zap size={15} strokeWidth={2} aria-hidden="true" /> Landlord Actions</>} />
                   <p style={{ font, fontSize: '0.74rem', color: C.textLight, lineHeight: 1.55, marginBottom: 14 }}>
                     Buttons are enabled based on the current escrow status.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <ActionButton
                       label="Deposit Received"
-                      icon="💰"
+                      icon={<HandCoins size={15} strokeWidth={2} aria-hidden="true" />}
                       color="linear-gradient(135deg, #4A90E2, #2B6CB0)"
                       actionKey="depositReceived"
                       enabled={rules.depositReceived}
@@ -560,12 +550,12 @@ const LandlordEscrowDetails: React.FC = () => {
                               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             }}
                           >
-                            <span>✅</span> Waiting for student confirmation
+                            <Check size={14} strokeWidth={2.2} aria-hidden="true" /> Waiting for student confirmation
                           </button>
                         ) : (
                           <ActionButton
                             label="Confirm Move-In"
-                            icon="✅"
+                            icon={<Check size={15} strokeWidth={2.2} aria-hidden="true" />}
                             color="linear-gradient(135deg, #4ACF7A, #2AAF5C)"
                             actionKey="confirmMoveIn"
                             enabled={rules.confirmMoveIn}
@@ -582,7 +572,7 @@ const LandlordEscrowDetails: React.FC = () => {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           }}
                         >
-                          <span>✅</span> Both parties confirmed
+                          <Check size={14} strokeWidth={2.2} aria-hidden="true" /> Both parties confirmed
                         </button>
                       )}
                       {escrow.status === "RELEASED" && (
@@ -595,19 +585,19 @@ const LandlordEscrowDetails: React.FC = () => {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           }}
                         >
-                          <span>✅</span> Deposit Released
+                          <CircleCheckBig size={14} strokeWidth={2.2} aria-hidden="true" /> Deposit Released
                         </button>
                       )}
                     <ActionButton
                       label="Release Deposit"
-                      icon="🔓"
+                      icon={<Unlock size={15} strokeWidth={2} aria-hidden="true" />}
                       color={`linear-gradient(135deg, ${C.orange}, ${C.orangeLight})`}
                       actionKey="releaseDeposit"
                       enabled={rules.releaseDeposit && !!escrow?.studentConfirmed && !!escrow?.landlordConfirmed}
                     />
                     <ActionButton
                       label="Refund Deposit"
-                      icon="↩️"
+                      icon={<Undo2 size={15} strokeWidth={2} aria-hidden="true" />}
                       color="linear-gradient(135deg, #EF4444, #F87171)"
                       actionKey="refundDeposit"
                       enabled={rules.refundDeposit}
@@ -630,7 +620,7 @@ const LandlordEscrowDetails: React.FC = () => {
                   onMouseEnter={e => e.currentTarget.style.borderColor = C.orange}
                   onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
                 >
-                  ← Back to Incoming Deposits
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ArrowLeft size={13} strokeWidth={2} aria-hidden="true" /> Back to Incoming Deposits</span>
                 </button>
 
               </div>

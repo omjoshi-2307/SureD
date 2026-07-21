@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { STUDENT_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  ArrowRight, Ban, BookOpen, Building2, Check, ChevronRight, CreditCard,
+  HandCoins, Home, Lightbulb, LoaderCircle, Lock, MapPin, MessageCircle,
+  RefreshCw, Scale, ScrollText, Search, ShieldCheck, Star, UserRound, Wallet,
+} from 'lucide-react';
 import { createEscrow } from '@/services/sorobanService';
 import { createEscrowDb } from '@/services/escrowService';
 import API from '@/api/axios';
@@ -13,44 +19,18 @@ const C = {
 };
 const font = "'Inter', sans-serif";
 
-/* ─── Shared nav items (must match StudentDashboard) ─────────────── */
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',   label: 'Dashboard',           icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'deposits',    label: 'My Deposits',          icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'escrow',      label: 'Create Escrow',        icon: <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /> },
-  { id: 'history',     label: 'Transaction History',  icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',              icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',             icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
-
 /* ─── Mock property data ─────────────────────────────────────────── */
 interface Property {
   id: number; name: string; address: string; city: string;
   rent: number; deposit: number; landlord: string; rating: number;
-  available: string; type: string; lease: string; emoji: string; rooms: number;
+  available: string; type: string; lease: string; rooms: number;
 }
 const PROPERTIES: Property[] = [
-  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', emoji: '🏢', rooms: 2 },
-  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', emoji: '🏙️', rooms: 3 },
-  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', emoji: '🏠', rooms: 1 },
-  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  emoji: '🏗️', rooms: 2 },
-  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', emoji: '🎓', rooms: 1 },
+  { id: 1, name: 'Green Residency Apartments', address: '42 Green Lane', city: 'Leeds LS1 4DZ', rent: 1200, deposit: 1200, landlord: 'James Carter', rating: 4.8, available: 'Immediate', type: 'Student Apartment', lease: '12 months', rooms: 2 },
+  { id: 2, name: 'Skyline Student Housing',    address: '18 Canal Street',  city: 'Manchester M1 3WD', rent: 950,  deposit: 950,  landlord: 'Sarah Miles',   rating: 4.6, available: '1 Aug 2026',  type: 'Shared House',       lease: '10 months', rooms: 3 },
+  { id: 3, name: 'Maple Residency',            address: '7 Maple Drive',    city: 'Sheffield S1 2AB', rent: 875,  deposit: 875,  landlord: 'Tom Walsh',     rating: 4.7, available: 'Immediate',  type: 'Studio Flat',        lease: '12 months', rooms: 1 },
+  { id: 4, name: 'Urban Nest Apartments',      address: '34 Park Lane',     city: 'Birmingham B1 1AA', rent: 1100, deposit: 1100, landlord: 'Lisa Park',    rating: 4.5, available: '15 Jul 2026', type: 'Student Apartment', lease: '9 months',  rooms: 2 },
+  { id: 5, name: 'Campus View Residence',      address: '5 University Rd',  city: 'Nottingham NG7 2RD', rent: 800,  deposit: 800,  landlord: 'Brian Stone',  rating: 4.9, available: 'Immediate',  type: 'En-suite Room',      lease: '12 months', rooms: 1 },
 ];
 
 const PLATFORM_FEE = 25;
@@ -67,8 +47,8 @@ const Card = ({ children, style }: { children: React.ReactNode; style?: React.CS
   </div>
 );
 
-const SectionTitle = ({ label }: { label: string }) => (
-  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18 }}>
+const SectionTitle = ({ label }: { label: React.ReactNode }) => (
+  <h3 style={{ font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
     {label}
   </h3>
 );
@@ -99,9 +79,15 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 
 /* ─── Star rating ─────────────────────────────────────────────────  */
 const Stars = ({ rating }: { rating: number }) => (
-  <span style={{ display: 'inline-flex', gap: 2 }}>
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }} aria-label={`Rated ${rating} out of 5`}>
     {[1,2,3,4,5].map(s => (
-      <span key={s} style={{ color: s <= Math.round(rating) ? '#F59E0B' : 'rgba(255,255,255,0.12)', fontSize: '0.8rem' }}>★</span>
+      <Star
+        key={s}
+        size={12}
+        strokeWidth={0}
+        aria-hidden="true"
+        fill={s <= Math.round(rating) ? '#F59E0B' : 'rgba(255,255,255,0.12)'}
+      />
     ))}
     <span style={{ font, fontSize: '0.75rem', color: C.textMid, marginLeft: 4 }}>{rating}</span>
   </span>
@@ -118,7 +104,7 @@ const Skeleton = ({ w = '100%', h = 16, br = 8 }: { w?: string | number; h?: num
 
 /* ─── Toast notification ──────────────────────────────────────────── */
 const Toast = ({ visible, message, isError }: { visible: boolean; message: string; isError?: boolean }) => (
-  <div style={{
+  <div role="status" aria-live="polite" style={{
     position: 'fixed', bottom: 28, right: 28, zIndex: 9999,
     background: isError
       ? 'rgba(40,16,20,0.95)'
@@ -145,8 +131,6 @@ const Toast = ({ visible, message, isError }: { visible: boolean; message: strin
 const CreateEscrow: React.FC = () => {
   const storedUser = localStorage.getItem("user");
   const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-  const studentWalletAddress = parsedUser?.walletAddress || "NOT_CONNECTED";
-  console.log("Connected student wallet (from localStorage):", studentWalletAddress);
   const displayName = parsedUser?.name || "Student";
   const navigate = useNavigate();
 
@@ -182,7 +166,6 @@ const CreateEscrow: React.FC = () => {
         const res = await API.get("/user/landlord-wallet");
         if (res.data.success && res.data.walletAddress) {
           setLandlordWallet(res.data.walletAddress);
-          console.log("Landlord wallet fetched:", res.data.walletAddress);
         } else {
           console.error("Failed to get landlord wallet:", res.data.message);
         }
@@ -197,7 +180,7 @@ const CreateEscrow: React.FC = () => {
   /* Close dropdown on outside click */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ddRef.current && !ddRef.current.contains(e.target as Node)) { console.log("setDropdownOpen", false, "outside click"); setDropdownOpen(false); }
+      if (ddRef.current && !ddRef.current.contains(e.target as Node)) setDropdownOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -207,11 +190,8 @@ const CreateEscrow: React.FC = () => {
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.city.toLowerCase().includes(search.toLowerCase())
   );
-  console.log("All properties:", PROPERTIES);
-  console.log("Filtered properties:", filteredProps);
 
   const selectProperty = (p: Property) => {
-    console.log("setDropdownOpen", false, "selectProperty");
     setDropdownOpen(false);
     setSearch(p.name);
     setPropLoading(true);
@@ -221,7 +201,7 @@ const CreateEscrow: React.FC = () => {
 
   const deposit    = parseFloat(depositAmt) || 0;
   const total      = deposit + PLATFORM_FEE + NETWORK_FEE;
-  const canSubmit  = agreed && selectedProp && deposit > 0 && startDate && endDate;
+  const canSubmit  = agreed && selectedProp && deposit > 0 && startDate && endDate && !walletLoading;
 
   const showToast = (message: string, isError = false) => {
     setToastMsg(message);
@@ -239,12 +219,6 @@ const CreateEscrow: React.FC = () => {
         setSubmitting(false);
         return;
       }
-      console.log("=== PRE-CREATE ESCROW ===");
-      console.log("Fetched landlord wallet:", landlordWallet);
-      console.log({
-        studentWallet: studentWalletAddress,
-        landlordWallet,
-      });
       // 1. Blockchain execution
       const result = await createEscrow({
         landlordAddress: landlordWallet,
@@ -300,7 +274,7 @@ const CreateEscrow: React.FC = () => {
   /* ── card fade-in animation ── */
   const fadeIn = (delay = 0): React.CSSProperties => ({
     opacity: mounted ? 1 : 0,
-    transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+    transform: mounted ? undefined : 'translateY(24px)',
     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
   });
 
@@ -340,7 +314,7 @@ const CreateEscrow: React.FC = () => {
           style={{ font, fontWeight: 500, fontSize: '0.8rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           Dashboard
         </button>
-        <span style={{ color: C.textLight, fontSize: '0.8rem' }}>›</span>
+        <ChevronRight size={13} strokeWidth={2} aria-hidden="true" style={{ color: C.textLight }} />
         <span style={{ font, fontWeight: 600, fontSize: '0.8rem', color: C.textDark }}>Create Escrow</span>
       </div>
 
@@ -356,8 +330,8 @@ const CreateEscrow: React.FC = () => {
       </div>
 
       {/* ══ 2-column layout ══ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 24, alignItems: 'start' }}
-        className="lg:grid-cols-[1fr_300px]">
+      <div style={{ display: 'grid', gap: 24, alignItems: 'start' }}
+        className="grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px]">
 
         {/* ════════════ LEFT COLUMN ════════════ */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -365,7 +339,7 @@ const CreateEscrow: React.FC = () => {
           {/* ── 1. Property Selection ── */}
           <div style={fadeIn(100)}>
             <Card>
-              <SectionTitle label="🏠 Select Property" />
+              <SectionTitle label={<><Home size={15} strokeWidth={2} aria-hidden="true" /> Select Property</>} />
 
               {/* Search + dropdown */}
               <div ref={ddRef} style={{ position: 'relative' }}>
@@ -375,16 +349,14 @@ const CreateEscrow: React.FC = () => {
                     position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
                     color: C.textLight, pointerEvents: 'none', display: 'flex',
                   }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
+                    <Search size={15} strokeWidth={2} aria-hidden="true" />
                   </span>
                   <input
                     value={search}
-                    onChange={e => { console.log("setDropdownOpen", true, "onChange"); setSearch(e.target.value); setDropdownOpen(true); }}
+                    onChange={e => { setSearch(e.target.value); setDropdownOpen(true); }}
                     placeholder="Search by property name or city…"
                     style={{ ...inputBase, paddingLeft: 38 }}
-                    onFocus={e => { console.log("setDropdownOpen", true, "onFocus"); setDropdownOpen(true); focusIn(e); }}
+                    onFocus={e => { setDropdownOpen(true); focusIn(e); }}
                     onBlur={focusOut}
                   />
                 </div>
@@ -416,7 +388,7 @@ const CreateEscrow: React.FC = () => {
                         onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.06)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{p.emoji}</span>
+                        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.3)', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Building2 size={16} strokeWidth={2} aria-hidden="true" /></span>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: '0.85rem', color: C.textDark }}>{p.name}</div>
                           <div style={{ fontSize: '0.75rem', color: C.textMid }}>{p.address}, {p.city}</div>
@@ -456,13 +428,14 @@ const CreateEscrow: React.FC = () => {
                     height: 130, background: `linear-gradient(135deg, rgba(124,92,255,0.22), rgba(233,97,245,0.12))`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
                   }}>
-                    <span style={{ fontSize: '4rem', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>{selectedProp.emoji}</span>
+                    <Building2 size={56} strokeWidth={1.4} aria-hidden="true" style={{ color: 'rgba(224,215,255,0.85)', filter: 'drop-shadow(0 4px 12px rgba(124,92,255,0.45))' }} />
                     <span style={{
                       position: 'absolute', top: 10, right: 10,
                       background: '#10B981', color: '#fff',
                       font, fontWeight: 700, fontSize: '0.7rem',
                       borderRadius: 50, padding: '4px 10px',
-                    }}>● {selectedProp.available}</span>
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                    }}><span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff', display: 'inline-block' }} /> {selectedProp.available}</span>
                   </div>
 
                   <div style={{ padding: '16px 18px' }}>
@@ -471,8 +444,8 @@ const CreateEscrow: React.FC = () => {
                       <div style={{ font, fontWeight: 800, fontSize: '1rem', color: C.textDark, marginBottom: 3 }}>
                         {selectedProp.name}
                       </div>
-                      <div style={{ font, fontSize: '0.8rem', color: C.textMid }}>
-                        📍 {selectedProp.address}, {selectedProp.city}
+                      <div style={{ font, fontSize: '0.8rem', color: C.textMid, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <MapPin size={12} strokeWidth={2} aria-hidden="true" /> {selectedProp.address}, {selectedProp.city}
                       </div>
                     </div>
 
@@ -525,8 +498,8 @@ const CreateEscrow: React.FC = () => {
           {/* ── 2. Deposit Details ── */}
           <div style={fadeIn(160)}>
             <Card>
-              <SectionTitle label="💳 Deposit Details" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <SectionTitle label={<><CreditCard size={15} strokeWidth={2} aria-hidden="true" /> Deposit Details</>} />
+              <div className="grid-cols-1 sm:grid-cols-2" style={{ display: 'grid', gap: 16 }}>
 
                 {/* Deposit Amount */}
                 <div>
@@ -563,7 +536,7 @@ const CreateEscrow: React.FC = () => {
                 {/* Rental End */}
                 <div>
                   <Label>Rental End Date</Label>
-                  <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
+                  <input type="date" value={endDate} min={startDate || undefined} onChange={e => setEndDate(e.target.value)}
                     style={inputBase} onFocus={focusIn} onBlur={focusOut} />
                 </div>
 
@@ -585,14 +558,14 @@ const CreateEscrow: React.FC = () => {
           {/* ── 3. Escrow Agreement ── */}
           <div style={fadeIn(220)}>
             <Card>
-              <SectionTitle label="📜 Escrow Agreement" />
+              <SectionTitle label={<><ScrollText size={15} strokeWidth={2} aria-hidden="true" /> Escrow Agreement</>} />
 
               {/* Agreement clauses */}
               {[
-                { icon: '🔐', title: 'Secure Smart Contract', text: 'Your deposit will be securely locked in a Stellar Soroban smart contract, audited and tamper-proof.' },
-                { icon: '🚫', title: 'Landlord Access Restricted', text: 'The landlord cannot access the funds until the move-in is confirmed by both parties.' },
-                { icon: '⚖️', title: 'Dispute Protection',        text: 'If a dispute occurs, funds remain locked until the DepositSafe dispute resolution process is completed.' },
-                { icon: '🔄', title: 'Transparent Release',       text: 'All deposit movements are recorded on-chain and fully auditable at any time.' },
+                { icon: <Lock size={16} strokeWidth={2} aria-hidden="true" />, title: 'Secure Smart Contract', text: 'Your deposit will be securely locked in a Stellar Soroban smart contract, audited and tamper-proof.' },
+                { icon: <Ban size={16} strokeWidth={2} aria-hidden="true" />, title: 'Landlord Access Restricted', text: 'The landlord cannot access the funds until the move-in is confirmed by both parties.' },
+                { icon: <Scale size={16} strokeWidth={2} aria-hidden="true" />, title: 'Dispute Protection',        text: 'If a dispute occurs, funds remain locked until the DepositSafe dispute resolution process is completed.' },
+                { icon: <RefreshCw size={16} strokeWidth={2} aria-hidden="true" />, title: 'Transparent Release',       text: 'All deposit movements are recorded on-chain and fully auditable at any time.' },
               ].map(clause => (
                 <div key={clause.title} style={{
                   display: 'flex', gap: 14, padding: '14px 16px',
@@ -600,7 +573,7 @@ const CreateEscrow: React.FC = () => {
                   border: `1px solid rgba(124,92,255,0.12)`,
                   marginBottom: 10,
                 }}>
-                  <span style={{ fontSize: '1.25rem', flexShrink: 0, marginTop: 1 }}>{clause.icon}</span>
+                  <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, marginTop: 1, background: 'rgba(124,92,255,0.12)', border: '1px solid rgba(124,92,255,0.25)', color: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{clause.icon}</span>
                   <div>
                     <div style={{ font, fontWeight: 700, fontSize: '0.85rem', color: C.textDark, marginBottom: 3 }}>{clause.title}</div>
                     <div style={{ font, fontSize: '0.8rem', color: C.textMid, lineHeight: 1.55 }}>{clause.text}</div>
@@ -613,10 +586,14 @@ const CreateEscrow: React.FC = () => {
                 display: 'flex', alignItems: 'flex-start', gap: 10, marginTop: 18,
                 cursor: 'pointer', userSelect: 'none', font, fontSize: '0.83rem', color: C.textMid,
               }}>
-                <div
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={agreed}
+                  aria-label="I agree to the DepositSafe Escrow Terms"
                   onClick={() => setAgreed(v => !v)}
                   style={{
-                    width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
+                    width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1, padding: 0, cursor: 'pointer',
                     border: `2px solid ${agreed ? C.orange : 'rgba(255,255,255,0.25)'}`,
                     background: agreed ? C.orange : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -624,12 +601,9 @@ const CreateEscrow: React.FC = () => {
                   }}
                 >
                   {agreed && (
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                      stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <Check size={11} strokeWidth={3.5} aria-hidden="true" style={{ color: '#fff' }} />
                   )}
-                </div>
+                </button>
                 <span style={{ lineHeight: 1.55 }}>
                   I have read and agree to the{' '}
                   <a href="#" onClick={e => e.preventDefault()}
@@ -647,8 +621,8 @@ const CreateEscrow: React.FC = () => {
             <Card style={{ background: 'linear-gradient(135deg, rgba(124,92,255,0.08), rgba(233,97,245,0.04))', border: `1px solid rgba(124,92,255,0.18)` }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                 <div>
-                  <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 6 }}>
-                    💡 Need Help?
+                  <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Lightbulb size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Need Help?
                   </div>
                   <p style={{ font, fontSize: '0.82rem', color: C.textMid, maxWidth: 420, lineHeight: 1.6, marginBottom: 14 }}>
                     DepositSafe uses blockchain escrow (Stellar Soroban) to protect both students and landlords.
@@ -660,12 +634,12 @@ const CreateEscrow: React.FC = () => {
                       border: `1.5px solid rgba(124,92,255,0.4)`,
                       borderRadius: 50, padding: '7px 16px', textDecoration: 'none',
                       transition: 'all 0.2s',
-                      display: 'inline-block',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
                     }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.1)')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      📚 View FAQ
+                      <BookOpen size={13} strokeWidth={2} aria-hidden="true" /> View FAQ
                     </a>
                     <button style={{
                       font, fontWeight: 600, fontSize: '0.8rem', color: C.white,
@@ -673,15 +647,16 @@ const CreateEscrow: React.FC = () => {
                       border: 'none', borderRadius: 50, padding: '7px 16px',
                       cursor: 'pointer', boxShadow: '0 4px 14px rgba(124,92,255,0.3)',
                       transition: 'transform 0.2s, box-shadow 0.2s',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
                     }}
                       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(124,92,255,0.4)'; }}
                       onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(124,92,255,0.3)'; }}
                     >
-                      💬 Contact Support
+                      <MessageCircle size={13} strokeWidth={2} aria-hidden="true" /> Contact Support
                     </button>
                   </div>
                 </div>
-                <span style={{ fontSize: '3.5rem', opacity: 0.7 }}>🛡️</span>
+                <ShieldCheck size={56} strokeWidth={1.2} aria-hidden="true" style={{ color: '#A78BFA', opacity: 0.55, flexShrink: 0 }} />
               </div>
             </Card>
           </div>
@@ -723,19 +698,13 @@ const CreateEscrow: React.FC = () => {
             >
               {submitting ? (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round"
-                    style={{ animation: 'spin 1s linear infinite' }}>
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
+                  <LoaderCircle size={14} strokeWidth={2.5} aria-hidden="true" style={{ animation: 'spin 1s linear infinite' }} />
                   Waiting for Wallet…
                 </>
               ) : (
                 <>
                   Create Escrow
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+                  <ArrowRight size={13} strokeWidth={2.5} aria-hidden="true" />
                 </>
               )}
             </button>
@@ -746,10 +715,10 @@ const CreateEscrow: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, ...fadeIn(120) }}>
 
           {/* ── Payment Summary (sticky) ── */}
-          <div style={{ position: 'sticky', top: 88 }}>
+          <div style={{ position: 'sticky', top: 24 }}>
             <Card style={{ border: `1.5px solid rgba(124,92,255,0.22)` }}>
               <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-                💰 Payment Summary
+                <Wallet size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> Payment Summary
               </div>
 
               {/* Line items */}
@@ -784,7 +753,7 @@ const CreateEscrow: React.FC = () => {
                 border: `1px solid ${agreed && selectedProp && deposit > 0 ? 'rgba(16,185,129,0.3)' : 'rgba(46,107,255,0.3)'}`,
               }}>
                 {agreed && selectedProp && deposit > 0 ? (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <Check size={13} strokeWidth={3} aria-hidden="true" style={{ color: '#10B981' }} />
                 ) : (
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#6E9BFF', animation: 'statusPulse 2s ease-in-out infinite', display: 'inline-block' }} />
                 )}
@@ -799,15 +768,15 @@ const CreateEscrow: React.FC = () => {
 
             {/* ── How Escrow Works (timeline) ── */}
             <Card style={{ marginTop: 20 }}>
-              <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 20 }}>
-                📖 How Escrow Works
+              <div style={{ font, fontWeight: 800, fontSize: '0.95rem', color: C.textDark, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BookOpen size={15} strokeWidth={2} aria-hidden="true" style={{ color: '#A78BFA' }} /> How Escrow Works
               </div>
 
               {[
-                { step: 1, title: 'Student Creates Escrow',       desc: 'Fill out this form and confirm the agreement.',        icon: '👤' },
-                { step: 2, title: 'Deposit is Securely Locked',   desc: 'Funds are held in a Soroban smart contract.',           icon: '🔐' },
-                { step: 3, title: 'Student Moves In',             desc: 'Move-in confirmed by both parties on the platform.',    icon: '🏠' },
-                { step: 4, title: 'Landlord Receives Funds',      desc: 'Deposit is automatically released to the landlord.',    icon: '💸' },
+                { step: 1, title: 'Student Creates Escrow',       desc: 'Fill out this form and confirm the agreement.',        icon: <UserRound size={15} strokeWidth={2} aria-hidden="true" /> },
+                { step: 2, title: 'Deposit is Securely Locked',   desc: 'Funds are held in a Soroban smart contract.',           icon: <Lock size={15} strokeWidth={2} aria-hidden="true" /> },
+                { step: 3, title: 'Student Moves In',             desc: 'Move-in confirmed by both parties on the platform.',    icon: <Home size={15} strokeWidth={2} aria-hidden="true" /> },
+                { step: 4, title: 'Landlord Receives Funds',      desc: 'Deposit is automatically released to the landlord.',    icon: <HandCoins size={15} strokeWidth={2} aria-hidden="true" /> },
               ].map((s, i, arr) => (
                 <div key={s.step} style={{ display: 'flex', gap: 12 }}>
                   {/* Left column: circle + line */}

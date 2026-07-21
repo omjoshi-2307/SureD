@@ -1,5 +1,6 @@
 import React from 'react';
 import { useScrollReveal } from '@/lib/useScrollReveal';
+import { Check } from 'lucide-react';
 
 interface Plan {
   name: string;
@@ -36,20 +37,7 @@ const PLANS: Plan[] = [
 ];
 
 const CheckIcon: React.FC = () => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#A78BFA"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-    style={{ flexShrink: 0 }}
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
+  <Check size={15} strokeWidth={2.5} aria-hidden="true" style={{ color: '#A78BFA', flexShrink: 0 }} />
 );
 
 const PlanCard: React.FC<{ plan: Plan; index: number }> = ({ plan, index }) => {

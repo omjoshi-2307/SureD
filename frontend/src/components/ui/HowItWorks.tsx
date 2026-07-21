@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useScrollReveal } from '@/lib/useScrollReveal';
+import { ArrowRight, FilePlus, Lock, LockOpen, UserCheck } from 'lucide-react';
 
 interface Step {
   num: string;
@@ -9,67 +10,34 @@ interface Step {
   icon: React.ReactNode;
 }
 
-const iconProps = {
-  width: 22,
-  height: 22,
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  strokeWidth: 1.8,
-  strokeLinecap: 'round' as const,
-  strokeLinejoin: 'round' as const,
-};
-
 const STEPS: Step[] = [
   {
     num: '01',
     status: 'CREATED',
     color: '#97A0B5',
     title: 'Student picks a property & opens the escrow',
-    icon: (
-      <svg {...iconProps} stroke="#97A0B5">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="12" y1="12" x2="12" y2="18" />
-        <line x1="9" y1="15" x2="15" y2="15" />
-      </svg>
-    ),
+    icon: <FilePlus size={22} strokeWidth={1.8} aria-hidden="true" style={{ color: '#97A0B5' }} />,
   },
   {
     num: '02',
     status: 'FUNDED',
     color: '#2E6BFF',
     title: 'Deposit locks into the Stellar smart contract',
-    icon: (
-      <svg {...iconProps} stroke="#2E6BFF">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
+    icon: <Lock size={22} strokeWidth={1.8} aria-hidden="true" style={{ color: '#2E6BFF' }} />,
   },
   {
     num: '03',
     status: 'CONFIRMED',
     color: '#F59E0B',
     title: 'Landlord confirms the tenancy',
-    icon: (
-      <svg {...iconProps} stroke="#F59E0B">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <polyline points="16 11 18 13 22 9" />
-      </svg>
-    ),
+    icon: <UserCheck size={22} strokeWidth={1.8} aria-hidden="true" style={{ color: '#F59E0B' }} />,
   },
   {
     num: '04',
     status: 'RELEASED',
     color: '#10B981',
     title: 'The contract releases funds automatically',
-    icon: (
-      <svg {...iconProps} stroke="#10B981">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-      </svg>
-    ),
+    icon: <LockOpen size={22} strokeWidth={1.8} aria-hidden="true" style={{ color: '#10B981' }} />,
   },
 ];
 
@@ -295,10 +263,7 @@ const HowItWorks: React.FC = () => {
             }}
           >
             Read the contract
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            <ArrowRight size={15} strokeWidth={2} aria-hidden="true" />
           </a>
         </div>
       </div>

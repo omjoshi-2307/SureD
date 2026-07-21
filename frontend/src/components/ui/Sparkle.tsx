@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 /** Sparkle / 4-pointed star decorative icon */
 const Sparkle = ({
   size = 18,

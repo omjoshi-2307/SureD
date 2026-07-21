@@ -34,6 +34,12 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterLanding }) => {
   return (
     <div
       onClick={advance}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          advance();
+        }
+      }}
       role="button"
       tabIndex={0}
       aria-label="DepositSafe — click to continue"

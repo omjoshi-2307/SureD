@@ -1,38 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout, { NavItem } from '@/components/dashboard/DashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { LANDLORD_NAV_ITEMS as NAV_ITEMS } from '@/components/dashboard/navItems';
+import {
+  AlertTriangle, ArrowRight, Banknote, BarChart3, Building2, Check,
+  CircleCheckBig, ClipboardCheck, Hourglass, Inbox, MessageCircle,
+  TrendingUp, Wallet,
+} from 'lucide-react';
 import { getEscrowsByLandlordDb } from '@/services/escrowService';
 import { connectWallet } from '@/services/walletService';
 import { updateWallet } from '@/services/authService';
-
-/* ── Icons ── */
-const Icon = ({ d, size = 17 }: { d: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
-  </svg>
-);
-
-const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard',    label: 'Dashboard',         icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'properties',  label: 'My Properties',     icon: <Icon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> },
-  { id: 'incoming',    label: 'Incoming Deposits',  icon: <Icon d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /> },
-  { id: 'movein',      label: 'Confirm Move-in',   icon: <Icon d="M9 11l3 3L22 4" /> },
-  { id: 'transactions',label: 'Transactions',       icon: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /> },
-  { id: 'profile',     label: 'Profile',            icon: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> },
-  { id: 'settings',    label: 'Settings',           icon: <Icon d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /> },
-  {
-    id: 'logout', label: 'Logout', isLogout: true,
-    icon: (
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        <polyline points="16 17 21 12 16 7" />
-        <line x1="21" y1="12" x2="9" y2="12" />
-      </svg>
-    ),
-  },
-];
 
 /* ── Status config — matches student pages exactly ── */
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
@@ -53,9 +30,10 @@ const font = "'Inter', sans-serif";
 /* ── Quick action button ── */
 const QuickBtn = ({
   label, icon, primary, onClick,
-}: { label: string; icon: string; primary?: boolean; onClick?: () => void }) => (
+}: { label: string; icon: React.ReactNode; primary?: boolean; onClick?: () => void }) => (
   <button
     onClick={onClick}
+    className="icon-anim"
     style={{
       display: 'flex', alignItems: 'center', gap: 8,
       padding: '11px 20px', borderRadius: 50, border: 'none',
@@ -74,7 +52,7 @@ const QuickBtn = ({
       e.currentTarget.style.boxShadow = primary ? '0 6px 20px rgba(124,92,255,0.35)' : 'none';
     }}
   >
-    <span>{icon}</span> {label}
+    <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span> {label}
   </button>
 );
 
@@ -123,7 +101,6 @@ const LandlordDashboard: React.FC = () => {
       const parsed = JSON.parse(stored);
       if (parsed.walletAddress) {
         setWalletAddress(parsed.walletAddress);
-        console.log("Landlord wallet:", parsed.walletAddress);
         loadData(parsed.walletAddress);
         return;
       }
@@ -162,10 +139,10 @@ const LandlordDashboard: React.FC = () => {
   const totalValue    = escrows.reduce((s, e) => s + (e.depositAmount || 0), 0);
 
   const dynamicStats = [
-    { label: 'Total Escrows',      value: loading ? '…' : String(totalCount),    sub: 'All assigned escrows',        icon: '🏠', color: '#A78BFA' },
-    { label: 'Active / Pending',   value: loading ? '…' : String(pendingCount),  sub: 'Created or Funded',           icon: '⏳', color: '#F59E0B' },
-    { label: 'Released Deposits',  value: loading ? '…' : String(releasedCount), sub: 'Successfully completed',      icon: '✅', color: '#10B981' },
-    { label: 'Total Deposit Value',value: loading ? '…' : `${totalValue} XLM`,   sub: 'Across all properties',       icon: '💷', color: '#60A5FA' },
+    { label: 'Total Escrows',      value: loading ? '…' : String(totalCount),    sub: 'All assigned escrows',        icon: <Building2 size={20} strokeWidth={2} aria-hidden="true" />,       color: '#A78BFA' },
+    { label: 'Active / Pending',   value: loading ? '…' : String(pendingCount),  sub: 'Created or Funded',           icon: <Hourglass size={20} strokeWidth={2} aria-hidden="true" />,       color: '#F59E0B' },
+    { label: 'Released Deposits',  value: loading ? '…' : String(releasedCount), sub: 'Successfully completed',      icon: <CircleCheckBig size={20} strokeWidth={2} aria-hidden="true" />,  color: '#10B981' },
+    { label: 'Total Deposit Value',value: loading ? '…' : `${totalValue} XLM`,   sub: 'Across all properties',       icon: <Banknote size={20} strokeWidth={2} aria-hidden="true" />,        color: '#60A5FA' },
   ];
 
   return (
@@ -201,7 +178,7 @@ const LandlordDashboard: React.FC = () => {
             Property Manager
           </div>
           <h1 style={{ fontFamily: font, fontWeight: 800, fontSize: 'clamp(1.25rem, 3vw, 1.7rem)', color: '#fff', marginBottom: 6, letterSpacing: '-0.5px' }}>
-            Welcome back 👋
+            Welcome back
           </h1>
           <p style={{ fontFamily: font, fontWeight: 400, fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
             {loading
@@ -214,10 +191,10 @@ const LandlordDashboard: React.FC = () => {
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <QuickBtn
               label={connecting ? 'Connecting…' : walletAddress ? 'Wallet Connected' : 'Connect Wallet'}
-              icon={walletAddress ? '✅' : '🔗'}
+              icon={walletAddress ? <Check size={14} strokeWidth={2.2} aria-hidden="true" /> : <Wallet size={14} strokeWidth={2} aria-hidden="true" />}
               onClick={walletAddress ? undefined : handleConnectWallet}
             />
-            <QuickBtn label="Incoming Deposits" icon="📥" primary onClick={() => navigate('/landlord/incoming-escrows')} />
+            <QuickBtn label="Incoming Deposits" icon={<Inbox size={14} strokeWidth={2} aria-hidden="true" />} primary onClick={() => navigate('/landlord/incoming-escrows')} />
           </div>
           {walletAddress && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 50, padding: '5px 14px' }}>
@@ -232,8 +209,8 @@ const LandlordDashboard: React.FC = () => {
 
       {/* ── Error Banner ── */}
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 18px', marginBottom: 16, fontFamily: font, fontSize: '0.85rem', color: '#F87171', fontWeight: 600 }}>
-          ⚠️ {error}
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 18px', marginBottom: 16, fontFamily: font, fontSize: '0.85rem', color: '#F87171', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertTriangle size={15} strokeWidth={2} aria-hidden="true" /> {error}
         </div>
       )}
 
@@ -249,8 +226,8 @@ const LandlordDashboard: React.FC = () => {
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: '1.5rem', background: `${stat.color}18`, borderRadius: 10, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{stat.icon}</span>
-              <span style={{ fontFamily: font, fontSize: '0.68rem', fontWeight: 600, color: '#10B981', background: 'rgba(16,185,129,0.1)', borderRadius: 50, padding: '3px 8px' }}>↑ Live</span>
+              <span style={{ color: stat.color, background: `${stat.color}18`, border: `1px solid ${stat.color}40`, borderRadius: 10, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{stat.icon}</span>
+              <span style={{ fontFamily: font, fontSize: '0.68rem', fontWeight: 600, color: '#10B981', background: 'rgba(16,185,129,0.1)', borderRadius: 50, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingUp size={11} strokeWidth={2.5} aria-hidden="true" />Live</span>
             </div>
             <div style={{ fontFamily: font, fontWeight: 800, fontSize: '1.65rem', color: C.textDark, letterSpacing: '-1px', lineHeight: 1 }}>{stat.value}</div>
             <div style={{ fontFamily: font, fontWeight: 500, fontSize: '0.8rem', color: C.textMid, marginTop: 4 }}>{stat.label}</div>
@@ -263,10 +240,10 @@ const LandlordDashboard: React.FC = () => {
       <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '20px 24px', border: `1px solid ${C.border}`, marginBottom: 28, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
         <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: '0.95rem', color: C.textDark, marginBottom: 16 }}>Quick Actions</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-          <QuickBtn label="Incoming Deposits" icon="📥" primary onClick={() => navigate('/landlord/incoming-escrows')} />
-          <QuickBtn label="Generate Report" icon="📊" />
-          <QuickBtn label="Confirm Move-in" icon="✅" />
-          <QuickBtn label="Contact Support" icon="💬" />
+          <QuickBtn label="Incoming Deposits" icon={<Inbox size={14} strokeWidth={2} aria-hidden="true" />} primary onClick={() => navigate('/landlord/incoming-escrows')} />
+          <QuickBtn label="Generate Report" icon={<BarChart3 size={14} strokeWidth={2} aria-hidden="true" />} />
+          <QuickBtn label="Confirm Move-in" icon={<ClipboardCheck size={14} strokeWidth={2} aria-hidden="true" />} />
+          <QuickBtn label="Contact Support" icon={<MessageCircle size={14} strokeWidth={2} aria-hidden="true" />} />
         </div>
       </div>
 
@@ -278,9 +255,11 @@ const LandlordDashboard: React.FC = () => {
           </h3>
           <button
             onClick={() => navigate('/landlord/incoming-escrows')}
-            style={{ fontFamily: font, fontWeight: 600, fontSize: '0.78rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer' }}
+            className="dl-arrow-link"
+            style={{ fontFamily: font, fontWeight: 600, fontSize: '0.78rem', color: C.orange, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
-            View all →
+            View all
+            <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
@@ -297,11 +276,13 @@ const LandlordDashboard: React.FC = () => {
               {loading ? (
                 <><SkeletonRow /><SkeletonRow /><SkeletonRow /></>
               ) : error ? (
-                <tr><td colSpan={6} style={{ padding: '28px 20px', textAlign: 'center', fontFamily: font, fontWeight: 600, color: '#F87171' }}>⚠️ {error}</td></tr>
+                <tr><td colSpan={6} style={{ padding: '28px 20px', textAlign: 'center', fontFamily: font, fontWeight: 600, color: '#F87171' }}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><AlertTriangle size={15} strokeWidth={2} aria-hidden="true" /> {error}</span></td></tr>
               ) : escrows.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ padding: '60px 20px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>📭</div>
+                    <div style={{ width: 56, height: 56, margin: '0 auto 14px', borderRadius: '50%', background: 'rgba(124,92,255,0.1)', border: '1px solid rgba(124,92,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A78BFA' }}>
+                      <Inbox size={26} strokeWidth={1.8} aria-hidden="true" />
+                    </div>
                     <div style={{ fontFamily: font, fontWeight: 700, fontSize: '1rem', color: C.textDark }}>No escrows assigned yet.</div>
                     <p style={{ fontFamily: font, fontSize: '0.8rem', color: C.textMid, marginTop: 6, marginBottom: 14 }}>
                       Escrows assigned to your wallet address will appear here.
@@ -317,7 +298,7 @@ const LandlordDashboard: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                escrows.slice(0, 5).map((row, i) => {
+                escrows.slice(0, 5).map((row) => {
                   const targetId = row.escrowId !== undefined ? String(row.escrowId) : row._id;
                   const escrowLabel = row.escrowId !== undefined ? `ESC-${String(row.escrowId).padStart(3, '0')}` : 'Pending';
                   const formattedDate = new Date(row.createdAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
@@ -326,9 +307,9 @@ const LandlordDashboard: React.FC = () => {
                     <tr
                       key={row._id}
                       onClick={() => navigate(`/landlord/escrow/${targetId}`)}
-                      style={{ borderTop: `1px solid ${C.border}`, background: i % 2 === 0 ? '#FFFFFF' : 'transparent', transition: 'background 0.15s', cursor: 'pointer' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.04)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = i % 2 === 0 ? '#FFFFFF' : 'transparent')}
+                      style={{ borderTop: `1px solid ${C.border}`, background: 'transparent', transition: 'background 0.15s', cursor: 'pointer' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,92,255,0.07)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
                       <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                         <span style={{ fontFamily: font, fontWeight: 700, fontSize: '0.8rem', color: C.orange }}>{escrowLabel}</span>
