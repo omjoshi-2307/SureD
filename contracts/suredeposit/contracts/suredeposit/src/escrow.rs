@@ -157,13 +157,9 @@ pub fn release(env: &Env, escrow_id: u64, caller: Address) -> Result<Escrow, Con
     Ok(escrow)
 }
 
-pub fn refund(
-    env: &Env,
-    escrow_id: u64,
-    caller: Address,
-) -> Result<Escrow, ContractError> {
-    let mut escrow = crate::storage::get_escrow(env, escrow_id)
-        .ok_or(ContractError::EscrowNotFound)?;
+pub fn refund(env: &Env, escrow_id: u64, caller: Address) -> Result<Escrow, ContractError> {
+    let mut escrow =
+        crate::storage::get_escrow(env, escrow_id).ok_or(ContractError::EscrowNotFound)?;
 
     caller.require_auth();
 
@@ -173,10 +169,9 @@ pub fn refund(
     }
 
     // Refund only while the contract holds funds
-    if escrow.status != EscrowStatus::Funded
-        && escrow.status != EscrowStatus::PendingConfirmation
-    {
-        return Err(ContractError::InvalidState);
+    match escrow.status {
+        EscrowStatus::Funded | EscrowStatus::PendingConfirmation => {}
+        _ => return Err(ContractError::InvalidState),
     }
 
     let token_addr = crate::storage::get_token(env);
@@ -188,9 +183,11 @@ pub fn refund(
         &escrow.amount,
     );
 
-    escrow.status = EscrowStatus::Cancelled;
+    escrow.status = EscrowStatus::Refunded;
 
     crate::storage::save_escrow(env, escrow_id, &escrow);
+
+    crate::events::escrow_refunded(env, escrow_id, &escrow.student, escrow.amount);
 
     Ok(escrow)
 }

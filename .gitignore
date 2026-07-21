@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+frontend.zip
+AUDIT_FINDINGS.md
+
+# Soroban test snapshots
+contracts/suredeposit/contracts/suredeposit/test_snapshots/
+
+# Node logs
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

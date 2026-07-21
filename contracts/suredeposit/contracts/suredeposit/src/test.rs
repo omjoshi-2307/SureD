@@ -131,3 +131,90 @@ fn test_release_escrow() {
         crate::types::EscrowStatus::Released
     ));
 }
+
+#[test]
+fn test_refund_escrow() {
+    let (env, client, token_id) = setup();
+
+    let student = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    // Create escrow
+    client.initialize(&student, &landlord, &1000);
+
+    // Mint tokens to student
+    let token_admin = token::StellarAssetClient::new(&env, &token_id);
+    token_admin.mint(&student, &10_000_0000000);
+
+    // Deposit funds
+    client.deposit(&1, &student);
+
+    // Refund by landlord
+    let refunded = client.refund(&1, &landlord);
+
+    // Verify returned escrow
+    assert!(matches!(
+        refunded.status,
+        crate::types::EscrowStatus::Refunded
+    ));
+
+    // Verify stored escrow
+    let escrow = client.get_escrow(&1).unwrap();
+
+    assert!(matches!(
+        escrow.status,
+        crate::types::EscrowStatus::Refunded
+    ));
+}
+
+#[test]
+fn test_student_cannot_refund() {
+    let (env, client, token_id) = setup();
+
+    let student = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    client.initialize(&student, &landlord, &1000);
+
+    let token_admin = token::StellarAssetClient::new(&env, &token_id);
+    token_admin.mint(&student, &10_000_0000000);
+
+    client.deposit(&1, &student);
+
+    let result = client.try_refund(&1, &student);
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_deposit_twice_fails() {
+    let (env, client, token_id) = setup();
+
+    let student = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    client.initialize(&student, &landlord, &1000);
+
+    let token_admin = token::StellarAssetClient::new(&env, &token_id);
+    token_admin.mint(&student, &10_000_0000000);
+
+    client.deposit(&1, &student);
+
+    let result = client.try_deposit(&1, &student);
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_release_before_funding_fails() {
+    let (env, client, _) = setup();
+
+    let student = Address::generate(&env);
+    let landlord = Address::generate(&env);
+
+    client.initialize(&student, &landlord, &1000);
+
+    let result = client.try_release(&1, &landlord);
+
+    assert!(result.is_err());
+}

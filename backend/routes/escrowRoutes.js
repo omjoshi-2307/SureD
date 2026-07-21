@@ -10,7 +10,8 @@ const {
   releaseEscrow,
   fundEscrow,
   confirmEscrow,
-  cancelEscrow
+  cancelEscrow,
+  refundEscrow
 } = require("../controllers/escrowController");
 
 // All escrow routes are protected by authMiddleware
@@ -22,5 +23,6 @@ router.patch("/:id/fund", authMiddleware, fundEscrow);
 router.patch("/:id/release", authMiddleware, releaseEscrow);
 router.patch("/:id/confirm", authMiddleware, confirmEscrow);
 router.patch("/:id/cancel", authMiddleware, cancelEscrow);
+router.patch("/:id/refund", authMiddleware, refundEscrow);
 
-module.exports = router;
+module.exports = router;

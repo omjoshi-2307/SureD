@@ -556,6 +556,105 @@ exports.releaseEscrow = async (req, res) => {
   }
 };
 
+exports.refundEscrow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { txHash } = req.body;
+
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Refund transaction hash is required",
+      });
+    }
+
+    let escrow;
+
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      escrow = await Escrow.findById(id);
+    }
+
+    if (!escrow && !isNaN(Number(id))) {
+      escrow = await Escrow.findOne({ escrowId: Number(id) });
+    }
+
+    if (!escrow) {
+      return res.status(404).json({
+        success: false,
+        message: "Escrow not found",
+      });
+    }
+
+    // Only the landlord can refund
+    if (req.user.role !== "landlord") {
+      return res.status(403).json({
+        success: false,
+        message: "Only the landlord on this escrow can refund it",
+      });
+    }
+
+    const requesterWallet = await getRequesterWallet(req.user.id);
+
+    if (!walletsMatch(requesterWallet, escrow.landlordWallet)) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not the landlord associated with this escrow",
+      });
+    }
+
+    // Match Soroban contract logic
+    if (
+      escrow.status !== "FUNDED" &&
+      escrow.status !== "PENDING_CONFIRMATION"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Escrow cannot be refunded in its current state",
+      });
+    }
+
+    const statusBefore = escrow.status;
+
+    escrow.status = "REFUNDED";
+    escrow.refundTxHash = txHash;
+    escrow.refundedAt = new Date();
+
+    await escrow.save();
+
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash,
+      action: "REFUND",
+      actorWallet: escrow.landlordWallet,
+      role: "landlord",
+      propertyName: escrow.propertyName,
+      amount: escrow.depositAmount,
+      currency: escrow.currency,
+      network: escrow.blockchainNetwork,
+      contractId: escrow.contractId,
+      statusBefore,
+      statusAfter: "REFUNDED",
+    }).catch((err) =>
+      console.error("History record error (refundEscrow):", err.message)
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Escrow refunded successfully",
+      escrow,
+    });
+  } catch (error) {
+    console.error("Refund Escrow Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // ─── Cancel Escrow ────────────────────────────────────────────────────────────
 exports.cancelEscrow = async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authLimiter = require("../middleware/rateLimiter");
 
 const {
   register,
@@ -7,6 +8,7 @@ const {
   googleLogin,
 } = require("../controllers/authController");
 
+router.use(authLimiter);
 router.post("/register", register);
 router.post("/login", login);
 router.post("/google", googleLogin);

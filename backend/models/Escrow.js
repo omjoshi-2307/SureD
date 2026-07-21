@@ -76,6 +76,7 @@ const EscrowSchema = new mongoose.Schema(
         "FUNDED",
         "PENDING_CONFIRMATION",
         "RELEASED",
+        "REFUNDED",
         "DISPUTED",
         "CANCELLED",
       ],
@@ -90,6 +91,16 @@ const EscrowSchema = new mongoose.Schema(
 
     // Timestamp of release
     releasedAt: {
+      type: Date,
+      required: false,
+    },
+
+    refundTxHash: {
+      type: String,
+      required: false,
+    },
+
+    refundedAt: {
       type: Date,
       required: false,
     },
