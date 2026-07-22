@@ -38,3 +38,6 @@ contracts/suredeposit/contracts/suredeposit/test_snapshots/
 
 # Windows
 Thumbs.db
+
+.env
+.env.*
