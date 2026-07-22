@@ -180,44 +180,22 @@ const EscrowDetailsPage: React.FC = () => {
     }
   };
 
-  const handleDeposit = async () => {
+  const handleDeposit = () => {
     if (!escrow?.escrowId) {
       showToast("Escrow ID not found", "error");
       return;
     }
 
-    try {
-      setDepositing(true);
+    const rawAmt = escrow.depositAmount || 20000;
+    const visualAmt = rawAmt < 5000 ? Math.round(rawAmt * 86.40) : rawAmt;
 
-      const result = await depositEscrow(
-        escrow.escrowId
-      );
-
-      await fundEscrowDb(
-        escrow.escrowId,
-        {
-          txHash: result.txHash,
-        }
-      );
-
-      await loadEscrow();
-
-      showToast(
-        "Deposit funded successfully!",
-        "info"
-      );
-
-    } catch (err: any) {
-      console.error(err);
-
-      showToast(
-        err?.message || "Deposit failed",
-        "error"
-      );
-
-    } finally {
-      setDepositing(false);
-    }
+    navigate(`/student/payment-journey/${escrow.escrowId}`, {
+      state: {
+        depositAmount: visualAmt,
+        propertyName: escrow.propertyName || 'Green Residency Apartments',
+        propertyAddress: escrow.propertyAddress || '42 Green Lane'
+      }
+    });
   };
 
   const fadeIn = (delay = 0): React.CSSProperties => ({

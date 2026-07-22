@@ -20,6 +20,7 @@ import LandlordEscrowDetails from '@/components/dashboard/landlord/LandlordEscro
 import GoogleRoleSelect from '@/components/ui/GoogleRoleSelect';
 import { TransactionHistoryPage, ProfilePage, SettingsPage } from '@/components/dashboard/shared/AccountPages';
 import ProtectedRoute from '@/routes/ProtectedRoute';
+import PaymentJourney from '@/components/dashboard/student/PaymentJourney';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -97,6 +98,8 @@ function App() {
       <Route path="/student/create-escrow" element={<ProtectedRoute allowedRoles={['student']}><CreateEscrow /></ProtectedRoute>} />
       <Route path="/student/escrow-details" element={<ProtectedRoute allowedRoles={['student']}><EscrowDetails /></ProtectedRoute>} />
       <Route path="/student/escrow/:id" element={<ProtectedRoute allowedRoles={['student']}><EscrowDetailsPage /></ProtectedRoute>} />
+      <Route path="/student/payment-journey" element={<ProtectedRoute allowedRoles={['student']}><PaymentJourney /></ProtectedRoute>} />
+      <Route path="/student/payment-journey/:id" element={<ProtectedRoute allowedRoles={['student']}><PaymentJourney /></ProtectedRoute>} />
       <Route path="/student/my-deposits" element={<ProtectedRoute allowedRoles={['student']}><MyDeposits /></ProtectedRoute>} />
       <Route path="/student/transactions" element={<ProtectedRoute allowedRoles={['student']}><TransactionHistoryPage role="student" /></ProtectedRoute>} />
       <Route path="/student/profile" element={<ProtectedRoute allowedRoles={['student']}><ProfilePage role="student" /></ProtectedRoute>} />

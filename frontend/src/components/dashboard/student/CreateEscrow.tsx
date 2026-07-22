@@ -246,7 +246,13 @@ const CreateEscrow: React.FC = () => {
         // 3. Both succeeded
         showToast("Escrow Created Successfully!");
         const targetId = result.escrowId !== undefined ? String(result.escrowId) : "ESC-001";
-        setTimeout(() => navigate(`/student/escrow/${targetId}`), 2000);
+        setTimeout(() => navigate(`/student/payment-journey/${targetId}`, {
+          state: {
+            depositAmount: deposit * 86.40, // convert standard XLM to INR-like visual values
+            propertyName: selectedProp!.name,
+            propertyAddress: `${selectedProp!.address}, ${selectedProp!.city}`
+          }
+        }), 2000);
 
       } catch (dbErr) {
         console.error("Database save failed:", dbErr);

@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
+
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -42,6 +43,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/escrows", require("./routes/escrowRoutes"));
 app.use("/api/transactions", require("./routes/historyRoutes"));
+// app.use("/api/payment", paymentRoutes);
 
 // 404 Handler
 app.use((req, res) => {
