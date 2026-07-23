@@ -21,6 +21,7 @@ import GoogleRoleSelect from '@/components/ui/GoogleRoleSelect';
 import { TransactionHistoryPage, ProfilePage, SettingsPage } from '@/components/dashboard/shared/AccountPages';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import PaymentJourney from '@/components/dashboard/student/PaymentJourney';
+import TermsOfService from '@/components/ui/TermsOfService';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -110,6 +111,7 @@ function App() {
       <Route path="/landlord/profile" element={<ProtectedRoute allowedRoles={['landlord']}><ProfilePage role="landlord" /></ProtectedRoute>} />
       <Route path="/landlord/settings" element={<ProtectedRoute allowedRoles={['landlord']}><SettingsPage role="landlord" /></ProtectedRoute>} />
       <Route path="/landlord/escrow/:id" element={<ProtectedRoute allowedRoles={['landlord']}><LandlordEscrowDetails /></ProtectedRoute>} />
+      <Route path="/terms" element={<TermsOfService />} />
       {/* Catch-all — redirect unknown paths to root */}
       <Route path="*" element={<LandingFlow />} />
     </Routes>
