@@ -26,7 +26,7 @@ const COLUMNS: Array<{ heading: string; links: Array<{ label: string; href: stri
     heading: 'Legal',
     links: [
       { label: 'Terms', href: '/terms' },
-      { label: 'Privacy', href: '#' },
+      { label: 'Privacy', href: '/privacy' },
       { label: 'Refund policy', href: '#' },
     ],
   },
