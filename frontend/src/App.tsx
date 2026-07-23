@@ -23,6 +23,7 @@ import ProtectedRoute from '@/routes/ProtectedRoute';
 import PaymentJourney from '@/components/dashboard/student/PaymentJourney';
 import TermsOfService from '@/components/ui/TermsOfService';
 import PrivacyPolicy from '@/components/ui/PrivacyPolicy';
+import FAQPage from '@/components/ui/FAQPage';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -114,6 +115,7 @@ function App() {
       <Route path="/landlord/escrow/:id" element={<ProtectedRoute allowedRoles={['landlord']}><LandlordEscrowDetails /></ProtectedRoute>} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/faq" element={<FAQPage />} />
       {/* Catch-all — redirect unknown paths to root */}
       <Route path="*" element={<LandingFlow />} />
     </Routes>

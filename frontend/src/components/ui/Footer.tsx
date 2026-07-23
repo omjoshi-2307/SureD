@@ -19,7 +19,7 @@ const COLUMNS: Array<{ heading: string; links: Array<{ label: string; href: stri
       { label: 'Docs', href: '#', external: true },
       { label: 'Smart contract on GitHub', href: 'https://github.com/Khushal-93/SureD', external: true },
       { label: 'Stellar Explorer', href: 'https://stellar.expert', external: true },
-      { label: 'FAQs', href: '#' },
+      { label: 'FAQs', href: '/faq' },
     ],
   },
   {
