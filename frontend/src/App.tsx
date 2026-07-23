@@ -24,6 +24,16 @@ import PaymentJourney from '@/components/dashboard/student/PaymentJourney';
 import TermsOfService from '@/components/ui/TermsOfService';
 import PrivacyPolicy from '@/components/ui/PrivacyPolicy';
 import FAQPage from '@/components/ui/FAQPage';
+import DocsPage from '@/components/ui/DocsPage';
+
+import GettingStarted from '@/components/docs/pages/GettingStarted';
+import UserGuide from '@/components/docs/pages/UserGuide';
+import SmartContracts from '@/components/docs/pages/SmartContracts';
+import StellarIntegration from '@/components/docs/pages/StellarIntegration';
+import ApiReference from '@/components/docs/pages/ApiReference';
+import Troubleshooting from '@/components/docs/pages/Troubleshooting';
+import LegalDocs from '@/components/docs/pages/LegalDocs';
+import Support from '@/components/docs/pages/Support';
 
 /**
  * LandingFlow — preserves the existing state-machine welcome → landing → login → register
@@ -116,6 +126,17 @@ function App() {
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/faq" element={<FAQPage />} />
+      <Route path="/docs" element={<DocsPage />} />
+      
+      <Route path="/docs/getting-started" element={<GettingStarted />} />
+      <Route path="/docs/user-guide" element={<UserGuide />} />
+      <Route path="/docs/smart-contracts" element={<SmartContracts />} />
+      <Route path="/docs/stellar" element={<StellarIntegration />} />
+      <Route path="/docs/api" element={<ApiReference />} />
+      <Route path="/docs/troubleshooting" element={<Troubleshooting />} />
+      <Route path="/docs/legal" element={<LegalDocs />} />
+      <Route path="/docs/support" element={<Support />} />
+
       {/* Catch-all — redirect unknown paths to root */}
       <Route path="*" element={<LandingFlow />} />
     </Routes>

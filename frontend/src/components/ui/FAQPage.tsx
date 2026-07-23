@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, ChevronDown, Mail, BookOpen } from 'lucide-react';
 
@@ -353,10 +353,10 @@ const FAQPage: React.FC = () => {
               <Mail size={18} />
               Contact Support
             </a>
-            <a href="#" className="btn-glass" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.95rem' }}>
+            <Link to="/docs" className="btn-glass" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.95rem' }}>
               <BookOpen size={18} />
               View Documentation
-            </a>
+            </Link>
           </div>
         </div>
 
