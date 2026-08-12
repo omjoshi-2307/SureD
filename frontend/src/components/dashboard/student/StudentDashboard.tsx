@@ -9,6 +9,7 @@ import {
 import { connectWallet } from "@/services/walletService";
 import { updateWallet } from "@/services/authService";
 import { getEscrowsByStudentDb } from "@/services/escrowService";
+import { WalletConnectBanner } from "@/components/ui/WalletConnectBanner";
 
 /* ── Escrow lifecycle status palette (matches the landing design system) ── */
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
@@ -189,6 +190,12 @@ const StudentDashboard: React.FC = () => {
           100% { opacity: 0.6; }
         }
       `}</style>
+
+      {/* ── Wallet Connect Asking Bar ── */}
+      <WalletConnectBanner onWalletConnected={(addr) => {
+        setWalletAddress(addr);
+        loadDashboardData(addr);
+      }} />
 
       {/* ── Welcome Banner ── */}
       <div style={{

@@ -15,6 +15,9 @@ import {
 } from "@/services/escrowService";
 
 import { releaseEscrow, confirmEscrow } from "@/services/sorobanService";
+import { FiatValue } from '@/components/ui/FiatValue';
+import { StellarExplorerLink } from '@/components/ui/StellarExplorerLink';
+import { InspectionPhotoVault } from '@/components/ui/InspectionPhotoVault';
 
 /* ─── Design tokens ─────────────────────────────────────────────── */
 const C = {
@@ -379,7 +382,7 @@ const LandlordEscrowDetails: React.FC = () => {
                     <div style={{ font, fontWeight: 800, fontSize: '1.1rem', color: C.textDark, marginBottom: 4 }}>{escrow.propertyName}</div>
                     {escrow.propertyAddress && <div style={{ font, fontSize: '0.83rem', color: C.textMid, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 5 }}><MapPin size={12} strokeWidth={2} aria-hidden="true" /> {escrow.propertyAddress}</div>}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
-                      <InfoRow label="Deposit Amount" value={`${escrow.depositAmount} ${escrow.currency}`} />
+                      <InfoRow label="Deposit Amount" value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{`${escrow.depositAmount} ${escrow.currency}`} <FiatValue amountXlm={escrow.depositAmount} /></span>} />
                       <InfoRow label="Network" value={escrow.network || 'Stellar Testnet'} />
                       <InfoRow label="Status" value={statusCfg?.label || escrow.status} />
                       <InfoRow label="Created" value={fmtDate(escrow.createdAt)} />
@@ -623,6 +626,10 @@ const LandlordEscrowDetails: React.FC = () => {
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ArrowLeft size={13} strokeWidth={2} aria-hidden="true" /> Back to Incoming Deposits</span>
                 </button>
 
+                {/* Condition & Inspection Photo Vault (IPFS) */}
+                <div style={fadeIn(300)}>
+                  <InspectionPhotoVault escrowId={escrow.escrowId || escrow._id} userRole="landlord" />
+                </div>
               </div>
             </div>
           </div>

@@ -14,6 +14,9 @@ import {
   confirmEscrowDb,
 } from '@/services/escrowService';
 import { depositEscrow, confirmEscrow } from '@/services/sorobanService';
+import { FiatValue } from '@/components/ui/FiatValue';
+import { StellarExplorerLink } from '@/components/ui/StellarExplorerLink';
+import { InspectionPhotoVault } from '@/components/ui/InspectionPhotoVault';
 
 /* ─── Design tokens (match index.css) ─────────────────────────── */
 const C = {
@@ -373,7 +376,7 @@ const EscrowDetailsPage: React.FC = () => {
                     )}
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
-                      <InfoRow label="Deposit Amount" value={`${escrow.depositAmount} ${escrow.currency}`} />
+                      <InfoRow label="Deposit Amount" value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{`${escrow.depositAmount} ${escrow.currency}`} <FiatValue amountXlm={escrow.depositAmount} /></span>} />
                       <InfoRow label="Network" value={escrow.network || 'Stellar Testnet'} />
                       <InfoRow label="Escrow Status" value={statusCfg?.label || escrow.status} />
                       <InfoRow label="Created At" value={formattedCreated} />
@@ -453,21 +456,8 @@ const EscrowDetailsPage: React.FC = () => {
                     <div>
                       <div style={{ font, fontSize: '0.72rem', color: C.textLight, marginBottom: 4 }}>Transaction Hash</div>
                       {escrow.transactionHash ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <MonoBlock value={`${escrow.transactionHash.slice(0, 16)}…${escrow.transactionHash.slice(-8)}`} />
-                          {stellarExpertUrl && (
-                            <a
-                              href={stellarExpertUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                font, fontWeight: 700, fontSize: '0.72rem', color: C.orange,
-                                textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
-                              }}
-                            >
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>View <ExternalLink size={11} strokeWidth={2.2} aria-hidden="true" /></span>
-                            </a>
-                          )}
+                        <div style={{ marginTop: 4 }}>
+                          <StellarExplorerLink txHash={escrow.transactionHash} network={escrow.network} />
                         </div>
                       ) : (
                         <MonoBlock value="Not yet recorded" />
@@ -657,6 +647,11 @@ const EscrowDetailsPage: React.FC = () => {
                     </button>
                   </div>
                 </Card>
+              </div>
+
+              {/* Condition & Inspection Photo Vault (IPFS) */}
+              <div style={fadeIn(300)}>
+                <InspectionPhotoVault escrowId={escrow.escrowId || escrow._id} userRole="student" />
               </div>
             </div>
 

@@ -5,10 +5,11 @@ import { initGoogleSignIn, setGoogleCallback, renderHiddenGoogleButton, clickGoo
 import Sparkle from './Sparkle';
 import { ArrowLeft, ArrowRight, Building2, Check, Eye, EyeOff, GraduationCap, LoaderCircle, Lock, Mail } from 'lucide-react';
 import LogoMark from './LogoMark';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 interface LoginProps {
-  onBack: () => void;
-  onRegister: () => void;
+  onBack?: () => void;
+  onRegister?: () => void;
   /** Demo only: called with selected role on submit. Replace with real auth later. */
   onLogin?: (role: 'student' | 'landlord') => void;
 }
@@ -49,6 +50,16 @@ const labelStyle: React.CSSProperties = {
 
 const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) onBack();
+    else navigate('/');
+  };
+
+  const handleGoRegister = () => {
+    if (onRegister) onRegister();
+    else navigate('/register');
+  };
   const [role, setRole] = useState<'student' | 'landlord'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,6 +68,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   /* ── Google Sign-In ── */
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -236,7 +248,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
       {/* ── Top-left back button ── */}
       <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 20 }}>
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="btn-glass"
           style={{ padding: '9px 18px', fontSize: '0.82rem' }}
         >
@@ -459,7 +471,10 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
 
           <a
             href="#"
-            onClick={e => e.preventDefault()}
+            onClick={e => {
+              e.preventDefault();
+              setShowForgotModal(true);
+            }}
             style={{
               fontFamily: "'Inter', sans-serif", fontWeight: 500,
               fontSize: '0.8rem', color: '#A78BFA', textDecoration: 'none',
@@ -562,7 +577,7 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
           Don&apos;t have an account?{' '}
           <a
             href="#"
-            onClick={e => { e.preventDefault(); onRegister(); }}
+            onClick={e => { e.preventDefault(); handleGoRegister(); }}
             style={{
               color: '#A78BFA', fontWeight: 600, textDecoration: 'none',
               transition: 'color 0.2s',
@@ -598,6 +613,13 @@ const Login: React.FC<LoginProps> = ({ onBack, onRegister, onLogin }) => {
           ))}
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        onSuccess={() => setError('')}
+      />
     </div>
   );
 };

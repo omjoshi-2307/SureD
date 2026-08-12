@@ -106,6 +106,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingFlow />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/auth/google-role-select" element={<GoogleRoleSelect />} />
       <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
       <Route path="/student/create-escrow" element={<ProtectedRoute allowedRoles={['student']}><CreateEscrow /></ProtectedRoute>} />

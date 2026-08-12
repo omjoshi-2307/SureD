@@ -1,14 +1,11 @@
+require("dotenv").config();
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
-
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
-
-dotenv.config();
 
 const app = express();
 
@@ -26,12 +23,15 @@ app.use(morgan("dev"));
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
   "https://sure-d.vercel.app",
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: true,
     credentials: true,
   })
 );
@@ -58,6 +58,6 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT} (0.0.0.0)`);
 });

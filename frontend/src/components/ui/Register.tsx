@@ -7,8 +7,8 @@ import { registerUser, googleLogin } from "../../services/authService";
 import { initGoogleSignIn, setGoogleCallback, renderHiddenGoogleButton, clickGoogleSignIn, destroyHiddenGoogleButton } from '../../services/googleSignInService';
 
 interface RegisterProps {
-  onBack: () => void;
-  onSignIn: () => void;
+  onBack?: () => void;
+  onSignIn?: () => void;
   /** Demo only: called with selected role on submit. Replace with real auth later. */
   onRegister?: (role: 'student' | 'landlord') => void;
 }
@@ -42,6 +42,16 @@ const iconWrap: React.CSSProperties = {
 
 const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) onBack();
+    else navigate('/');
+  };
+
+  const handleGoSignIn = () => {
+    if (onSignIn) onSignIn();
+    else navigate('/login');
+  };
   const [role, setRole] = useState<'student' | 'landlord'>('student');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -153,14 +163,19 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
 
     setLoading(true);
     try {
-      await registerUser({
+      const res = await registerUser({
         name: `${firstName.trim()} ${lastName.trim()}`,
         email: email.trim(),
         password,
         role,
       });
-      // On success: switch to the Login screen
-      onSignIn();
+      // On success: Navigate directly to dashboard
+      const userRole = res?.user?.role || role;
+      if (onRegister) {
+        onRegister(userRole);
+      } else {
+        navigate(userRole === 'student' ? '/student/dashboard' : '/landlord/dashboard');
+      }
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -240,7 +255,7 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
 
       {/* ── Back Button ── */}
       <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 20 }}>
-        <button onClick={onBack} className="btn-glass" style={{ padding: '9px 18px', fontSize: '0.82rem' }}>
+        <button onClick={handleBack} className="btn-glass" style={{ padding: '9px 18px', fontSize: '0.82rem' }}>
           <ArrowLeft size={13} strokeWidth={2.5} aria-hidden="true" />
           Back to home
         </button>
@@ -637,7 +652,7 @@ const Register: React.FC<RegisterProps> = ({ onBack, onSignIn, onRegister }) => 
           Already have an account?{' '}
           <a
             href="#"
-            onClick={e => { e.preventDefault(); onSignIn(); }}
+            onClick={e => { e.preventDefault(); handleGoSignIn(); }}
             style={{
               color: '#A78BFA', fontWeight: 600, textDecoration: 'none',
               transition: 'color 0.2s',

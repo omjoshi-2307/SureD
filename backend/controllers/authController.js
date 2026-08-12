@@ -9,10 +9,11 @@ exports.register = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.trim().toLowerCase() });
 
     if (user) {
       return res.status(400).json({
+        success: false,
         message: "User already exists",
       });
     }
@@ -23,16 +24,36 @@ exports.register = async (req, res) => {
     // Create new user
     user = new User({
       name,
-      email,
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
-      role,
+      role: role || "student",
     });
 
     await user.save();
 
+    // Generate JWT Token so user logs in directly upon registration
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
     res.status(201).json({
       success: true,
       message: "Registration Successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        walletAddress: user.walletAddress || "",
+      },
     });
   } catch (err) {
     res.status(500).json({
@@ -212,5 +233,74 @@ exports.login = async (req, res) => {
       success: false,
       error: err.message,
     });
+  }
+};
+
+// Forgot Password - Generate 6-digit OTP
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No account found with this email" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordOtp = otp;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save();
+
+    console.log(`🔑 Password reset OTP for ${user.email}: ${otp}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset verification code generated successfully.",
+      otp: otp, // Included for development / testing convenience
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// Reset Password - Verify OTP & update password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ success: false, message: "Email, OTP code, and new password are required" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
+    }
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+      resetPasswordOtp: otp.trim(),
+      resetPasswordExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired reset verification code" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordOtp = "";
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully. You can now log in with your new password.",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 };

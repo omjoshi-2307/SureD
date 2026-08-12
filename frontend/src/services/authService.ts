@@ -108,6 +108,9 @@ const clearAuth = () => {
 
 export const registerUser = async (data: RegisterData) => {
   const response = await API.post("/auth/register", data);
+  if (response.data.token && response.data.user) {
+    saveAuth(response.data.token, response.data.user);
+  }
   return response.data;
 };
 
@@ -124,6 +127,16 @@ export const googleLogin = async (data: GoogleLoginData) => {
     saveAuth(response.data.token, response.data.user);
   }
 
+  return response.data;
+};
+
+export const requestPasswordReset = async (email: string) => {
+  const response = await API.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+export const confirmPasswordReset = async (data: { email: string; otp: string; newPassword: string }) => {
+  const response = await API.post("/auth/reset-password", data);
   return response.data;
 };
 

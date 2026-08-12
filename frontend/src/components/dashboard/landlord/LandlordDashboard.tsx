@@ -8,6 +8,7 @@ import {
   TrendingUp, Wallet,
 } from 'lucide-react';
 import { getEscrowsByLandlordDb } from '@/services/escrowService';
+import { WalletConnectBanner } from "@/components/ui/WalletConnectBanner";
 import { connectWallet } from '@/services/walletService';
 import { updateWallet } from '@/services/authService';
 
@@ -156,6 +157,12 @@ const LandlordDashboard: React.FC = () => {
       <style>{`
         @keyframes ldPulse { 0%{opacity:0.6} 50%{opacity:1} 100%{opacity:0.6} }
       `}</style>
+
+      {/* ── Wallet Connect Asking Bar ── */}
+      <WalletConnectBanner onWalletConnected={(addr) => {
+        setWalletAddress(addr);
+        loadData(addr);
+      }} />
 
       {/* ── Welcome Banner ── */}
       <div style={{
