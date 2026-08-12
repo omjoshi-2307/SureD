@@ -227,7 +227,7 @@ const CreateEscrow: React.FC = () => {
 
       // 2. Database persistence
       try {
-        await createEscrowDb({
+        const dbRes = await createEscrowDb({
           escrowId: result.escrowId,
           transactionHash: result.txHash,
           studentWallet: result.studentWallet,
@@ -245,7 +245,7 @@ const CreateEscrow: React.FC = () => {
 
         // 3. Both succeeded
         showToast("Escrow Created Successfully!");
-        const targetId = result.escrowId !== undefined ? String(result.escrowId) : "ESC-001";
+        const targetId = result.escrowId !== undefined ? String(result.escrowId) : (dbRes?.escrow?._id || dbRes?._id || "");
         setTimeout(() => navigate(`/student/payment-journey/${targetId}`, {
           state: {
             depositAmount: deposit * 86.40, // convert standard XLM to INR-like visual values

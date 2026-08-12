@@ -183,9 +183,15 @@ exports.googleLogin = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
 
-    // Check if user exists
-    const user = await User.findOne({ email });
+    // Check if user exists (normalized lowercase)
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
 
     if (!user) {
       return res.status(400).json({

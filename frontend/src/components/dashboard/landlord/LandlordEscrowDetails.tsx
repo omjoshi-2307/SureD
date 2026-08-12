@@ -12,9 +12,10 @@ import {
   getEscrowDb,
   releaseEscrowDb,
   confirmEscrowDb,
+  refundEscrowDb,
 } from "@/services/escrowService";
 
-import { releaseEscrow, confirmEscrow } from "@/services/sorobanService";
+import { releaseEscrow, confirmEscrow, refundEscrow } from "@/services/sorobanService";
 import { FiatValue } from '@/components/ui/FiatValue';
 import { StellarExplorerLink } from '@/components/ui/StellarExplorerLink';
 import { InspectionPhotoVault } from '@/components/ui/InspectionPhotoVault';
@@ -41,8 +42,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 // Button is enabled only when the escrow is in the matching state
 const ACTION_RULES: Record<string, { depositReceived: boolean; confirmMoveIn: boolean; releaseDeposit: boolean; refundDeposit: boolean }> = {
   CREATED:              { depositReceived: true,  confirmMoveIn: false, releaseDeposit: false, refundDeposit: false },
-  FUNDED:               { depositReceived: false, confirmMoveIn: true,  releaseDeposit: false, refundDeposit: false },
-  PENDING_CONFIRMATION: { depositReceived: false, confirmMoveIn: false, releaseDeposit: true,  refundDeposit: false },
+  FUNDED:               { depositReceived: false, confirmMoveIn: true,  releaseDeposit: false, refundDeposit: true  },
+  PENDING_CONFIRMATION: { depositReceived: false, confirmMoveIn: false, releaseDeposit: true,  refundDeposit: true  },
   RELEASED:             { depositReceived: false, confirmMoveIn: false, releaseDeposit: false, refundDeposit: false },
   DISPUTED:             { depositReceived: false, confirmMoveIn: false, releaseDeposit: false, refundDeposit: true  },
   CANCELLED:            { depositReceived: false, confirmMoveIn: false, releaseDeposit: false, refundDeposit: false },
@@ -174,13 +175,30 @@ const LandlordEscrowDetails: React.FC = () => {
       const targetId = escrow.escrowId !== undefined ? escrow.escrowId : escrow._id;
 
       if (action === "releaseDeposit") {
+        if (!escrow?.escrowId) {
+          throw new Error("Blockchain Escrow ID not found.");
+        }
         const result = await releaseEscrow(escrow.escrowId);
-        await releaseEscrowDb(escrow.escrowId, {
+        await releaseEscrowDb(targetId, {
           txHash: result.txHash,
         });
-        const refreshed = await getEscrowDb(escrow.escrowId);
+        const refreshed = await getEscrowDb(targetId);
         setEscrow(refreshed.escrow || refreshed);
         showToast("Deposit released successfully!", "success");
+        return;
+      }
+
+      if (action === "refundDeposit") {
+        if (!escrow?.escrowId) {
+          throw new Error("Blockchain Escrow ID not found.");
+        }
+        const result = await refundEscrow(escrow.escrowId);
+        await refundEscrowDb(targetId, {
+          txHash: result.txHash,
+        });
+        const refreshed = await getEscrowDb(targetId);
+        setEscrow(refreshed.escrow || refreshed);
+        showToast("Deposit refunded successfully!", "success");
         return;
       }
 
@@ -198,12 +216,8 @@ const LandlordEscrowDetails: React.FC = () => {
 
       const msgs: Record<string, [string, typeof toastType]> = {
         depositReceived: [
-          "Deposit marked as received",
-          "success",
-        ],
-        refundDeposit: [
-          "Refund initiated",
-          "warning",
+          "Deposit is funded and held on-chain.",
+          "info",
         ],
       };
 

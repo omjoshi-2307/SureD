@@ -85,22 +85,24 @@ exports.getHistoryByStudent = async (req, res) => {
     const { sort = "newest", page = 1, limit = 20, type } = req.query;
     const sortDir = sort === "oldest" ? 1 : -1;
     const skip = (Number(page) - 1) * Number(limit);
+    const walletRegex = new RegExp("^" + wallet.trim() + "$", "i");
 
     // Find all escrows where student is studentWallet
-    const escrows = await Escrow.find({ studentWallet: wallet });
-    if (escrows.length === 0) {
-      return res.status(200).json({ success: true, history: [], total: 0, page: Number(page) });
+    const escrows = await Escrow.find({ studentWallet: walletRegex });
+    const escrowMongoIds = escrows.map((e) => String(e._id));
+    const escrowNumericIds = escrows
+      .map((e) => e.escrowId)
+      .filter((id) => id !== undefined && id !== null);
+
+    const orConditions = [{ actorWallet: walletRegex }];
+    if (escrowMongoIds.length > 0) {
+      orConditions.push({ mongoEscrowId: { $in: escrowMongoIds } });
+    }
+    if (escrowNumericIds.length > 0) {
+      orConditions.push({ escrowId: { $in: escrowNumericIds } });
     }
 
-    const escrowMongoIds = escrows.map(e => String(e._id));
-    const escrowNumericIds = escrows.map(e => e.escrowId).filter(id => id !== undefined && id !== null);
-
-    const query = {
-      $or: [
-        { mongoEscrowId: { $in: escrowMongoIds } },
-        { escrowId: { $in: escrowNumericIds } }
-      ]
-    };
+    const query = { $or: orConditions };
     if (type && type !== "All") query.action = type;
 
     const [history, total] = await Promise.all([
@@ -129,22 +131,24 @@ exports.getHistoryByLandlord = async (req, res) => {
     const { sort = "newest", page = 1, limit = 20, type } = req.query;
     const sortDir = sort === "oldest" ? 1 : -1;
     const skip = (Number(page) - 1) * Number(limit);
+    const walletRegex = new RegExp("^" + wallet.trim() + "$", "i");
 
     // Find all escrows where landlord is landlordWallet
-    const escrows = await Escrow.find({ landlordWallet: wallet });
-    if (escrows.length === 0) {
-      return res.status(200).json({ success: true, history: [], total: 0, page: Number(page) });
+    const escrows = await Escrow.find({ landlordWallet: walletRegex });
+    const escrowMongoIds = escrows.map((e) => String(e._id));
+    const escrowNumericIds = escrows
+      .map((e) => e.escrowId)
+      .filter((id) => id !== undefined && id !== null);
+
+    const orConditions = [{ actorWallet: walletRegex }];
+    if (escrowMongoIds.length > 0) {
+      orConditions.push({ mongoEscrowId: { $in: escrowMongoIds } });
+    }
+    if (escrowNumericIds.length > 0) {
+      orConditions.push({ escrowId: { $in: escrowNumericIds } });
     }
 
-    const escrowMongoIds = escrows.map(e => String(e._id));
-    const escrowNumericIds = escrows.map(e => e.escrowId).filter(id => id !== undefined && id !== null);
-
-    const query = {
-      $or: [
-        { mongoEscrowId: { $in: escrowMongoIds } },
-        { escrowId: { $in: escrowNumericIds } }
-      ]
-    };
+    const query = { $or: orConditions };
     if (type && type !== "All") query.action = type;
 
     const [history, total] = await Promise.all([
@@ -173,29 +177,31 @@ exports.getHistoryByWallet = async (req, res) => {
     const { sort = "newest", page = 1, limit = 20, type } = req.query;
     const sortDir = sort === "oldest" ? 1 : -1;
     const skip = (Number(page) - 1) * Number(limit);
+    const walletRegex = new RegExp("^" + wallet.trim() + "$", "i");
 
     // Determine ownership query based on req.user.role
     const escrowQuery = {};
     if (req.user && req.user.role === "landlord") {
-      escrowQuery.landlordWallet = wallet;
+      escrowQuery.landlordWallet = walletRegex;
     } else {
-      escrowQuery.studentWallet = wallet;
+      escrowQuery.studentWallet = walletRegex;
     }
 
     const escrows = await Escrow.find(escrowQuery);
-    if (escrows.length === 0) {
-      return res.status(200).json({ success: true, history: [], total: 0, page: Number(page) });
+    const escrowMongoIds = escrows.map((e) => String(e._id));
+    const escrowNumericIds = escrows
+      .map((e) => e.escrowId)
+      .filter((id) => id !== undefined && id !== null);
+
+    const orConditions = [{ actorWallet: walletRegex }];
+    if (escrowMongoIds.length > 0) {
+      orConditions.push({ mongoEscrowId: { $in: escrowMongoIds } });
+    }
+    if (escrowNumericIds.length > 0) {
+      orConditions.push({ escrowId: { $in: escrowNumericIds } });
     }
 
-    const escrowMongoIds = escrows.map(e => String(e._id));
-    const escrowNumericIds = escrows.map(e => e.escrowId).filter(id => id !== undefined && id !== null);
-
-    const query = {
-      $or: [
-        { mongoEscrowId: { $in: escrowMongoIds } },
-        { escrowId: { $in: escrowNumericIds } }
-      ]
-    };
+    const query = { $or: orConditions };
     if (type && type !== "All") query.action = type;
 
     const [history, total] = await Promise.all([

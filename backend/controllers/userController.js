@@ -9,11 +9,24 @@ const buildActivity = (history) => {
 
   return history.slice(0, 8).map((entry) => ({
     id: entry._id.toString(),
-    title: entry.action || "Account Activity",
+    title: entry.action ? (entry.action.replace(/_/g, " ")) : "Account Activity",
     timestamp: entry.createdAt,
     status: entry.statusAfter || "Completed",
     transactionLink: entry.txHash ? `https://stellar.expert/explorer/testnet/tx/${entry.txHash}` : undefined,
-    icon: entry.action === "CREATED" ? "🛡️" : entry.action === "FUNDED" ? "💰" : entry.action === "RELEASED" ? "✅" : entry.action === "DISPUTED" ? "⚠️" : "🔗",
+    icon:
+      entry.action === "ESCROW_CREATED" || entry.action === "CREATED"
+        ? "🛡️"
+        : entry.action === "DEPOSIT" || entry.action === "FUNDED"
+        ? "💰"
+        : entry.action === "STUDENT_CONFIRM" || entry.action === "LANDLORD_CONFIRM"
+        ? "🤝"
+        : entry.action === "RELEASE" || entry.action === "RELEASED"
+        ? "✅"
+        : entry.action === "REFUND" || entry.action === "REFUNDED"
+        ? "↩️"
+        : entry.action === "DISPUTE_RAISED" || entry.action === "DISPUTED"
+        ? "⚠️"
+        : "🔗",
   }));
 };
 
@@ -53,14 +66,15 @@ exports.getProfile = async (req, res) => {
     }
 
     const wallet = user.walletAddress || "";
-    const escrows = wallet
+    const walletRegex = wallet ? new RegExp("^" + wallet.trim() + "$", "i") : null;
+    const escrows = walletRegex
       ? await Escrow.find({
-          $or: [{ studentWallet: wallet }, { landlordWallet: wallet }],
+          $or: [{ studentWallet: walletRegex }, { landlordWallet: walletRegex }],
         }).sort({ createdAt: -1 })
       : [];
 
-    const history = wallet
-      ? await TransactionHistory.find({ actorWallet: wallet }).sort({ createdAt: -1 }).limit(8)
+    const history = walletRegex
+      ? await TransactionHistory.find({ actorWallet: walletRegex }).sort({ createdAt: -1 }).limit(8)
       : [];
 
     const completedEscrows = escrows.filter((escrow) => escrow.status === "RELEASED").length;

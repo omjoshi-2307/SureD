@@ -83,6 +83,22 @@ export const releaseEscrowDb = async (
   return response.data;
 };
 
+export interface RefundEscrowDbParams {
+  txHash: string;
+}
+
+export const refundEscrowDb = async (
+  id: string | number,
+  data: RefundEscrowDbParams
+) => {
+  const response = await API.patch(
+    `/escrows/${id}/refund`,
+    data
+  );
+
+  return response.data;
+};
+
 export interface CancelEscrowDbParams {
   reason?: string;
 }

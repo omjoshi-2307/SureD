@@ -33,6 +33,7 @@ export default function PaymentJourney() {
   
   const exchangeRate = 86.40;
   const amountUsdc = (amountInr / exchangeRate).toFixed(2);
+  const [loadedEscrow, setLoadedEscrow] = useState<any>(null);
 
   // Load live escrow details
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function PaymentJourney() {
         .then((res: any) => {
           const esc = res.escrow || res;
           if (esc) {
+            setLoadedEscrow(esc);
             if (esc.status === 'FUNDED' || esc.status === 'PENDING_CONFIRMATION') {
               setActiveScreen(5);
             } else if (esc.status === 'RELEASED') {
@@ -98,11 +100,18 @@ export default function PaymentJourney() {
         await new Promise(r => setTimeout(r, 1200));
         setProcStep(4); // Creating blockchain escrow
 
-        // Step 4: Creating Blockchain Escrow
-        const result = await depositEscrow(Number(id));
+        const targetNumericId = loadedEscrow?.escrowId !== undefined ? Number(loadedEscrow.escrowId) : (!isNaN(Number(id)) ? Number(id) : null);
+        const targetDbId = loadedEscrow?._id || id;
+
+        if (targetNumericId === null || isNaN(targetNumericId)) {
+          throw new Error("Blockchain Escrow ID not found.");
+        }
+
+        // Step 4: Creating Blockchain Escrow (Deposit)
+        const result = await depositEscrow(targetNumericId);
 
         // Step 5: Save database state & success
-        await fundEscrowDb(Number(id), { txHash: result.txHash });
+        await fundEscrowDb(targetDbId, { txHash: result.txHash });
         setProcStep(5);
         await new Promise(r => setTimeout(r, 1200));
         

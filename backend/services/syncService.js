@@ -27,8 +27,8 @@ exports.syncEscrowState = async (escrowId) => {
     throw new Error("Escrow not found in database.");
   }
 
-  const rpcUrl = process.env.VITE_SOROBAN_RPC || "https://soroban-testnet.stellar.org";
-  const networkPassphrase = process.env.VITE_NETWORK_PASSPHRASE || Networks.TESTNET;
+  const rpcUrl = process.env.SOROBAN_RPC || process.env.VITE_SOROBAN_RPC || "https://soroban-testnet.stellar.org";
+  const networkPassphrase = process.env.NETWORK_PASSPHRASE || process.env.VITE_NETWORK_PASSPHRASE || Networks.TESTNET;
   const contractId = escrow.contractId;
 
   const server = new rpc.Server(rpcUrl);

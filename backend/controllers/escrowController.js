@@ -172,7 +172,8 @@ exports.getEscrowsByStudent = async (req, res) => {
       }
     }
 
-    const escrows = await Escrow.find({ studentWallet: wallet });
+    const walletRegex = new RegExp("^" + wallet.trim() + "$", "i");
+    const escrows = await Escrow.find({ studentWallet: walletRegex });
 
     res.status(200).json({
       success: true,
@@ -213,7 +214,8 @@ exports.getEscrowsByLandlord = async (req, res) => {
       }
     }
 
-    const escrows = await Escrow.find({ landlordWallet: wallet });
+    const walletRegex = new RegExp("^" + wallet.trim() + "$", "i");
+    const escrows = await Escrow.find({ landlordWallet: walletRegex });
 
     console.log("Escrows found:", escrows.length);
 
@@ -707,12 +709,37 @@ exports.cancelEscrow = async (req, res) => {
       });
     }
 
+    if (escrow.status === "REFUNDED") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel a refunded escrow",
+      });
+    }
+
     const statusBefore = escrow.status;
     escrow.status = "CANCELLED";
     if (reason) escrow.cancelReason = reason;
     escrow.cancelledAt = new Date();
 
     await escrow.save();
+
+    // ── Record history ──
+    const requesterWallet = await getRequesterWallet(req.user.id);
+    createHistoryRecord({
+      escrowId: escrow.escrowId,
+      mongoEscrowId: String(escrow._id),
+      txHash: `CANCEL_${escrow.escrowId || escrow._id}_${Date.now()}`,
+      action: "CANCELLED",
+      actorWallet: requesterWallet || escrow.studentWallet,
+      role: req.user.role,
+      propertyName: escrow.propertyName,
+      amount: escrow.depositAmount,
+      currency: escrow.currency,
+      network: escrow.blockchainNetwork,
+      contractId: escrow.contractId,
+      statusBefore,
+      statusAfter: "CANCELLED",
+    }).catch((err) => console.error("History record error (cancelEscrow):", err.message));
 
     res.status(200).json({
       success: true,

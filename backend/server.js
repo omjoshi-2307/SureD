@@ -43,7 +43,6 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/escrows", require("./routes/escrowRoutes"));
 app.use("/api/transactions", require("./routes/historyRoutes"));
-// app.use("/api/payment", paymentRoutes);
 
 // 404 Handler
 app.use((req, res) => {
