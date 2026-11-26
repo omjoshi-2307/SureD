@@ -981,22 +981,6 @@ for bringing Rust-grade safety to smart contracts
 <tr>
 <td align="center" width="50%">
 
-**[The Rust Community](https://www.rust-lang.org/community)**
-
-for a language where financial bugs go to die
-
-</td>
-<td align="center" width="50%">
-
-**[React](https://react.dev)** · **[Vite](https://vitejs.dev)** · **[Tailwind CSS](https://tailwindcss.com)**
-
-for making beautiful UIs fast to build
-
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-
 **[Freighter](https://www.freighter.app/)**
 
 for frictionless, non-custodial signing
@@ -1004,14 +988,21 @@ for frictionless, non-custodial signing
 </td>
 <td align="center" width="50%">
 
-**Hackathon organizers & mentors**
+**[The Rust Community](https://www.rust-lang.org/community)**
 
-for the deadline that turned an idea into a product
+for a language where financial bugs go to die
 
 </td>
 </tr>
 <tr>
-<td colspan="2" align="center">
+<td align="center" width="50%">
+
+**[React](https://react.dev)** · **[Vite](https://vitejs.dev)** · **[Tailwind CSS](https://tailwindcss.com)**
+
+for making beautiful UIs fast to build
+
+</td>
+<td align="center" width="50%">
 
 **The Open Source Community**
 
@@ -1019,10 +1010,18 @@ for every library, answer, and example that made this possible
 
 </td>
 </tr>
+<tr>
+<td colspan="2" align="center">
+
+**Hackathon organizers & mentors**
+
+for the deadline that turned an idea into a product
+
+</td>
+</tr>
 </table>
 
 </div>
-
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <!--                              FOOTER                                 -->
 <!-- ══════════════════════════════════════════════════════════════════ -->
