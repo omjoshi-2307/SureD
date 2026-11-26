@@ -21,8 +21,8 @@
 
 <!-- ── Badge wall ─────────────────────────────────────────────── -->
 
-[![Stars](https://img.shields.io/github/stars/your-org/suredeposit?style=for-the-badge&logo=github&color=8B5CF6&labelColor=0D1117)](https://github.com/your-org/suredeposit/stargazers)
-[![Forks](https://img.shields.io/github/forks/your-org/suredeposit?style=for-the-badge&logo=github&color=6366F1&labelColor=0D1117)](https://github.com/your-org/suredeposit/network/members)
+[![Stars](https://img.shields.io/github/stars/omjoshi-2307/SureD?style=for-the-badge&logo=github&color=8B5CF6&labelColor=0D1117)](https://github.com/omjoshi-2307/SureD/stargazers)
+[![Forks](https://img.shields.io/github/forks/Khushal-93/SureD?style=for-the-badge&logo=github&color=6366F1&labelColor=0D1117)](https://github.com/Khushal-93/SureD/network/members)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge&labelColor=0D1117)](LICENSE)
 [![Build](https://img.shields.io/badge/Build-Passing-22C55E?style=for-the-badge&logo=githubactions&logoColor=white&labelColor=0D1117)](#testing)
 
@@ -44,7 +44,7 @@
 
 <br/><br/>
 
-**[Live Demo](#)** &nbsp;·&nbsp; **[Documentation](#table-of-contents)** &nbsp;·&nbsp; **[Report Bug](https://github.com/your-org/suredeposit/issues)** &nbsp;·&nbsp; **[Request Feature](https://github.com/your-org/suredeposit/issues)**
+**[Live Demo](#)** &nbsp;·&nbsp; **[Documentation](#table-of-contents)** &nbsp;·&nbsp; **[Report Bug](https://github.com/omjoshi-2307/SureD/issues)** &nbsp;·&nbsp; **[Request Feature](https://github.com/omjoshi-2307/SureD/issues)**
 
 </div>
 
@@ -471,7 +471,7 @@ SureD/
 ### 1 — Clone & Install
 
 ```bash
-git clone https://github.com/your-org/suredeposit.git
+git clone https://github.com/omjoshi-2307/SureD.git
 cd suredeposit
 
 # Frontend dependencies
@@ -890,50 +890,70 @@ See [LICENSE](LICENSE) for the full text.
 
 ## Authors
 
+The contributors below are identified from the commit history of the original `Khushal-93/SureD:main` branch. Roles summarize the work visible in their commits.
+
 <div align="center">
 
 <table>
 <tr>
-<td align="center" width="200">
-<img src="https://github.com/your-username.png" width="100" style="border-radius: 50%" alt="Khushal"/>
-<br/>
-<b>Khushal</b>
-<br/>
-<sub>Creator & Lead Developer</sub>
-<br/>
-<sub>Smart Contracts · Full-Stack · Product</sub>
-<br/><br/>
-<a href="https://github.com/your-username">
-<img src="https://img.shields.io/badge/GitHub-0D1117?style=flat-square&logo=github" alt="GitHub"/>
+<td align="center" width="250">
+<a href="https://github.com/Khushal-93">
+<img src="https://github.com/Khushal-93.png" width="100" alt="Khushal Choudhary"/>
 </a>
+<br/>
+<b><a href="https://github.com/Khushal-93">Khushal Choudhary</a></b>
+<br/>
+<sub>Project Creator & Lead Developer</sub>
+<br/>
+<sub>Core Product · Soroban Smart Contracts · Full-Stack Development · Deployment</sub>
 </td>
-<td align="center" width="200">
-<img src="https://via.placeholder.com/100/1a1333/7C3AED?text=%2B" width="100" style="border-radius: 50%" alt="You?"/>
-<br/>
-<b>Your Name Here</b>
-<br/>
-<sub>Future Contributor</sub>
-<br/>
-<sub>This spot is waiting for you</sub>
-<br/><br/>
-<a href="#contributing">
-<img src="https://img.shields.io/badge/Join_Us-22C55E?style=flat-square&logo=git&logoColor=white" alt="Contribute"/>
+<td align="center" width="250">
+<a href="https://github.com/omjoshi-2307">
+<img src="https://github.com/omjoshi-2307.png" width="100" alt="Om Joshi"/>
 </a>
+<br/>
+<b><a href="https://github.com/omjoshi-2307">Om Joshi</a></b>
+<br/>
+<sub>Full-Stack Contributor</sub>
+<br/>
+<sub>Frontend UI · Legal Pages · Documentation · Escrow, Auth & History Stabilization</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="250">
+<a href="https://github.com/Tushar15769">
+<img src="https://github.com/Tushar15769.png" width="100" alt="Tushar15769"/>
+</a>
+<br/>
+<b><a href="https://github.com/Tushar15769">Tushar15769</a></b>
+<br/>
+<sub>Backend & Integration Contributor</sub>
+<br/>
+<sub>Backend Foundation · Authentication · Wallet Integration · Escrow Workflow · Transaction History</sub>
+</td>
+<td align="center" width="250">
+<a href="https://github.com/pushkarshinde007">
+<img src="https://github.com/pushkarshinde007.png" width="100" alt="pushkarshinde007"/>
+</a>
+<br/>
+<b><a href="https://github.com/pushkarshinde007">pushkarshinde007</a></b>
+<br/>
+<sub>Developer Experience Contributor</sub>
+<br/>
+<sub>Project Scripts · Unified Development Workflow · Favicon</sub>
 </td>
 </tr>
 </table>
 
 <br/>
 
-<!-- Star history — animates as the repo grows -->
+<!-- Star history for this repository -->
 
-<a href="https://star-history.com/#your-org/suredeposit&Date">
-<img src="https://api.star-history.com/svg?repos=your-org/suredeposit&type=Date&theme=dark" alt="Star History Chart" width="600"/>
+<a href="https://star-history.com/#omjoshi-2307/SureD&Date">
+<img src="https://api.star-history.com/svg?repos=omjoshi-2307/SureD&type=Date&theme=dark" alt="Star History Chart" width="600"/>
 </a>
 
 </div>
-
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
 ## Acknowledgements
 
@@ -971,7 +991,7 @@ Standing on the shoulders of giants:
 
 <br/>
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-0D1117?style=for-the-badge&logo=github)](https://github.com/your-org/suredeposit)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-0D1117?style=for-the-badge&logo=github)](https://github.com/omjoshi-2307/SureD)
 [![Website](https://img.shields.io/badge/Website-Coming_Soon-7C3AED?style=for-the-badge&logo=googlechrome&logoColor=white)](#)
 [![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](#)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](#)
