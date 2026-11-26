@@ -237,6 +237,37 @@ flowchart LR
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
+## Workflow
+
+The complete journey — from a nervous student to a verified, on-chain deposit release:
+
+```mermaid
+flowchart TD
+    S1["Student registers &<br/>connects Freighter wallet"] --> S2["Creates escrow:<br/>landlord address + deposit amount"]
+    S2 --> S3["initialize() on-chain<br/><sub>Escrow #N — CREATED</sub>"]
+    S3 --> S4["Student signs deposit()<br/><sub>XLM locked in contract — FUNDED</sub>"]
+    S4 --> S5["Landlord sees escrow<br/>in Incoming Escrows"]
+    S5 --> S6{"Move-in day:<br/>both confirm?"}
+    S6 -->|"Student confirms"| S7["confirm() — flag 1/2"]
+    S6 -->|"Landlord confirms"| S7
+    S7 --> S8["PENDING_CONFIRMATION<br/><sub>Both flags true</sub>"]
+    S8 --> S9["Landlord signs release()<br/><sub>Contract pays landlord — RELEASED</sub>"]
+    S6 -->|"Deal falls through"| S10["Landlord signs refund()<br/><sub>Contract repays student — CANCELLED</sub>"]
+    S9 --> S11["Anyone verifies the tx<br/>on Stellar Explorer"]
+    S10 --> S11
+
+    style S3 fill:#14532d,stroke:#22C55E,color:#fff
+    style S4 fill:#1e3a8a,stroke:#3B82F6,color:#fff
+    style S8 fill:#4c1d95,stroke:#8B5CF6,color:#fff
+    style S9 fill:#713f12,stroke:#F59E0B,color:#fff
+    style S10 fill:#7f1d1d,stroke:#EF4444,color:#fff
+```
+
+> [!TIP]
+> Every step above produces a **transaction hash** shown in the UI. Paste it into [stellar.expert](https://stellar.expert/explorer/testnet) — the entire financial history of your escrow is publicly auditable, forever.
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
+
 ## Smart Contract
 
 The core of SureDeposit is a compact, auditable Soroban contract written in **Rust** — a strict state machine where every transition is guarded by authentication and validation.
@@ -596,37 +627,6 @@ https://friendbot.stellar.org/?addr=G...YOUR_PUBLIC_KEY
 <sub>Fully responsive — the entire escrow lifecycle works from a phone.</sub>
 
 </div>
-
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
-
-## Workflow
-
-The complete journey — from a nervous student to a verified, on-chain deposit release:
-
-```mermaid
-flowchart TD
-    S1["Student registers &<br/>connects Freighter wallet"] --> S2["Creates escrow:<br/>landlord address + deposit amount"]
-    S2 --> S3["initialize() on-chain<br/><sub>Escrow #N — CREATED</sub>"]
-    S3 --> S4["Student signs deposit()<br/><sub>XLM locked in contract — FUNDED</sub>"]
-    S4 --> S5["Landlord sees escrow<br/>in Incoming Escrows"]
-    S5 --> S6{"Move-in day:<br/>both confirm?"}
-    S6 -->|"Student confirms"| S7["confirm() — flag 1/2"]
-    S6 -->|"Landlord confirms"| S7
-    S7 --> S8["PENDING_CONFIRMATION<br/><sub>Both flags true</sub>"]
-    S8 --> S9["Landlord signs release()<br/><sub>Contract pays landlord — RELEASED</sub>"]
-    S6 -->|"Deal falls through"| S10["Landlord signs refund()<br/><sub>Contract repays student — CANCELLED</sub>"]
-    S9 --> S11["Anyone verifies the tx<br/>on Stellar Explorer"]
-    S10 --> S11
-
-    style S3 fill:#14532d,stroke:#22C55E,color:#fff
-    style S4 fill:#1e3a8a,stroke:#3B82F6,color:#fff
-    style S8 fill:#4c1d95,stroke:#8B5CF6,color:#fff
-    style S9 fill:#713f12,stroke:#F59E0B,color:#fff
-    style S10 fill:#7f1d1d,stroke:#EF4444,color:#fff
-```
-
-> [!TIP]
-> Every step above produces a **transaction hash** shown in the UI. Paste it into [stellar.expert](https://stellar.expert/explorer/testnet) — the entire financial history of your escrow is publicly auditable, forever.
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt=""/>
 
