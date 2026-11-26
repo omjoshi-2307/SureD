@@ -480,3 +480,175 @@ SureD starts by making a single rental security deposit more transparent. Its ne
 ---
 
 <sub>Documentation note: This file describes the current V1 concept and a proposed V2 direction. V2 capabilities, diagrams, data entities, and workflows are planning material until implemented, tested, and verified in the repository.</sub>
+
+
+---
+
+# Tenant Exit & Replacement Management
+
+## Why this feature matters
+
+Shared rentals are dynamic. A tenant may need to leave before the rental period ends because of a college transfer, internship, job relocation, financial changes, family circumstances, or disagreements within the household.
+
+A shared-deposit system must handle these situations without making the remaining tenants' financial responsibilities unpredictable.
+
+SureD V2 should therefore support a **Flexible Exit Model with Replacement Priority**:
+
+- Finding an approved replacement is the preferred route.
+- If no replacement is available, the departing tenant can still enter an agreed settlement process.
+- Neither a refund nor a transfer of financial responsibility happens automatically.
+
+This is a proposed V2 capability, not an implemented feature.
+
+## Recommended policy: Flexible Exit with Replacement Priority
+
+| Situation | SureD's intended handling |
+|---|---|
+| A suitable replacement is found | Start the replacement approval and onboarding process. |
+| No replacement is available | Start an agreed exit-settlement process. |
+| Landlord does not approve the replacement | Do not silently add the new tenant; use the applicable settlement process. |
+| Remaining tenants cannot agree | Keep the exit request pending or disputed; do not force a financial change. |
+| Departing tenant has outstanding obligations | Record them for review under the rental agreement and agreed terms. |
+
+Replacement-first alone is too restrictive: real-life circumstances do not always allow a departing tenant to find a replacement quickly. Flexible exit provides a fallback while replacement priority helps preserve the shared rental arrangement.
+
+## Tenant exit workflow
+
+```mermaid
+flowchart TD
+    A[Active tenant submits exit request] --> B[Record proposed exit date and reason]
+    B --> C[Review contribution and outstanding obligations]
+    C --> D[Notify remaining tenants and landlord]
+    D --> E{Replacement available?}
+    E -->|Yes| F[Review and approve replacement]
+    F --> G{Required approvals received?}
+    G -->|Yes| H[Replacement completes onboarding and contribution]
+    G -->|No| I[Keep request pending or move to settlement]
+    E -->|No| J[Start exit settlement]
+    I --> J
+    J --> K[Agree on refund, adjustment, or other settlement]
+    H --> L[Verify authorized financial transactions]
+    K --> L
+    L --> M[Update membership and financial records]
+    M --> N[Shared escrow continues for remaining tenants]
+```
+
+## Scenario A: Replacement tenant joins
+
+Example shared deposit:
+
+| Tenant | Original contribution |
+|---|---:|
+| Tenant A | ₹12,000 |
+| Tenant B | ₹10,000 |
+| Tenant C (leaving) | ₹8,000 |
+| **Total** | **₹30,000** |
+
+If Tenant C leaves and Tenant D is approved as the replacement:
+
+1. Tenant C submits an exit request.
+2. The remaining tenants and landlord review the proposed replacement, according to the rental agreement and platform rules.
+3. Tenant D completes onboarding and the required contribution.
+4. The platform records Tenant C's exit and Tenant D's new contribution as separate events.
+5. Any amount payable to Tenant C is settled only through the agreed and authorized process.
+6. The shared escrow continues with the updated membership.
+
+**Important:** Tenant D's contribution must not automatically be treated as a refund to Tenant C. The incoming contribution, outgoing settlement, and escrow balance must be accounted for explicitly.
+
+## Scenario B: No replacement is available
+
+If Tenant C cannot find a replacement, the group may consider an agreed settlement.
+
+For illustration, Tenant A and Tenant B might voluntarily agree to take on the vacant share:
+
+| Tenant | Original contribution | Illustrative revised share |
+|---|---:|---:|
+| Tenant A | ₹12,000 | ₹15,000 |
+| Tenant B | ₹10,000 | ₹15,000 |
+| Tenant C (leaving) | ₹8,000 | Settled separately |
+| **Continuing share total** | | **₹30,000** |
+
+This is only an example of a possible agreement. It must not happen automatically. The remaining tenants must not be forced to absorb another tenant's share, and any settlement must follow the rental agreement, applicable requirements, and required approvals.
+
+## Scenario C: Tenant leaves without an agreed exit
+
+If a tenant leaves without completing the agreed process:
+
+- The exit can remain pending or be marked as disputed.
+- SureD should preserve the original contribution and transaction history.
+- The platform should show unresolved obligations and notify the relevant parties.
+- It must not automatically release funds or transfer the departing tenant's share to others.
+
+Actual financial or legal responsibility depends on the rental agreement and applicable law. SureD records authorized decisions; it does not independently decide who is legally liable.
+
+## Proposed exit states
+
+The following are suggested application-level states. They are not existing V1 smart-contract states.
+
+| State | Meaning |
+|---|---|
+| `ACTIVE` | Tenant is an active member of the rental group. |
+| `EXIT_REQUESTED` | Tenant has submitted an exit request. |
+| `UNDER_REVIEW` | Contributions, obligations, and approvals are being reviewed. |
+| `REPLACEMENT_PENDING` | A proposed replacement is awaiting approval or funding. |
+| `SETTLEMENT_PENDING` | The parties are working through an agreed settlement. |
+| `EXITED` | The authorized exit and settlement process is complete. |
+| `DISPUTED` | The request or financial terms are contested. |
+| `REJECTED` | The request was rejected with a recorded reason. |
+
+Membership status and financial status should be tracked separately. A tenant leaving the group must not erase or rewrite their contribution history.
+
+## Core product rules and safeguards
+
+1. **No automatic refund:** Submitting an exit request does not itself authorize a refund.
+2. **No forced burden transfer:** Remaining tenants do not automatically inherit the departing tenant's financial share.
+3. **Explicit approvals:** Replacement, membership changes, and settlements require the approvals defined by the rental agreement and SureD's agreed rules.
+4. **Immutable history:** Preserve the departing tenant's original contribution and record all later transactions separately.
+5. **Verified transactions:** Do not mark a contribution, refund, or settlement as complete merely because a client submits a transaction hash. Verify the relevant on-chain transaction and resulting state.
+6. **Dispute handling:** If required parties disagree, preserve the funds and records according to the contract's dispute and timeout rules; do not invent an automatic outcome.
+7. **Clear accounting:** Distinguish security-deposit contributions from rent, damages, fees, and other obligations. Any deduction or adjustment must have an agreed and valid basis.
+
+## Proposed V2 module architecture
+
+```mermaid
+flowchart TD
+    A[Tenant Dashboard] --> B[Exit Request Module]
+    B --> C[Obligation and Contribution Review]
+    C --> D[Approval and Notification Service]
+    D --> E{Exit route}
+    E --> F[Replacement Management]
+    E --> G[Settlement Management]
+    F --> H[Transaction Verification]
+    G --> H
+    H --> I[Membership and Escrow Record Update]
+    I --> J[Audit Trail and Group Dashboard]
+```
+
+### Suggested data records
+
+- **ExitRequest:** request ID, rental group, tenant ID, proposed exit date, reason category, current status, timestamps.
+- **ReplacementProposal:** proposed tenant, approval status, required contribution, funding status.
+- **ExitSettlement:** agreed amount, adjustments, parties' approvals, transaction references, settlement status.
+- **MembershipHistory:** join/exit events, effective dates, actor and approval references.
+- **TransactionHistory:** original contributions and every subsequent verified deposit, refund, or settlement event.
+
+These are conceptual records. The final schema and contract interfaces require a separate technical design.
+
+## Open decisions before implementation
+
+- Which parties must approve a replacement or exit settlement?
+- Does the landlord need to approve every replacement?
+- What is the deadline for finding and funding a replacement?
+- What happens if the replacement is approved but does not fund?
+- How are partial contributions, unpaid rent, or disputed deductions handled?
+- Which settlement routes are supported by the smart contract?
+- What happens when the group cannot reach agreement?
+
+These rules must be agreed before implementation. The existing V1 two-party escrow contract should not be assumed to support multi-tenant exits or payouts without a contract-level review and likely extension.
+
+## Product decision
+
+**SureD V2 direction: Flexible Exit Model with Replacement Priority.**
+
+This balances continuity for the rental group with flexibility for people whose circumstances change. Replacement is the preferred path; an agreed settlement is the fallback. In both cases, transparent records, explicit authorization, and verified transactions protect the group.
+
