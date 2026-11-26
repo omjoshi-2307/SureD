@@ -959,21 +959,67 @@ The contributors below are identified from the commit history of the original `K
 
 <div align="center">
 
-Standing on the shoulders of giants:
+*Standing on the shoulders of giants.*
 
-**[Stellar Development Foundation](https://stellar.org)** — for a blockchain that makes financial fairness affordable
+<table>
+<tr>
+<td align="center" width="50%">
 
-**[Soroban](https://soroban.stellar.org)** — for bringing Rust-grade safety to smart contracts
+**[Stellar Development Foundation](https://stellar.org)**
 
-**[The Rust Community](https://www.rust-lang.org/community)** — for a language where financial bugs go to die
+for a blockchain that makes financial fairness affordable
 
-**[React](https://react.dev)** · **[Vite](https://vitejs.dev)** · **[Tailwind CSS](https://tailwindcss.com)** — for making beautiful UIs fast to build
+</td>
+<td align="center" width="50%">
 
-**[Freighter](https://www.freighter.app/)** — for frictionless, non-custodial signing
+**[Soroban](https://soroban.stellar.org)**
 
-**Hackathon organizers & mentors** — for the deadline that turned an idea into a product
+for bringing Rust-grade safety to smart contracts
 
-**The Open Source Community** — for every library, answer, and example that made this possible
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+
+**[The Rust Community](https://www.rust-lang.org/community)**
+
+for a language where financial bugs go to die
+
+</td>
+<td align="center" width="50%">
+
+**[React](https://react.dev)** · **[Vite](https://vitejs.dev)** · **[Tailwind CSS](https://tailwindcss.com)**
+
+for making beautiful UIs fast to build
+
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+
+**[Freighter](https://www.freighter.app/)**
+
+for frictionless, non-custodial signing
+
+</td>
+<td align="center" width="50%">
+
+**Hackathon organizers & mentors**
+
+for the deadline that turned an idea into a product
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center">
+
+**The Open Source Community**
+
+for every library, answer, and example that made this possible
+
+</td>
+</tr>
+</table>
 
 </div>
 
